@@ -1,0 +1,5 @@
+class ApiUrls {
+  static String login = '/auth/login';
+  static String getTeacherOrStudentList = '/v1/api/users';
+  static String findUserById(String userId) => '/v1/api/user/${userId}';
+}
