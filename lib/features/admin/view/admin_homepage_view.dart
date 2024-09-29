@@ -1,252 +1,3 @@
-// import 'package:exam_guardian/utils/app_colors.dart';
-// import 'package:flutter/cupertino.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter/rendering.dart';
-// import 'package:exam_guardian/features/admin/view/user_detail_view.dart';
-// import '../../../utils/text_style.dart';
-//
-// class AdminMainScreen extends StatefulWidget {
-//   const AdminMainScreen({super.key});
-//
-//   @override
-//   State<AdminMainScreen> createState() => _AdminMainScreenState();
-// }
-//
-// class _AdminMainScreenState extends State<AdminMainScreen>
-//     with SingleTickerProviderStateMixin {
-//   late TabController _tabController;
-//   final Map<String, dynamic> dummyUserData = {
-//     'id': 1,
-//     'username': 'phanvanduc',
-//     'password': 'hashedpassword123',
-//     // Trong thực tế, không nên lưu trữ mật khẩu như thế này
-//     'role': 'Teacher',
-//     'name': 'Phan Văn Đức',
-//     'email': 'phanvanduc@example.com',
-//     'phone_number': '0123456789',
-//     'avatar': 'https://example.com/avatars/phanvanduc.jpg',
-//     'gender': 'Male',
-//     'birth_date': '1985-05-15',
-//     'address': '123 Đường Lê Lợi, Quận 1, TP.HCM',
-//     'subject': 'Mathematics',
-//     'class': '10A1',
-//     'status': 'Active',
-//     'bio': 'Giáo viên toán với 10 năm kinh nghiệm giảng dạy.',
-//     'createdAt': '2023-01-01T08:00:00Z',
-//     'updatedAt': '2024-09-15T14:30:00Z',
-//     'last_login': '2024-09-27T09:45:00Z',
-//     'teaching_hours': 120,
-//     'rating': 4.8,
-//   };
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _tabController = TabController(length: 2, vsync: this);
-//   }
-//
-//   @override
-//   void dispose() {
-//     super.dispose();
-//     _tabController.dispose();
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: SafeArea(
-//         child: Padding(
-//           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               SizedBox(height: 24),
-//               Row(
-//                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                 children: [
-//                   Image.asset('assets/icons/exam_guard_logo.png'),
-//                   GestureDetector(
-//                     onTap: () {
-//                       Navigator.pushNamed(context, '/admin_profile_screen');
-//                     },
-//                     child: Container(
-//                       decoration: BoxDecoration(
-//                           shape: BoxShape.circle,
-//                           border: Border.all(width: 1, color: Colors.grey)),
-//                       child: CircleAvatar(
-//                         radius: 20,
-//                         backgroundImage:
-//                             AssetImage('assets/images/teacher_avatar.png'),
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//               Align(
-//                 alignment: Alignment.centerLeft,
-//                 child: TabBar(
-//                   dividerHeight: 0,
-//                   tabAlignment: TabAlignment.start,
-//                   controller: _tabController,
-//                   labelColor: AppColors.primaryColor,
-//                   unselectedLabelColor: Colors.black54,
-//                   indicatorColor: AppColors.primaryColor,
-//                   isScrollable: true,
-//                   tabs: [
-//                     Tab(text: 'Teacher'),
-//                     Tab(text: 'Student'),
-//                   ],
-//                 ),
-//               ),
-//               SizedBox(height: 16),
-//               Padding(
-//                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-//                 child: Row(
-//                   children: [
-//                     Flexible(
-//                       child: CupertinoSearchTextField(),
-//                     ),
-//                     IconButton(onPressed: () {}, icon: Icon(Icons.sort))
-//                   ],
-//                 ),
-//               ),
-//               SizedBox(height: 16),
-//               Expanded(
-//                 child: TabBarView(
-//                   controller: _tabController,
-//                   children: [
-//                     _buildManageList(), // Teacher tab
-//                     _buildManageList(), // Student tab
-//                   ],
-//                 ),
-//               ),
-//               SizedBox(height: 16),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildManageList() {
-//     return Column(
-//       children: [
-//         Expanded(
-//           child: ListView.builder(
-//             itemCount: 10,
-//             scrollDirection: Axis.vertical,
-//             itemBuilder: (context, index) {
-//               return GestureDetector(
-//                 onTap: () {
-//                   // Navigator.of(context).push(MaterialPageRoute(
-//                   //   builder: (context) => UserDetailScreen(user: dummyUserData),
-//                   // ));
-//                 },
-//                 child: Padding(
-//                   padding: EdgeInsets.only(bottom: 16),
-//                   child: Container(
-//                     height: 90,
-//                     width: 300,
-//                     decoration: BoxDecoration(
-//                       gradient: LinearGradient(
-//                         colors: [Color(0xFF303333), Color(0xFF75A7A1)],
-//                         // Bắt đầu và kết thúc màu gradient
-//                         begin: Alignment.centerLeft,
-//                         end: Alignment.centerRight,
-//                       ),
-//                       borderRadius:
-//                           BorderRadius.circular(10), // Bo góc cho Card
-//                     ),
-//                     child: Padding(
-//                       padding: EdgeInsets.all(10),
-//                       child: Row(
-//                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                         children: [
-//                           Row(
-//                             children: [
-//                               Column(
-//                                 mainAxisAlignment: MainAxisAlignment.center,
-//                                 children: [
-//                                   Image.asset(
-//                                     'assets/icons/id-card.png',
-//                                     width: 30,
-//                                     height: 30,
-//                                     color: Colors.white,
-//                                   ),
-//                                   Text(
-//                                     '01',
-//                                     style: TextStyles.bodyMedium
-//                                         .copyWith(color: Colors.white),
-//                                   )
-//                                 ],
-//                               ),
-//                               SizedBox(
-//                                 width: 10,
-//                               ),
-//                               Column(
-//                                 mainAxisAlignment: MainAxisAlignment.center,
-//                                 crossAxisAlignment: CrossAxisAlignment.start,
-//                                 children: [
-//                                   Row(
-//                                     children: [
-//                                       Image.asset(
-//                                         'assets/icons/name.png',
-//                                         width: 30,
-//                                         height: 30,
-//                                         color: Colors.white,
-//                                       ),
-//                                       Text(
-//                                         'Trần Hà My',
-//                                         style: TextStyles.bodyLarge
-//                                             .copyWith(color: Colors.white),
-//                                       )
-//                                     ],
-//                                   ),
-//                                   Row(
-//                                     children: [
-//                                       Icon(
-//                                         Icons.female,
-//                                         size: 30,
-//                                         color: Colors.pink,
-//                                       ),
-//                                       Text(
-//                                         'Female',
-//                                         style: TextStyles.bodyLarge
-//                                             .copyWith(color: Colors.white),
-//                                       )
-//                                     ],
-//                                   ),
-//                                 ],
-//                               ),
-//                             ],
-//                           ),
-//                           Row(
-//                             children: [
-//                               Padding(
-//                                 padding: EdgeInsets.only(right: 10),
-//                                 child: CircleAvatar(
-//                                   backgroundImage: AssetImage(
-//                                       'assets/images/teacher_avatar.png'),
-//                                   radius: 30,
-//                                 ),
-//                               )
-//                             ],
-//                           )
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               );
-//             },
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }
-
-
 import 'package:exam_guardian/utils/app_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -275,18 +26,44 @@ class _AdminMainScreenState extends State<AdminMainScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _scrollController.addListener(_onScroll);
+    _loadInitialData();
+  }
+
+  void _loadInitialData() {
+    context.read<UserCubit>().fetchUsers(_getCurrentRole());
   }
 
   @override
   void dispose() {
-    super.dispose();
+    _scrollController.dispose();
     _tabController.dispose();
+    super.dispose();
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
-      context.read<UserCubit>().fetchUsers(_tabController.index == 0 ? 'TEACHER' : 'STUDENT');
+    final userState = context.read<UserCubit>().state;
+    if (_isBottom && !userState.isLoading && !userState.isLoadingMore && !userState.hasReachedMax) {
+      print('Reached bottom, loading more');
+      print('Current page before load more: ${userState.currentPage}');
+      print('Has reached max before load more: ${userState.hasReachedMax}');
+
+      context.read<UserCubit>().fetchUsers(
+        _getCurrentRole(),
+        page: userState.currentPage + 1,
+      );
     }
+  }
+
+
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    return currentScroll >= (maxScroll * 0.9);
+  }
+
+  String _getCurrentRole() {
+    return _tabController.index == 0 ? 'TEACHER' : 'STUDENT';
   }
 
   @override
@@ -314,7 +91,7 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                       child: CircleAvatar(
                         radius: 20,
                         backgroundImage:
-                        AssetImage('assets/images/teacher_avatar.png'),
+                            AssetImage('assets/images/teacher_avatar.png'),
                       ),
                     ),
                   ),
@@ -334,6 +111,10 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                     Tab(text: 'Teacher'),
                     Tab(text: 'Student'),
                   ],
+                  onTap: (_) {
+                    context.read<UserCubit>().resetState();
+                    _loadInitialData();
+                  },
                 ),
               ),
               SizedBox(height: 16),
@@ -353,8 +134,8 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildManageList('TEACHER'),
-                    _buildManageList('STUDENT'),
+                    _buildUserList(),
+                    _buildUserList(),
                   ],
                 ),
               ),
@@ -366,9 +147,15 @@ class _AdminMainScreenState extends State<AdminMainScreen>
     );
   }
 
-  Widget _buildManageList(String role) {
+  Widget _buildUserList() {
     return BlocBuilder<UserCubit, UserState>(
       builder: (context, state) {
+        print('Building user list');
+        print('Users count: ${state.users.length}');
+        print('Is loading: ${state.isLoading}');
+        print('Is loading more: ${state.isLoadingMore}');
+        print('Has reached max: ${state.hasReachedMax}');
+
         if (state.users.isEmpty && state.isLoading) {
           return Center(child: CircularProgressIndicator());
         }
@@ -377,26 +164,31 @@ class _AdminMainScreenState extends State<AdminMainScreen>
         }
         return ListView.builder(
           controller: _scrollController,
-          itemCount: state.users.length + (state.isLoading ? 1 : 0),
+          itemCount: state.users.length + 1, // Luôn thêm 1 item ở cuối
           itemBuilder: (context, index) {
             if (index >= state.users.length) {
-              return Center(child: CircularProgressIndicator());
+              if (state.isLoadingMore) {
+                return Center(child: CircularProgressIndicator());
+              } else if (state.hasReachedMax) {
+                return _buildEndOfListMessage();
+              } else {
+                return SizedBox.shrink(); // Khoảng trống nếu chưa tải hết và không đang tải
+              }
             }
-            final user = state.users[index];
+            print('Rendering user at index: $index');
             return GestureDetector(
               onTap: () {
-                // Navigator.of(context).push(MaterialPageRoute(
-                //   builder: (context) => UserDetailScreen(user: user),
-                // ));
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => UserDetailScreen(user: state.users[index]),
+                ));
               },
-              child: _buildUserCard(user),
+              child: _buildUserCard(state.users[index]),
             );
           },
         );
       },
     );
   }
-
   Widget _buildUserCard(User user) {
     return Padding(
       padding: EdgeInsets.only(bottom: 16),
@@ -418,21 +210,6 @@ class _AdminMainScreenState extends State<AdminMainScreen>
             children: [
               Row(
                 children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/icons/id-card.png',
-                        width: 30,
-                        height: 30,
-                        color: Colors.white,
-                      ),
-                      Text(
-                        user.id,
-                        style: TextStyles.bodyMedium.copyWith(color: Colors.white),
-                      )
-                    ],
-                  ),
                   SizedBox(width: 10),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -448,20 +225,24 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                           ),
                           Text(
                             user.name,
-                            style: TextStyles.bodyLarge.copyWith(color: Colors.white),
+                            style: TextStyles.bodyLarge
+                                .copyWith(color: Colors.white),
                           )
                         ],
                       ),
                       Row(
                         children: [
                           Icon(
-                            user.gender == 'Female' ? Icons.female : Icons.male,
-                            size: 30,
-                            color: user.gender == 'Female' ? Colors.pink : Colors.blue,
+                            user.gender == 'FEMALE' ? Icons.female : Icons.male,
+                            size: 28,
+                            color: user.gender == 'FEMALE'
+                                ? Colors.red
+                                : Colors.blue,
                           ),
                           Text(
                             user.gender!,
-                            style: TextStyles.bodyLarge.copyWith(color: Colors.white),
+                            style: TextStyles.bodyLarge
+                                .copyWith(color: Colors.white),
                           )
                         ],
                       ),
@@ -469,8 +250,10 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                   ),
                 ],
               ),
+              //Dang set cung avatar
               CircleAvatar(
-                backgroundImage: NetworkImage(user.avatar ?? 'https://via.placeholder.com/150'),
+                backgroundImage: NetworkImage(
+                    'https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474015QSt/anh-gai-xinh-1.jpg'),
                 radius: 30,
               )
             ],
@@ -479,4 +262,25 @@ class _AdminMainScreenState extends State<AdminMainScreen>
       ),
     );
   }
+  Widget _buildEndOfListMessage() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      alignment: Alignment.center,
+      child: Column(
+        children: [
+          Icon(Icons.info_outline, color: Colors.blue, size: 30),
+          SizedBox(height: 8),
+          Text(
+            "Đã tải hết dữ liệu",
+            style: TextStyle(
+              color: Colors.blue,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
+

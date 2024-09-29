@@ -9,9 +9,7 @@ part of 'user_response.dart';
 UserResponse _$UserResponseFromJson(Map<String, dynamic> json) => UserResponse(
       message: json['message'] as String,
       status: (json['status'] as num).toInt(),
-      metadata: (json['metadata'] as List<dynamic>)
-          .map((e) => User.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      metadata: Metadata.fromJson(json['metadata'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$UserResponseToJson(UserResponse instance) =>
@@ -19,6 +17,20 @@ Map<String, dynamic> _$UserResponseToJson(UserResponse instance) =>
       'message': instance.message,
       'status': instance.status,
       'metadata': instance.metadata,
+    };
+
+Metadata _$MetadataFromJson(Map<String, dynamic> json) => Metadata(
+      total: (json['total'] as num).toInt(),
+      totalPages: (json['totalPages'] as num).toInt(),
+      users: (json['users'] as List<dynamic>)
+          .map((e) => User.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$MetadataToJson(Metadata instance) => <String, dynamic>{
+      'total': instance.total,
+      'totalPages': instance.totalPages,
+      'users': instance.users,
     };
 
 User _$UserFromJson(Map<String, dynamic> json) => User(

@@ -1,53 +1,61 @@
-import 'package:bloc/bloc.dart';
-import 'package:exam_guardian/data/user_repository.dart';
-import 'package:exam_guardian/features/admin/cubit/user_state.dart';
-import 'package:exam_guardian/share_preference/shared_preference.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../data/user_repository.dart';
 import '../models/user_response.dart';
+import 'package:exam_guardian/share_preference/shared_preference.dart';
+import 'user_state.dart';
 
 class UserCubit extends Cubit<UserState> {
   final UserRepository _userRepository;
-  int _page = 1;
-  static const int _limit = 20;
-
   UserCubit(this._userRepository) : super(const UserState());
 
-  Future<void> fetchUsers(String role) async {
-    if (state.isLoading || state.hasReachedMax) return;
-
-    emit(state.copyWith(isLoading: true));
+  Future<void> fetchUsers(String role, {int? page, int limit = 5}) async {
+    if (state.hasReachedMax) {
+      print('Has reached max, not fetching more');
+      return;
+    }
 
     try {
-      TokenStorage tokenStorage = TokenStorage();
-      final clientId = await tokenStorage.getAccessToken();
-      if (clientId != null) {
-        final UserResponse response =
-            await _userRepository.getUserList(clientId, role, _page, _limit);
-        final List<User> users = response.metadata;
+      final currentPage = page ?? state.currentPage;
+      print('Fetching users for page: $currentPage');
 
-        final bool isLastPage = users.length < _limit;
-
-        if (isLastPage) {
-          emit(state.copyWith(
-            users: [...state.users, ...users],
-            isLoading: false,
-            hasReachedMax: true,
-          ));
-        } else {
-          _page++;
-          emit(state.copyWith(
-            users: [...state.users, ...users],
-            isLoading: false,
-          ));
-        }
+      if (currentPage == 1) {
+        emit(state.copyWith(isLoading: true));
+      } else {
+        emit(state.copyWith(isLoadingMore: true));
       }
-      else print('The client id was null');
+
+      final response = await _userRepository.getUserList('66f67e068ac04e1a9b553f9a', role, currentPage, limit);
+      final newUsers = (currentPage == 1)
+          ? response.metadata.users
+          : [...state.users, ...response.metadata.users];
+
+      print('Fetched ${response.metadata.users.length} users');
+      print('Total users after fetch: ${newUsers.length}');
+      print('Total pages: ${response.metadata.totalPages}');
+
+      final hasReachedMax = currentPage >= response.metadata.totalPages;
+
+      emit(state.copyWith(
+        users: newUsers,
+        isLoading: false,
+        isLoadingMore: false,
+        currentPage: currentPage,
+        totalPages: response.metadata.totalPages,
+        hasReachedMax: hasReachedMax,
+      ));
+
+      print('Current state after emit:');
+      print('Users count: ${state.users.length}');
+      print('Current page: ${state.currentPage}');
+      print('Has reached max: ${state.hasReachedMax}');
     } catch (e) {
-      emit(state.copyWith(isLoading: false, error: e.toString()));
+      print('Error fetching users: $e');
+      emit(state.copyWith(error: e.toString(), isLoading: false, isLoadingMore: false));
     }
   }
 
-  void reset() {
-    _page = 1;
-    emit(const UserState());
+  void resetState() {
+    print('Resetting state');
+    emit(UserState());
   }
 }

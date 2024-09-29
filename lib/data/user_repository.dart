@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:exam_guardian/configs/data_source.dart';
 import 'package:exam_guardian/features/admin/models/user_response.dart';
 import 'package:exam_guardian/share_preference/shared_preference.dart';
-
 import '../configs/app_config.dart';
 
 class UserRepository {
@@ -63,14 +62,11 @@ class UserRepository {
       if(response.statusCode == 200) {
         final user = User.fromJson(response.data['metadata']);
         return user;
-      }
-      else{
-        throw Exception('Status code diffirent 200');
+      } else {
+        throw Exception('Status code different 200');
       }
     } catch (e) {
       throw Exception(e);
     }
   }
-
-  
 }

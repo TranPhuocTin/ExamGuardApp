@@ -27,10 +27,10 @@ class AuthCubit extends Cubit<AuthState> {
         tokens: loginResponse.metadata.tokens,
         shouldShowError: false,
       ));
-      final userResponse = await _userRepository.getUserList(loginResponse.metadata.user.id, 'STUDENT', 1, 5);
-      final findUserById = await _userRepository.findUserById(loginResponse.metadata.user.id, '66f67dda8ac04e1a9b553f94');
-      // print(userResponse.metadata[0].username);
-      print('User information: ${findUserById.name}');
+      // final userResponse = await _userRepository.getUserList(loginResponse.metadata.user.id, 'STUDENT', 1, 5);
+      // final findUserById = await _userRepository.findUserById(loginResponse.metadata.user.id, '66f67dda8ac04e1a9b553f94');
+      // print(userResponse.metadata.users[1].name);
+      // print('User information: ${findUserById.name}');
     } catch (error) {
       String errorMessage = 'An error occurred. Please try again.';
       if (error is DioException) {

@@ -7,20 +7,44 @@ part 'user_response.g.dart';
 class UserResponse extends Equatable {
   final String message;
   final int status;
-  final List<User> metadata;
+  final Metadata metadata;
 
-  UserResponse({
+  const UserResponse({
     required this.message,
     required this.status,
     required this.metadata,
   });
 
-  factory UserResponse.fromJson(Map<String, dynamic> json) => _$UserResponseFromJson(json);
+  // JSON serialization methods
+  factory UserResponse.fromJson(Map<String, dynamic> json) =>
+      _$UserResponseFromJson(json);
   Map<String, dynamic> toJson() => _$UserResponseToJson(this);
 
   @override
-  List<Object> get props => [message, status, metadata];
+  List<Object?> get props => [message, status, metadata];
 }
+
+@JsonSerializable()
+class Metadata extends Equatable {
+  final int total;
+  final int totalPages;
+  final List<User> users;
+
+  const Metadata({
+    required this.total,
+    required this.totalPages,
+    required this.users,
+  });
+
+  // JSON serialization methods
+  factory Metadata.fromJson(Map<String, dynamic> json) =>
+      _$MetadataFromJson(json);
+  Map<String, dynamic> toJson() => _$MetadataToJson(this);
+
+  @override
+  List<Object?> get props => [total, totalPages, users];
+}
+
 
 @JsonSerializable()
 class User extends Equatable {
