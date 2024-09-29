@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class TokenStorage {
   static const String accessTokenKey = 'accessToken';
   static const String refreshTokenKey = 'refreshToken';
+  static const String adminClientId = 'clientId';
 
   // Lưu trữ accessToken
   Future<void> saveAccessToken(String accessToken) async {
@@ -16,6 +17,11 @@ class TokenStorage {
     await prefs.setString(refreshTokenKey, refreshToken);
   }
 
+  Future<void> saveClientId(String clientId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(adminClientId, clientId);
+  }
+
   // Lấy accessToken
   Future<String?> getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -26,6 +32,11 @@ class TokenStorage {
   Future<String?> getRefreshToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(refreshTokenKey);
+  }
+
+  Future<String?> getClientId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(adminClientId);
   }
 
   // Xóa cả accessToken và refreshToken khi đăng xuất

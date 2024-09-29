@@ -9,12 +9,19 @@ class UserCubit extends Cubit<UserState> {
   UserCubit(this._userRepository) : super(const UserState());
 
   Future<void> fetchUsers(String role, {int? page, int limit = 5}) async {
+    TokenStorage tokenStorage = TokenStorage();
+
     if (state.hasReachedMax) {
       print('Has reached max, not fetching more');
       return;
     }
 
     try {
+      final token = await tokenStorage.getAccessToken();
+      final clientId = await tokenStorage.getClientId();
+      if(token == null || clientId ==null) {
+        throw Exception('Token or clientId in fetchUsers function have a null value');
+      }
       final currentPage = page ?? state.currentPage;
       print('Fetching users for page: $currentPage');
 
@@ -24,7 +31,7 @@ class UserCubit extends Cubit<UserState> {
         emit(state.copyWith(isLoadingMore: true));
       }
 
-      final response = await _userRepository.getUserList('66f67e068ac04e1a9b553f9a', role, currentPage, limit);
+      final response = await _userRepository.getUserList(clientId,token ,role, currentPage, limit);
       final newUsers = (currentPage == 1)
           ? response.metadata.users
           : [...state.users, ...response.metadata.users];

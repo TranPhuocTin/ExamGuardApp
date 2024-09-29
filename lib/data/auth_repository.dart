@@ -26,6 +26,7 @@ class AuthRepository {
 
         await _tokenStorage.saveAccessToken(loginResponse.metadata.tokens.accessToken);
         await _tokenStorage.saveRefreshToken(loginResponse.metadata.tokens.refreshToken);
+        await _tokenStorage.saveClientId(loginResponse.metadata.user.id);
         print(loginResponse.message);
         return loginResponse;
       }

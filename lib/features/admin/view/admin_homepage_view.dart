@@ -271,7 +271,7 @@ class _AdminMainScreenState extends State<AdminMainScreen>
           Icon(Icons.info_outline, color: Colors.blue, size: 30),
           SizedBox(height: 8),
           Text(
-            "Đã tải hết dữ liệu",
+            "You're all caught up!\nNo more data to load",
             style: TextStyle(
               color: Colors.blue,
               fontSize: 16,
