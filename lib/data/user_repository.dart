@@ -83,6 +83,7 @@ class UserRepository {
 
       if(response.statusCode == 200) {
         final listSearchUser = UserResponse.fromJson(response.data);
+        print('Load data search user thanh cong');
         return listSearchUser;
       }
       else{

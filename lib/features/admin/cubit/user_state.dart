@@ -9,6 +9,8 @@ class UserState extends Equatable {
   final int currentPage;
   final int totalPages;
   final bool hasReachedMax;
+  final bool isSearching;
+  final String? searchQuery;
 
   const UserState({
     this.users = const [],
@@ -18,6 +20,8 @@ class UserState extends Equatable {
     this.currentPage = 1,
     this.totalPages = 1,
     this.hasReachedMax = false,
+    this.isSearching = false,
+    this.searchQuery,
   });
 
   UserState copyWith({
@@ -28,6 +32,8 @@ class UserState extends Equatable {
     int? currentPage,
     int? totalPages,
     bool? hasReachedMax,
+    bool? isSearching,
+    String? searchQuery,
   }) {
     return UserState(
       users: users ?? this.users,
@@ -37,9 +43,11 @@ class UserState extends Equatable {
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+      isSearching: isSearching ?? this.isSearching,
+      searchQuery: searchQuery ?? this.searchQuery,
     );
   }
 
   @override
-  List<Object?> get props => [users, isLoading, isLoadingMore, error, currentPage, totalPages, hasReachedMax];
+  List<Object?> get props => [users, isLoading, isLoadingMore, error, currentPage, totalPages, hasReachedMax, isSearching, searchQuery];
 }

@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:exam_guardian/data/user_repository.dart';
+import 'package:exam_guardian/share_preference/shared_preference.dart';
 import 'package:exam_guardian/utils/app_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -20,12 +24,15 @@ class _AdminMainScreenState extends State<AdminMainScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _scrollController.addListener(_onScroll);
+    _searchController.addListener(_onSearchChanged);
     _loadInitialData();
   }
 
@@ -33,27 +40,48 @@ class _AdminMainScreenState extends State<AdminMainScreen>
     context.read<UserCubit>().fetchUsers(_getCurrentRole());
   }
 
+  void _keepSearchResultWhenChangingTab() {
+    if(_searchController.text != null || _searchController.text.isNotEmpty) {
+      _onSearchChanged();
+    }
+  }
+
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (_searchController.text.isNotEmpty) {
+        context.read<UserCubit>().searchUsers(_searchController.text);
+      } else {
+        context.read<UserCubit>().fetchUsers(_getCurrentRole());
+      }
+    });
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
     _tabController.dispose();
+    _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
   void _onScroll() {
     final userState = context.read<UserCubit>().state;
-    if (_isBottom && !userState.isLoading && !userState.isLoadingMore && !userState.hasReachedMax) {
+    if (_isBottom &&
+        !userState.isLoading &&
+        !userState.isLoadingMore &&
+        !userState.hasReachedMax) {
       print('Reached bottom, loading more');
       print('Current page before load more: ${userState.currentPage}');
       print('Has reached max before load more: ${userState.hasReachedMax}');
 
       context.read<UserCubit>().fetchUsers(
-        _getCurrentRole(),
-        page: userState.currentPage + 1,
-      );
+            _getCurrentRole(),
+            page: userState.currentPage + 1,
+          );
     }
   }
-
 
   bool get _isBottom {
     if (!_scrollController.hasClients) return false;
@@ -114,6 +142,7 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                   onTap: (_) {
                     context.read<UserCubit>().resetState();
                     _loadInitialData();
+                    _keepSearchResultWhenChangingTab();
                   },
                 ),
               ),
@@ -123,7 +152,12 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                 child: Row(
                   children: [
                     Flexible(
-                      child: CupertinoSearchTextField(),
+                      child: CupertinoSearchTextField(
+                        controller: _searchController,
+                        onChanged: (value) {
+                          _onSearchChanged();
+                        },
+                      ),
                     ),
                     IconButton(onPressed: () {}, icon: Icon(Icons.sort))
                   ],
@@ -172,14 +206,16 @@ class _AdminMainScreenState extends State<AdminMainScreen>
               } else if (state.hasReachedMax) {
                 return _buildEndOfListMessage();
               } else {
-                return SizedBox.shrink(); // Khoảng trống nếu chưa tải hết và không đang tải
+                return SizedBox
+                    .shrink(); // Khoảng trống nếu chưa tải hết và không đang tải
               }
             }
             print('Rendering user at index: $index');
             return GestureDetector(
               onTap: () {
                 Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => UserDetailScreen(user: state.users[index]),
+                  builder: (context) =>
+                      UserDetailScreen(user: state.users[index]),
                 ));
               },
               child: _buildUserCard(state.users[index]),
@@ -189,6 +225,7 @@ class _AdminMainScreenState extends State<AdminMainScreen>
       },
     );
   }
+
   Widget _buildUserCard(User user) {
     return Padding(
       padding: EdgeInsets.only(bottom: 16),
@@ -262,6 +299,7 @@ class _AdminMainScreenState extends State<AdminMainScreen>
       ),
     );
   }
+
   Widget _buildEndOfListMessage() {
     return Container(
       padding: EdgeInsets.all(16),
@@ -283,4 +321,3 @@ class _AdminMainScreenState extends State<AdminMainScreen>
     );
   }
 }
-
