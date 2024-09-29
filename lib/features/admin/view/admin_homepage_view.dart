@@ -25,6 +25,7 @@ class _AdminMainScreenState extends State<AdminMainScreen>
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
   Timer? _debounce;
 
   @override
@@ -37,9 +38,10 @@ class _AdminMainScreenState extends State<AdminMainScreen>
   }
 
   void _loadInitialData() {
-    context.read<UserCubit>().fetchUsers(_getCurrentRole());
+    if (!_isSearching) {
+      context.read<UserCubit>().fetchUsers(_getCurrentRole());
+    }
   }
-
   void _keepSearchResultWhenChangingTab() {
     if(_searchController.text != null || _searchController.text.isNotEmpty) {
       _onSearchChanged();
@@ -50,12 +52,27 @@ class _AdminMainScreenState extends State<AdminMainScreen>
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       if (_searchController.text.isNotEmpty) {
+        _isSearching = true;
         context.read<UserCubit>().searchUsers(_searchController.text);
       } else {
-        context.read<UserCubit>().fetchUsers(_getCurrentRole());
+        _clearSearch();
       }
     });
   }
+
+  void _clearSearch() {
+    if (_isSearching) {
+      setState(() {
+        _isSearching = false;
+        _searchController.clear();
+      });
+      // Ẩn bàn phím
+      FocusScope.of(context).unfocus();
+      context.read<UserCubit>().resetState();
+      context.read<UserCubit>().fetchUsers(_getCurrentRole());
+    }
+  }
+
 
   @override
   void dispose() {
@@ -72,14 +89,17 @@ class _AdminMainScreenState extends State<AdminMainScreen>
         !userState.isLoading &&
         !userState.isLoadingMore &&
         !userState.hasReachedMax) {
-      print('Reached bottom, loading more');
-      print('Current page before load more: ${userState.currentPage}');
-      print('Has reached max before load more: ${userState.hasReachedMax}');
-
-      context.read<UserCubit>().fetchUsers(
-            _getCurrentRole(),
-            page: userState.currentPage + 1,
-          );
+      if (_isSearching) {
+        context.read<UserCubit>().searchUsers(
+          _searchController.text,
+          page: userState.currentPage + 1,
+        );
+      } else {
+        context.read<UserCubit>().fetchUsers(
+          _getCurrentRole(),
+          page: userState.currentPage + 1,
+        );
+      }
     }
   }
 
@@ -140,9 +160,12 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                     Tab(text: 'Student'),
                   ],
                   onTap: (_) {
-                    context.read<UserCubit>().resetState();
-                    _loadInitialData();
-                    _keepSearchResultWhenChangingTab();
+                    if (_isSearching) {
+                      context.read<UserCubit>().searchUsers(_searchController.text);
+                    } else {
+                      context.read<UserCubit>().resetState();
+                      _loadInitialData();
+                    }
                   },
                 ),
               ),
@@ -157,6 +180,7 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                         onChanged: (value) {
                           _onSearchChanged();
                         },
+                        onSuffixTap: _clearSearch,
                       ),
                     ),
                     IconButton(onPressed: () {}, icon: Icon(Icons.sort))
