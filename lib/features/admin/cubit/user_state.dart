@@ -11,6 +11,7 @@ class UserState extends Equatable {
   final bool hasReachedMax;
   final bool isSearching;
   final String? searchQuery;
+  final bool deleteSuccess; // Thêm trạng thái delete
 
   const UserState({
     this.users = const [],
@@ -22,6 +23,7 @@ class UserState extends Equatable {
     this.hasReachedMax = false,
     this.isSearching = false,
     this.searchQuery,
+    this.deleteSuccess = false, // Đặt giá trị mặc định cho deleteSuccess
   });
 
   UserState copyWith({
@@ -34,6 +36,7 @@ class UserState extends Equatable {
     bool? hasReachedMax,
     bool? isSearching,
     String? searchQuery,
+    bool? deleteSuccess, // Thêm khả năng copy với trạng thái deleteSuccess
   }) {
     return UserState(
       users: users ?? this.users,
@@ -45,9 +48,21 @@ class UserState extends Equatable {
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
       isSearching: isSearching ?? this.isSearching,
       searchQuery: searchQuery ?? this.searchQuery,
+      deleteSuccess: deleteSuccess ?? this.deleteSuccess, // Copy trạng thái deleteSuccess
     );
   }
 
   @override
-  List<Object?> get props => [users, isLoading, isLoadingMore, error, currentPage, totalPages, hasReachedMax, isSearching, searchQuery];
+  List<Object?> get props => [
+    users,
+    isLoading,
+    isLoadingMore,
+    error,
+    currentPage,
+    totalPages,
+    hasReachedMax,
+    isSearching,
+    searchQuery,
+    deleteSuccess, // Thêm deleteSuccess vào props
+  ];
 }

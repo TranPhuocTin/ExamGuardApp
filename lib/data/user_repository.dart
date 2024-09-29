@@ -93,4 +93,27 @@ class UserRepository {
       throw Exception(e);
     }
   }
+
+  Future<UserResponse> deleteUser(String clientId, String token, String userId) async {
+    try {
+      final url = '${AppConfigs.baseUrl}${ApiUrls.deleteUser(userId)}';
+      final response = await _dio.delete(
+        url,
+        options: Options(
+          headers: {'Authorization': token, 'x-client-id': clientId},
+        ),
+      );
+
+      if(response.statusCode == 200) {
+        final deleteReponse = UserResponse.fromJson(response.data);
+        print(deleteReponse.message);
+        return deleteReponse;
+      }
+      else{
+        throw Exception('Delete user failed: ${response.statusMessage}');
+      }
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
 }

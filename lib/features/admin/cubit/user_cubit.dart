@@ -167,6 +167,25 @@ class UserCubit extends Cubit<UserState> {
     }
   }
 
+  Future<void> deleteUser(String userId) async {
+    TokenStorage tokenStorage = TokenStorage();
+
+    try {
+      final token = await tokenStorage.getAccessToken();
+      final clientId = await tokenStorage.getClientId();
+      if (token == null || clientId == null) {
+        throw Exception('Token or clientId in searchUsers function have a null value');
+      }
+
+      final deleteResponse = await _userRepository.deleteUser(clientId, token, userId);
+      print('Delete status: ${deleteResponse.message}');
+      // Emit a new state after successful deletion
+      final updatedUsers = state.users.where((user) => user.id != userId).toList();
+      emit(state.copyWith(users: updatedUsers, deleteSuccess: true));
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
 
   void resetState() {
     print('Resetting state');

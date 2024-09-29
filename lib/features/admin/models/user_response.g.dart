@@ -34,7 +34,7 @@ Map<String, dynamic> _$MetadataToJson(Metadata instance) => <String, dynamic>{
     };
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
-      id: const _IdConverter().fromJson(json['id']),
+      id: json['_id'] as String,
       username: json['username'] as String,
       name: json['name'] as String,
       email: json['email'] as String,
@@ -55,7 +55,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
-      'id': const _IdConverter().toJson(instance.id),
+      '_id': instance.id,
       'username': instance.username,
       'name': instance.name,
       'email': instance.email,

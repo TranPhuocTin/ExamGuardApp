@@ -48,7 +48,7 @@ class Metadata extends Equatable {
 
 @JsonSerializable()
 class User extends Equatable {
-  @_IdConverter()
+  @JsonKey(name: '_id')
   final String id;
   final String username;
   final String name;
@@ -101,20 +101,4 @@ class User extends Equatable {
     createdAt,
     updatedAt,
   ];
-}
-
-
-class _IdConverter implements JsonConverter<String, dynamic> {
-  const _IdConverter();
-
-  @override
-  String fromJson(dynamic json) {
-    if (json == null || json['_id'] == null) {
-      return '';  // or some default value like 'unknown'
-    }
-    return json['_id'] as String;
-  }
-
-  @override
-  dynamic toJson(String id) => {'_id': id};
 }

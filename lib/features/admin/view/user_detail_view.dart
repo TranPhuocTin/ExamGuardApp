@@ -2,6 +2,9 @@ import 'package:exam_guardian/features/admin/models/user_response.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:exam_guardian/utils/app_colors.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../cubit/user_cubit.dart';
 
 class UserDetailScreen extends StatefulWidget {
   final User user;
@@ -46,7 +49,10 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                     gradient: LinearGradient(
                       begin: Alignment.topRight,
                       end: Alignment.bottomLeft,
-                      colors: [AppColors.cardLinearColor1, AppColors.cardLinearColor2],
+                      colors: [
+                        AppColors.cardLinearColor1,
+                        AppColors.cardLinearColor2,
+                      ],
                     ),
                   ),
                   child: Stack(
@@ -54,7 +60,10 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                     children: [
                       Opacity(
                         opacity: 0.7,
-                        child: Image.asset('assets/images/teacher_avatar.png', fit: BoxFit.cover),
+                        child: Image.asset(
+                          'assets/images/teacher_avatar.png',
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ],
                   ),
@@ -70,7 +79,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                       if (_formKey.currentState!.validate()) {
                         // Save logic here
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Changes saved successfully')),
+                          SnackBar(
+                              content: Text(
+                                  'User information has been saved successfully')),
                         );
                       }
                     }
@@ -86,18 +97,20 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                     builder: (BuildContext context) {
                       return AlertDialog(
                         title: Text('Delete User'),
-                        content: Text('Are you sure you want to delete this user?'),
+                        content:
+                        Text('Are you sure you want to delete this user?'),
                         actions: [
                           TextButton(
                             child: Text('Cancel'),
                             onPressed: () {
-                              Navigator.of(context).pop(false); // Dismiss and return false
+                              Navigator.of(context).pop(false); // Cancel
                             },
                           ),
                           TextButton(
-                            child: Text('Delete', style: TextStyle(color: Colors.red)),
+                            child: Text('Delete',
+                                style: TextStyle(color: Colors.red)),
                             onPressed: () {
-                              Navigator.of(context).pop(true); // Dismiss and return true
+                              Navigator.of(context).pop(true); // Confirm
                             },
                           ),
                         ],
@@ -106,16 +119,17 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   );
 
                   if (confirmed == true) {
+                    print('User id in UI: ${widget.user.id}');
+                    context.read<UserCubit>().deleteUser(widget.user.id);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('User deleted successfully')),
                     );
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); // Go back after deleting
                   }
                 },
               ),
             ],
           ),
-
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.all(16.0),
@@ -128,10 +142,14 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                       icon: Icons.person,
                       title: 'Personal Information',
                       children: [
-                        _buildTextFormField('Username', _usernameController, enabled: false),
-                        _buildTextFormField('Role', _roleController, enabled: _isEditing),
-                        _buildTextFormField('Email', _emailController, enabled: _isEditing),
-                        _buildTextFormField('Phone', _phoneController, enabled: _isEditing),
+                        _buildTextFormField(
+                            'Username', _usernameController, enabled: false),
+                        _buildTextFormField(
+                            'Role', _roleController, enabled: _isEditing),
+                        _buildTextFormField(
+                            'Email', _emailController, enabled: _isEditing),
+                        _buildTextFormField(
+                            'Phone', _phoneController, enabled: _isEditing),
                       ],
                     ),
                     SizedBox(height: 40),
@@ -141,8 +159,10 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                       children: [
                         _buildInfoRow('ID', widget.user.id),
                         _buildInfoRow('Status', widget.user.status.toString()),
-                        _buildInfoRow('Created At', widget.user.createdAt.toString()),
-                        _buildInfoRow('Updated At', widget.user.updatedAt.toString()),
+                        _buildInfoRow(
+                            'Created At', widget.user.createdAt.toString()),
+                        _buildInfoRow(
+                            'Updated At', widget.user.updatedAt.toString()),
                       ],
                     ),
                     SizedBox(height: 50),
@@ -169,7 +189,11 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     );
   }
 
-  Widget _buildInfoCard({required IconData icon, required String title, required List<Widget> children}) {
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String title,
+    required List<Widget> children,
+  }) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -182,7 +206,10 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
               children: [
                 Icon(icon, color: AppColors.primaryColor),
                 SizedBox(width: 8),
-                Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ],
             ),
             Divider(),
@@ -193,18 +220,21 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     );
   }
 
-  Widget _buildTextFormField(String label, TextEditingController controller, {bool enabled = true}) {
+  Widget _buildTextFormField(String label, TextEditingController controller,
+      {bool enabled = true}) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         controller: controller,
         enabled: enabled,
         decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            filled: !enabled,
-            fillColor: enabled ? null : Colors.grey[200],
-            focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppColors.primaryColor))
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          filled: !enabled,
+          fillColor: enabled ? null : Colors.grey[200],
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: AppColors.primaryColor),
+          ),
         ),
         validator: (value) {
           if (value == null || value.isEmpty) {
