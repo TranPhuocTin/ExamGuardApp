@@ -8,7 +8,8 @@ class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository = AuthRepository();
   final UserRepository _userRepository = UserRepository();
 
-  AuthCubit() : super(AuthState(isLoading: false, isLoggedIn: false, isObscure: true));
+  AuthCubit()
+      : super(AuthState(isLoading: false, isLoggedIn: false, isObscure: true));
 
   void obscurePassword() {
     emit(state.copyWith(isObscure: !state.isObscure));
@@ -17,7 +18,8 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> login(String username, String password) async {
     if (state.isLoading) return;
 
-    emit(state.copyWith(isLoading: true, errorMessage: null, shouldShowError: false));
+    emit(state.copyWith(
+        isLoading: true, errorMessage: null, shouldShowError: false));
     try {
       final loginResponse = await _authRepository.login(username, password);
       emit(state.copyWith(
@@ -50,8 +52,15 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  void logout() {
-    emit(AuthState(isLoading: false, isLoggedIn: false, isObscure: true));
+  void logout() async {
+    try{
+      await _authRepository.logout();
+      emit(
+        AuthState(isLoading: false, isLoggedIn: false, isObscure: true),
+      );
+    }catch(e){
+      Exception(e);
+    }
   }
 
   void clearError() {

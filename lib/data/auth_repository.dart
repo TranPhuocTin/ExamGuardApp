@@ -16,26 +16,55 @@ class AuthRepository {
 
   final TokenStorage _tokenStorage = TokenStorage();
 
-  Future<LoginResponse> login (String username, String password) async {
-    try{
+  Future<LoginResponse> login(String username, String password) async {
+    try {
       final data = LoginRequest(usernameOrEmail: username, password: password);
-      final response = await _dio.post('${AppConfigs.baseUrl}${ApiUrls.login}', data: data);
+      final response =
+          await _dio.post('${AppConfigs.baseUrl}${ApiUrls.login}', data: data);
 
-      if(response.statusCode == 200) {
+      if (response.statusCode == 200) {
         final loginResponse = LoginResponse.fromJson(response.data);
 
-        await _tokenStorage.saveAccessToken(loginResponse.metadata.tokens.accessToken);
-        await _tokenStorage.saveRefreshToken(loginResponse.metadata.tokens.refreshToken);
+        await _tokenStorage
+            .saveAccessToken(loginResponse.metadata.tokens.accessToken);
+        await _tokenStorage
+            .saveRefreshToken(loginResponse.metadata.tokens.refreshToken);
         await _tokenStorage.saveClientId(loginResponse.metadata.user.id);
         print(loginResponse.message);
         return loginResponse;
-      }
-      else {
+      } else {
         throw Exception('Đăng nhập thất bại: ${response.statusMessage}');
       }
-    }
-    catch(e) {
+    } catch (e) {
       throw Exception('Lỗi khi đăng nhập: $e');
+    }
+  }
+
+  Future<void> logout() async {
+    TokenStorage tokenStorage = TokenStorage();
+    try {
+      final token = await tokenStorage.getAccessToken();
+      final clientId = await tokenStorage.getClientId();
+      if (token is Null || clientId is Null) {
+        print('Logout message: Token or ClientId have a null value');
+        return;
+      }
+      final url = '${AppConfigs.baseUrl}${ApiUrls.logout}';
+      final response = await _dio.post(
+        url,
+        options: Options(
+          headers: {'Authorization': token, 'x-client-id': clientId},
+        ),
+      );
+      if(response.statusCode == 200) {
+        tokenStorage.clearTokens();
+        print('Delete successfully');
+      }
+      else{
+        throw Exception('Logout failled');
+      }
+    } catch (e) {
+      throw Exception(e);
     }
   }
 

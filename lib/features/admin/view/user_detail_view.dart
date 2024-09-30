@@ -121,6 +121,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   if (confirmed == true) {
                     print('User id in UI: ${widget.user.id}');
                     context.read<UserCubit>().deleteUser(widget.user.id);
+                    // context.read<UserCubit>().resetState();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('User deleted successfully')),
                     );

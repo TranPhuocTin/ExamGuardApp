@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:exam_guardian/data/user_repository.dart';
+import 'package:exam_guardian/features/login/cubit/AuthCubit.dart';
 import 'package:exam_guardian/share_preference/shared_preference.dart';
 import 'package:exam_guardian/utils/app_colors.dart';
 import 'package:flutter/cupertino.dart';
@@ -42,11 +43,6 @@ class _AdminMainScreenState extends State<AdminMainScreen>
       context.read<UserCubit>().fetchUsers(_getCurrentRole());
     }
   }
-  void _keepSearchResultWhenChangingTab() {
-    if(_searchController.text != null || _searchController.text.isNotEmpty) {
-      _onSearchChanged();
-    }
-  }
 
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
@@ -59,6 +55,7 @@ class _AdminMainScreenState extends State<AdminMainScreen>
       }
     });
   }
+
 
   void _clearSearch() {
     if (_isSearching) {
@@ -167,6 +164,7 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                       _loadInitialData();
                     }
                   },
+
                 ),
               ),
               SizedBox(height: 16),
