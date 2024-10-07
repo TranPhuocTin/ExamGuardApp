@@ -9,8 +9,9 @@ import '../cubit/user_state.dart';
 class UserDetailView extends StatelessWidget {
   final User user;
   final VoidCallback onUserDeleted;
+  final VoidCallback onUserUpdated;
 
-  UserDetailView({Key? key, required this.user, required this.onUserDeleted}) : super(key: key);
+  UserDetailView({Key? key, required this.user, required this.onUserDeleted, required this.onUserUpdated}) : super(key: key);
 
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
@@ -19,6 +20,7 @@ class UserDetailView extends StatelessWidget {
   final _ssnController = TextEditingController();
   final _addressController = TextEditingController();
   final _dobController = TextEditingController();
+  final _roleController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +65,7 @@ class UserDetailView extends StatelessWidget {
                           icon: Icons.person,
                           title: 'Personal Information',
                           children: [
-                            _buildTextFormField('Username', _usernameController, enabled: false),
+                            _buildTextFormField('Name', _usernameController, enabled: state.isEditing),
                             _buildRoleDropdown(context, state),
                             _buildTextFormField('Email', _emailController, enabled: state.isEditing),
                             _buildTextFormField('Phone', _phoneController, enabled: state.isEditing),
@@ -120,19 +122,30 @@ class UserDetailView extends StatelessWidget {
           builder: (context, state) {
             return IconButton(
               icon: Icon(state.isEditing ? Icons.save : Icons.edit),
-              onPressed: () {
+              onPressed: () async {
                 if (state.isEditing) {
-                  if (_formKey.currentState!.validate()) {
-                    context.read<UserCubit>().updateUser(
+                  if (_formKey.currentState!.validate())  {
+                    print('Update SSN: ${_ssnController.text}');
+                    print('Update role: ${_roleController.text}');
+                    print('Update phone number: ${_phoneController.text}');
+                    print('Update address: ${_addressController.text}');
+                    print('Update birthday: ${_dobController.text}');
+                    print('Update username: ${_usernameController.text}');
+
+                    await context.read<UserCubit>().updateUser(
                       user.copyWith(
-                        name: _usernameController.text,
-                        email: _emailController.text,
-                        phoneNumber: _phoneController.text,
-                        ssn: int.tryParse(_ssnController.text),
-                        address: _addressController.text,
-                        dob: DateTime.tryParse(_dobController.text),
+                          name: _usernameController.text,
+                          email: _emailController.text,
+                          phoneNumber: _phoneController.text,
+                          ssn: int.tryParse(_ssnController.text),
+                          address: _addressController.text,
+                          dob: DateTime.tryParse(_dobController.text),
+                          role: _roleController.text,
+                          updatedAt: DateTime.now()
                       ),
-                    );
+                    ).then((_) {
+                      onUserUpdated();
+                    },);
                   }
                 }
                 context.read<UserCubit>().toggleEditing();
@@ -286,7 +299,7 @@ class UserDetailView extends StatelessWidget {
         onChanged: state.isEditing
             ? (String? newValue) {
           if (newValue != null) {
-            context.read<UserCubit>().updateUser(user.copyWith(role: newValue));
+            _roleController.text = newValue;
           }
         }
             : null,
@@ -367,7 +380,7 @@ class UserDetailView extends StatelessWidget {
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 try {
-                  await context.read<UserCubit>().deleteUser(user.id, user.role);
+                  // await context.read<UserCubit>().deleteUser(user.id, user.role);
                   onUserDeleted();
                 } catch (e) {
                   print("Error deleting user: $e");
@@ -386,7 +399,7 @@ class UserDetailView extends StatelessWidget {
   void _initializeControllers() {
     _usernameController.text = user.name ?? '';
     _emailController.text = user.email ?? '';
-    _phoneController.text = user.phoneNumber ?? '';
+    _phoneController.text = user.phone_number ?? '';
     _ssnController.text = user.ssn?.toString() ?? '';
     _addressController.text = user.address ?? '';
     _dobController.text = user.dob != null

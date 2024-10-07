@@ -68,8 +68,10 @@ class _AdminMainScreenState extends State<AdminMainScreen>
   Future<void> _loadDataForCurrentTab() async {
     if (_isSearching) {
       await context.read<UserCubit>().searchUsers(_searchController.text, _getCurrentRole());
-    } else {
-      await context.read<UserCubit>().fetchUsers(_getCurrentRole());
+    }
+    else {
+      //Handle update lai UI khi nguoi dung chuyen tab
+      await context.read<UserCubit>().fetchUsers(_getCurrentRole(), forceRefresh: true);
     }
   }
 
@@ -246,13 +248,12 @@ class _AdminMainScreenState extends State<AdminMainScreen>
 
   Widget _buildUserList(int tabIndex) {
     return BlocBuilder<UserCubit, UserState>(
-      buildWhen: (previous, current) => previous.students != current.students || previous.teachers != current.teachers,
+      buildWhen: (previous, current) => previous.students != current.students || previous.teachers != current.teachers || previous.isRefreshing != current.isRefreshing,
       builder: (context, state) {
         final users = tabIndex == 0 ? state.teachers : state.students;
         final isLoading = tabIndex == 0 ? state.isLoadingTeachers : state.isLoadingStudents;
         final isLoadingMore = tabIndex == 0 ? state.isLoadingMoreTeachers : state.isLoadingMoreStudents;
         final hasReachedMax = tabIndex == 0 ? state.hasReachedMaxTeachers : state.hasReachedMaxStudents;
-
         if (isLoading && users.isEmpty) {
           return Center(child: CircularProgressIndicator());
         }
@@ -278,7 +279,13 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                             Navigator.of(context).pop();
                             context.read<UserCubit>().fetchUsers(_getCurrentRole(), forceRefresh: true);
                           });
-                        }
+                        },
+                        onUserUpdated: () async {
+                          print('current role: $_getCurrentRole()');
+                          await context.read<UserCubit>().fetchUsers(_getCurrentRole(), forceRefresh: true).then((_) {
+                            Navigator.of(context).pop();
+                          },);
+                          },
                       ),
                     ));
                   },
@@ -393,4 +400,5 @@ class _AdminMainScreenState extends State<AdminMainScreen>
       ),
     );
   }
+
 }

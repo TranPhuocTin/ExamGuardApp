@@ -5,12 +5,14 @@ class TokenState extends Equatable {
   final String? refreshToken;
   final String? clientId;
   final bool loading;
+  final bool isExpired;
 
   const TokenState({
     this.accessToken,
     this.refreshToken,
     this.clientId,
     this.loading = false,
+    this.isExpired = false
   });
 
   TokenState copyWith({
@@ -18,15 +20,17 @@ class TokenState extends Equatable {
     String? refreshToken,
     String? clientId,
     bool? loading,
+    bool? isExpired
   }) {
     return TokenState(
       accessToken: accessToken ?? this.accessToken,
       refreshToken: refreshToken ?? this.refreshToken,
       clientId: clientId ?? this.clientId,
       loading: loading ?? this.loading,
+      isExpired: isExpired ?? this.isExpired
     );
   }
 
   @override
-  List<Object?> get props => [accessToken, refreshToken, clientId, loading];
+  List<Object?> get props => [accessToken, refreshToken, clientId, loading, isExpired];
 }

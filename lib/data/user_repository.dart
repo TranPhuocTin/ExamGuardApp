@@ -23,6 +23,7 @@ class UserRepository {
     required String clientId,
     required String token,
     Map<String, dynamic>? queryParameters,
+    dynamic data,
     String method = 'GET',
   }) async {
     try {
@@ -33,6 +34,7 @@ class UserRepository {
           headers: {'Authorization': token, 'x-client-id': clientId},
           method: method,
         ),
+        data: data
       );
       return response;
     } on DioException catch (e) {
@@ -84,8 +86,7 @@ class UserRepository {
   }
 
   // API deleteUser với phương thức _performRequest tái sử dụng
-  Future<bool> deleteUser(
-      String clientId, String token, String userId) async {
+  Future<bool> deleteUser(String clientId, String token, String userId) async {
     final response = await _performRequest(
       ApiUrls.deleteUser(userId),
       clientId: clientId,
@@ -100,19 +101,38 @@ class UserRepository {
     }
   }
 
-  Future<void> updateUser(
-      String clientId, String token, User user) async {
+  Map<String, dynamic> updateUserInfo = {
+    "_id": "6703350b98fa3db1b36c190d",
+    "username": "allensheila",
+    "name": "Gregory Cherry",
+    "email": "amandahampton@example.org",
+    "role": "STUDENT",
+    "avatar": "",
+    "gender": "FEMALE",
+    "ssn": 6262806739,
+    "dob": "1994-07-01T00:00:00.000Z",
+    "address": "61690 Richardson Station Apt. 791\nWest John, PA 91842",
+    "phone_number": "(802)200-6513x78173",
+    "status": "ACTIVE",
+    "createdAt": "2024-10-07T01:10:35.017Z",
+    "updatedAt": "2024-10-07T01:10:35.017Z"
+  };
+
+  Future<bool> updateUser(String clientId, String token, User user) async {
     final response = await _performRequest(
       ApiUrls.updateUser(user.id),
       clientId: clientId,
       token: token,
       method: 'PATCH',
+      data: user
     );
 
-    if(response.statusCode == 200) {
+    if (response.statusCode == 200) {
       print('Update successfully');
-    }
-    else{
+      // final updateResponse = UpdateUserResponse.fromJson(response.data);
+      // print('Status code: ${updateResponse.status}');
+      return true;
+    } else {
       throw Exception('Update failed: ${response.statusMessage}');
     }
   }

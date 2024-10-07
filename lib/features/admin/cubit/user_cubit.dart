@@ -68,7 +68,7 @@ class UserCubit extends Cubit<UserState> {
           isRefreshing: false,
         ));
       }
-    } catch (e) {
+    }catch (e) {
       print('Error fetching users: $e');
       emit(state.copyWith(
         errorTeachers: role == 'TEACHER' ? e.toString() : null,
@@ -92,10 +92,6 @@ class UserCubit extends Cubit<UserState> {
       errorTeachers: message,
       errorStudents: message,
     ));
-  }
-
-  void switchTab(String role) {
-    // No need to change state here, as we're now maintaining separate lists
   }
 
   Future<void> searchUsers(String query, String role, {int? page, int limit = 5}) async {
@@ -213,43 +209,68 @@ class UserCubit extends Cubit<UserState> {
     }
   }
 
-  Future<void> updateUser(User updateUser) async {
+
+  Future<void> updateUser(User updatedUser) async {
     TokenStorage tokenStorage = TokenStorage();
 
     try {
       final token = await tokenStorage.getAccessToken();
       final clientId = await tokenStorage.getClientId();
       if (token == null || clientId == null) {
-        throw Exception(
-            'Token or clientId in updateUser function have a null value');
+        throw Exception('Token or clientId in updateUser function have a null value');
       }
 
       emit(state.copyWith(
-          isLoadingTeachers: updateUser.role == 'TEACHER',
-          isLoadingStudents: updateUser.role == 'STUDENT'));
-
-      await _userRepository.updateUser(clientId, token, updateUser);
-
-      final updatedUsers = updateUser.role == 'TEACHER'
-          ? state.teachers.map((user) => user.id == updateUser.id ? updateUser : user).toList()
-          : state.students.map((user) => user.id == updateUser.id ? updateUser : user).toList();
-
-      emit(state.copyWith(
-        teachers: updateUser.role == 'TEACHER' ? updatedUsers : state.teachers,
-        students: updateUser.role == 'STUDENT' ? updatedUsers : state.students,
-        isLoadingTeachers: false,
-        isLoadingStudents: false,
-        updateSuccess: true,
+        isUpdating: true,
+        updateSuccess: false,
+        errorTeachers: null,
+        errorStudents: null,
       ));
+
+      // Thực hiện cập nhật trên server
+      final bool success = await _userRepository.updateUser(clientId, token, updatedUser);
+
+      if (success) {
+        final updatedUserFromServer = updatedUser; // Assuming the updated user data is in `updatedUser`
+
+        // Cập nhật state cục bộ
+        List<User> updatedTeachers = List.from(state.teachers);
+        List<User> updatedStudents = List.from(state.students);
+
+        if (updatedUserFromServer.role == 'TEACHER') {
+          final index = updatedTeachers.indexWhere((teacher) => teacher.id == updatedUserFromServer.id);
+          if (index != -1) {
+            updatedTeachers[index] = updatedUserFromServer;
+          } else {
+            updatedTeachers.add(updatedUserFromServer);
+          }
+        } else if (updatedUserFromServer.role == 'STUDENT') {
+          final index = updatedStudents.indexWhere((student) => student.id == updatedUserFromServer.id);
+          if (index != -1) {
+            updatedStudents[index] = updatedUserFromServer;
+          } else {
+            updatedStudents.add(updatedUserFromServer);
+          }
+        }
+
+        emit(state.copyWith(
+          teachers: updatedTeachers,
+          students: updatedStudents,
+          isUpdating: false,
+          updateSuccess: true,
+        ));
+      } else {
+        throw Exception('Failed to update user.');
+      }
+
     } on TokenExpiredException catch (e) {
       await _handleTokenExpiration(e.message);
     } catch (e) {
-      print('Error update users: $e');
+      print('Error updating user: $e');
       emit(state.copyWith(
-        errorTeachers: updateUser.role == 'TEACHER' ? e.toString() : null,
-        errorStudents: updateUser.role == 'STUDENT' ? e.toString() : null,
-        isLoadingTeachers: false,
-        isLoadingStudents: false,
+        errorTeachers: updatedUser.role == 'TEACHER' ? e.toString() : null,
+        errorStudents: updatedUser.role == 'STUDENT' ? e.toString() : null,
+        isUpdating: false,
         updateSuccess: false,
       ));
     }

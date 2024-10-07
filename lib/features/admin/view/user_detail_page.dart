@@ -8,13 +8,14 @@ import '../cubit/user_cubit.dart';
 class UserDetailScreen2 extends StatelessWidget {
   final User user;
   final VoidCallback onUserDeleted;
-  const UserDetailScreen2({super.key, required this.user, required this.onUserDeleted});
+  final VoidCallback onUserUpdated;
+  const UserDetailScreen2({super.key, required this.user, required this.onUserDeleted, required this.onUserUpdated});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => UserCubit(context.read<UserRepository>()),
-      child: UserDetailView(user: user, onUserDeleted: onUserDeleted,),
+      child: UserDetailView(user: user, onUserDeleted: onUserDeleted, onUserUpdated: onUserUpdated,),
     );
   }
 }

@@ -59,7 +59,7 @@ class User extends Equatable {
   final int? ssn;             // Nullable
   final DateTime? dob;        // Nullable
   final String? address;      // Nullable
-  final String? phoneNumber;  // Nullable
+  final String? phone_number;  // Nullable
   final String? status;       // Nullable
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -75,7 +75,7 @@ class User extends Equatable {
     this.ssn,                 // Nullable in the constructor
     this.dob,                 // Nullable in the constructor
     this.address,             // Nullable in the constructor
-    this.phoneNumber,         // Nullable in the constructor
+    this.phone_number,         // Nullable in the constructor
     this.status,              // Nullable in the constructor
     this.createdAt,
     this.updatedAt,
@@ -86,6 +86,7 @@ class User extends Equatable {
     String? name,
     String? email,
     String? phoneNumber,
+    String? gender,
     int? ssn,
     String? address,
     DateTime? dob,
@@ -93,13 +94,14 @@ class User extends Equatable {
     String? status,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? avatar,
   }) {
     return User(
       id: id ?? this.id,
       username: username,
       name: name ?? this.name,
       email: email ?? this.email,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
+      phone_number: phoneNumber ?? this.phone_number,
       ssn: ssn ?? this.ssn,
       address: address ?? this.address,
       dob: dob ?? this.dob,
@@ -107,6 +109,8 @@ class User extends Equatable {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      gender: gender ?? this.gender,
+      avatar: avatar ?? this.avatar
     );
   }
 
@@ -125,9 +129,11 @@ class User extends Equatable {
     ssn,
     dob,
     address,
-    phoneNumber,
+    phone_number,
     status,
     createdAt,
     updatedAt,
+    gender,
+    avatar,
   ];
 }

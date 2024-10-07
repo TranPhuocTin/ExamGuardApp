@@ -22,6 +22,7 @@
     final bool deleteSuccess;
     final bool updateSuccess;
     final bool isRefreshing;
+    final bool isUpdating;
 
     const UserState({
       this.teachers = const [],
@@ -44,6 +45,7 @@
       this.deleteSuccess = false,
       this.updateSuccess = false,
       this.isRefreshing = false,
+      this.isUpdating = false,
     });
 
     UserState copyWith({
@@ -66,7 +68,8 @@
       String? searchQuery,
       bool? deleteSuccess,
       bool? updateSuccess,
-      bool? isRefreshing
+      bool? isRefreshing,
+      bool? isUpdating
     }) {
       return UserState(
         teachers: teachers ?? this.teachers,
@@ -88,7 +91,8 @@
         searchQuery: searchQuery ?? this.searchQuery,
         deleteSuccess: deleteSuccess ?? this.deleteSuccess,
         updateSuccess: updateSuccess ?? this.updateSuccess,
-        isRefreshing: isRefreshing ?? this.isRefreshing
+        isRefreshing: isRefreshing ?? this.isRefreshing,
+        isUpdating: isUpdating ?? this.isUpdating
       );
     }
 
@@ -113,6 +117,7 @@
       searchQuery,
       deleteSuccess,
       updateSuccess,
-      isRefreshing
+      isRefreshing,
+      isUpdating
     ];
   }
