@@ -2,7 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:exam_guardian/data/auth_repository.dart';
 import 'package:exam_guardian/data/user_repository.dart';
-import 'AuthState.dart';
+import 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository = AuthRepository();
@@ -54,7 +54,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   void logout() async {
     try{
-      await _authRepository.logout();
+      // await _authRepository.logout();
       emit(
         AuthState(isLoading: false, isLoggedIn: false, isObscure: true),
       );

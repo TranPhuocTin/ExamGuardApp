@@ -1,192 +1,208 @@
-import 'package:exam_guardian/features/admin/models/user_response.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:exam_guardian/utils/app_colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:intl/intl.dart';
+import '../../../utils/app_colors.dart';
+import '../models/user_response.dart';
 import '../cubit/user_cubit.dart';
+import '../cubit/user_state.dart';
 
-class UserDetailScreen extends StatefulWidget {
+class UserDetailView extends StatelessWidget {
   final User user;
+  final VoidCallback onUserDeleted;
 
-  const UserDetailScreen({Key? key, required this.user}) : super(key: key);
+  UserDetailView({Key? key, required this.user, required this.onUserDeleted}) : super(key: key);
 
-  @override
-  _UserDetailScreenState createState() => _UserDetailScreenState();
-}
-
-class _UserDetailScreenState extends State<UserDetailScreen> {
-  late TextEditingController _usernameController;
-  late TextEditingController _roleController;
-  late TextEditingController _emailController;
-  late TextEditingController _phoneController;
   final _formKey = GlobalKey<FormState>();
-  bool _isEditing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _usernameController = TextEditingController(text: widget.user.name);
-    _roleController = TextEditingController(text: widget.user.role);
-    _emailController = TextEditingController(text: widget.user.email);
-    _phoneController = TextEditingController(text: widget.user.phoneNumber);
-  }
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _ssnController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _dobController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 200,
-            floating: false,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Hero(
-                tag: 'user-${widget.user.id}',
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topRight,
-                      end: Alignment.bottomLeft,
-                      colors: [
-                        AppColors.cardLinearColor1,
-                        AppColors.cardLinearColor2,
+    return BlocConsumer<UserCubit, UserState>(
+      listener: (context, state) {
+        if (state.deleteSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('User deleted successfully')),
+          );
+        }
+        if (state.updateSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('User updated successfully')),
+          );
+        }
+        if (state.errorStudents != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Student error: ${state.errorStudents}')),
+          );
+        }
+        else if(state.errorTeachers != null ){
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Teacher error: ${state.errorTeachers}')),
+          );
+        }
+      },
+      builder: (context, state) {
+        _initializeControllers();
+        return Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              _buildSliverAppBar(context),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildInfoCard(
+                          icon: Icons.person,
+                          title: 'Personal Information',
+                          children: [
+                            _buildTextFormField('Username', _usernameController, enabled: false),
+                            _buildRoleDropdown(context, state),
+                            _buildTextFormField('Email', _emailController, enabled: state.isEditing),
+                            _buildTextFormField('Phone', _phoneController, enabled: state.isEditing),
+                            _buildTextFormField('SSN', _ssnController, enabled: state.isEditing),
+                            _buildTextFormField('Address', _addressController, enabled: state.isEditing),
+                            _buildDatePicker(context, state),
+                          ],
+                        ),
+                        SizedBox(height: 40),
+                        _buildInfoCard(
+                          icon: Icons.info_outline,
+                          title: 'Additional Information',
+                          children: [
+                            _buildInfoRow('ID', user.id ?? ''),
+                            _buildInfoRow('Status', user.status?.toString() ?? ''),
+                            _buildInfoRow('Created At', user.createdAt?.toString() ?? ''),
+                            _buildInfoRow('Updated At', user.updatedAt?.toString() ?? ''),
+                          ],
+                        ),
+                        SizedBox(height: 50),
                       ],
                     ),
                   ),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Opacity(
-                        opacity: 0.7,
-                        child: Image.asset(
-                          'assets/images/teacher_avatar.png',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: Icon(_isEditing ? Icons.save : Icons.edit),
-                onPressed: () {
-                  setState(() {
-                    if (_isEditing) {
-                      if (_formKey.currentState!.validate()) {
-                        // Save logic here
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                  'User information has been saved successfully')),
-                        );
-                      }
-                    }
-                    _isEditing = !_isEditing;
-                  });
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.delete, color: Colors.red),
-                onPressed: () async {
-                  bool? confirmed = await showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('Delete User'),
-                        content:
-                        Text('Are you sure you want to delete this user?'),
-                        actions: [
-                          TextButton(
-                            child: Text('Cancel'),
-                            onPressed: () {
-                              Navigator.of(context).pop(false); // Cancel
-                            },
-                          ),
-                          TextButton(
-                            child: Text('Delete',
-                                style: TextStyle(color: Colors.red)),
-                            onPressed: () {
-                              Navigator.of(context).pop(true); // Confirm
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-
-                  if (confirmed == true) {
-                    print('User id in UI: ${widget.user.id}');
-                    context.read<UserCubit>().deleteUser(widget.user.id);
-                    // context.read<UserCubit>().resetState();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('User deleted successfully')),
-                    );
-                    Navigator.of(context).pop(); // Go back after deleting
-                  }
-                },
               ),
             ],
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInfoCard(
-                      icon: Icons.person,
-                      title: 'Personal Information',
-                      children: [
-                        _buildTextFormField(
-                            'Username', _usernameController, enabled: false),
-                        _buildTextFormField(
-                            'Role', _roleController, enabled: _isEditing),
-                        _buildTextFormField(
-                            'Email', _emailController, enabled: _isEditing),
-                        _buildTextFormField(
-                            'Phone', _phoneController, enabled: _isEditing),
-                      ],
-                    ),
-                    SizedBox(height: 40),
-                    _buildInfoCard(
-                      icon: Icons.info_outline,
-                      title: 'Additional Information',
-                      children: [
-                        _buildInfoRow('ID', widget.user.id),
-                        _buildInfoRow('Status', widget.user.status.toString()),
-                        _buildInfoRow(
-                            'Created At', widget.user.createdAt.toString()),
-                        _buildInfoRow(
-                            'Updated At', widget.user.updatedAt.toString()),
-                      ],
-                    ),
-                    SizedBox(height: 50),
-                  ],
+          floatingActionButton: state.isEditing
+              ? FloatingActionButton(
+            child: Icon(Icons.cancel),
+            backgroundColor: Colors.red,
+            onPressed: () {
+              context.read<UserCubit>().toggleEditing();
+              _initializeControllers();
+            },
+          )
+              : null,
+        );
+      },
+    );
+  }
+
+  Widget _buildSliverAppBar(BuildContext context) {
+    return SliverAppBar(
+      backgroundColor: AppColors.primaryColor,
+      expandedHeight: 200,
+      floating: false,
+      pinned: true,
+      flexibleSpace: FlexibleSpaceBar(
+        background: _buildUserImageHeader(),
+      ),
+      actions: [
+        BlocBuilder<UserCubit, UserState>(
+          builder: (context, state) {
+            return IconButton(
+              icon: Icon(state.isEditing ? Icons.save : Icons.edit),
+              onPressed: () {
+                if (state.isEditing) {
+                  if (_formKey.currentState!.validate()) {
+                    context.read<UserCubit>().updateUser(
+                      user.copyWith(
+                        name: _usernameController.text,
+                        email: _emailController.text,
+                        phoneNumber: _phoneController.text,
+                        ssn: int.tryParse(_ssnController.text),
+                        address: _addressController.text,
+                        dob: DateTime.tryParse(_dobController.text),
+                      ),
+                    );
+                  }
+                }
+                context.read<UserCubit>().toggleEditing();
+              },
+            );
+          },
+        ),
+        IconButton(
+          icon: Icon(Icons.delete, color: Colors.red),
+          onPressed: () => _showDeleteConfirmationDialog(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUserImageHeader() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [
+            AppColors.cardLinearColor1,
+            AppColors.cardLinearColor2,
+          ],
+        ),
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Opacity(
+            opacity: 0.7,
+            child: Image.asset(
+              'assets/images/teacher_avatar.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Hero(
+                  tag: 'user-${user.id}',
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: AssetImage('assets/images/teacher_avatar.png'),
+                    backgroundColor: Colors.white,
+                  ),
                 ),
-              ),
+                SizedBox(height: 10),
+                Text(
+                  user.name ?? '',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  user.role ?? '',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
-      floatingActionButton: _isEditing
-          ? FloatingActionButton(
-        child: Icon(Icons.cancel),
-        backgroundColor: Colors.red,
-        onPressed: () {
-          setState(() {
-            _isEditing = false;
-            _emailController.text = widget.user.email;
-            _phoneController.text = widget.user.phoneNumber.toString();
-          });
-        },
-      )
-          : null,
     );
   }
 
@@ -221,8 +237,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     );
   }
 
-  Widget _buildTextFormField(String label, TextEditingController controller,
-      {bool enabled = true}) {
+  Widget _buildTextFormField(String label, TextEditingController controller, {bool enabled = true}) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -247,6 +262,81 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     );
   }
 
+  Widget _buildRoleDropdown(BuildContext context, UserState state) {
+    final List<String> _roles = ['STUDENT', 'TEACHER'];
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.0),
+      child: DropdownButtonFormField<String>(
+        value: user.role,
+        decoration: InputDecoration(
+          labelText: 'Role',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          filled: !state.isEditing,
+          fillColor: state.isEditing ? null : Colors.grey[200],
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: AppColors.primaryColor),
+          ),
+        ),
+        items: _roles.map((String role) {
+          return DropdownMenuItem<String>(
+            value: role,
+            child: Text(role),
+          );
+        }).toList(),
+        onChanged: state.isEditing
+            ? (String? newValue) {
+          if (newValue != null) {
+            context.read<UserCubit>().updateUser(user.copyWith(role: newValue));
+          }
+        }
+            : null,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Role cannot be empty';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildDatePicker(BuildContext context, UserState state) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: _dobController,
+        enabled: state.isEditing,
+        decoration: InputDecoration(
+          labelText: 'Date of Birth',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          filled: !state.isEditing,
+          fillColor: state.isEditing ? null : Colors.grey[200],
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: AppColors.primaryColor),
+          ),
+          suffixIcon: Icon(Icons.calendar_today),
+        ),
+        readOnly: true,
+        onTap: state.isEditing
+            ? () async {
+          DateTime? pickedDate = await showDatePicker(
+            context: context,
+            initialDate: _dobController.text.isNotEmpty
+                ? DateTime.parse(_dobController.text)
+                : DateTime.now(),
+            firstDate: DateTime(1900),
+            lastDate: DateTime.now(),
+          );
+          if (pickedDate != null) {
+            String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+            _dobController.text = formattedDate;
+          }
+        }
+            : null,
+      ),
+    );
+  }
+
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -260,12 +350,47 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     );
   }
 
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _roleController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    super.dispose();
+  void _showDeleteConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('Delete User'),
+          content: Text('Are you sure you want to delete this user?'),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+            TextButton(
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                try {
+                  await context.read<UserCubit>().deleteUser(user.id, user.role);
+                  onUserDeleted();
+                } catch (e) {
+                  print("Error deleting user: $e");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Error deleting user")),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _initializeControllers() {
+    _usernameController.text = user.name ?? '';
+    _emailController.text = user.email ?? '';
+    _phoneController.text = user.phoneNumber ?? '';
+    _ssnController.text = user.ssn?.toString() ?? '';
+    _addressController.text = user.address ?? '';
+    _dobController.text = user.dob != null
+        ? DateFormat('yyyy-MM-dd').format(user.dob!)
+        : '';
   }
 }

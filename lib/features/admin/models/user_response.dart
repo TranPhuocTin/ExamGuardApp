@@ -81,6 +81,35 @@ class User extends Equatable {
     this.updatedAt,
   });
 
+  User copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? phoneNumber,
+    int? ssn,
+    String? address,
+    DateTime? dob,
+    String? role,
+    String? status,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return User(
+      id: id ?? this.id,
+      username: username,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      ssn: ssn ?? this.ssn,
+      address: address ?? this.address,
+      dob: dob ?? this.dob,
+      role: role ?? this.role,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
   Map<String, dynamic> toJson() => _$UserToJson(this);
 

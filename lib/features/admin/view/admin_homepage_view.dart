@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:exam_guardian/data/user_repository.dart';
-import 'package:exam_guardian/features/login/cubit/AuthCubit.dart';
-import 'package:exam_guardian/share_preference/shared_preference.dart';
+import 'package:exam_guardian/features/admin/view/user_detail_page.dart';
+import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
 import 'package:exam_guardian/utils/app_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -24,86 +24,117 @@ class AdminMainScreen extends StatefulWidget {
 class _AdminMainScreenState extends State<AdminMainScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final ScrollController _scrollController = ScrollController();
+  final List<ScrollController> _scrollControllers = [
+    ScrollController(),
+    ScrollController(),
+  ];
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
   Timer? _debounce;
+  bool _isDataPreloaded = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _scrollController.addListener(_onScroll);
+    _tabController.addListener(_handleTabChange);
+    _scrollControllers.forEach(
+            (controller) => controller.addListener(() => _onScroll(controller)));
     _searchController.addListener(_onSearchChanged);
-    _loadInitialData();
+    _preloadData();
   }
 
-  void _loadInitialData() {
-    if (!_isSearching) {
-      context.read<UserCubit>().fetchUsers(_getCurrentRole());
+  Future<void> _preloadData() async {
+    try {
+      await context.read<UserCubit>().preloadData();
+      print("Teachers after preloadData: ${context.read<UserCubit>().state.teachers}");
+      print("Students after preloadData: ${context.read<UserCubit>().state.students}");
+      setState(() {
+        _isDataPreloaded = true;
+      });
+    } catch (e) {
+      print("Error in preloadData: $e");
+      // Xử lý lỗi
+    }
+  }
+
+  void _handleTabChange() async {
+    if (_tabController.indexIsChanging) {
+      await _loadDataForCurrentTab();
+    }
+  }
+
+
+  Future<void> _loadDataForCurrentTab() async {
+    if (_isSearching) {
+      await context.read<UserCubit>().searchUsers(_searchController.text, _getCurrentRole());
+    } else {
+      await context.read<UserCubit>().fetchUsers(_getCurrentRole());
     }
   }
 
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
+    _debounce = Timer(const Duration(milliseconds: 100), () async {
       if (_searchController.text.isNotEmpty) {
         _isSearching = true;
-        context.read<UserCubit>().searchUsers(_searchController.text);
+        await context.read<UserCubit>().searchUsers(_searchController.text, _getCurrentRole());
       } else {
         _clearSearch();
       }
     });
   }
 
-
-  void _clearSearch() {
+  void _clearSearch() async {
     if (_isSearching) {
       setState(() {
         _isSearching = false;
         _searchController.clear();
       });
-      // Ẩn bàn phím
       FocusScope.of(context).unfocus();
-      context.read<UserCubit>().resetState();
-      context.read<UserCubit>().fetchUsers(_getCurrentRole());
+      await context.read<UserCubit>().fetchUsers(_getCurrentRole());
     }
   }
 
-
   @override
   void dispose() {
-    _scrollController.dispose();
     _tabController.dispose();
+    _scrollControllers.forEach((controller) => controller.dispose());
     _searchController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
 
-  void _onScroll() {
-    final userState = context.read<UserCubit>().state;
-    if (_isBottom &&
-        !userState.isLoading &&
-        !userState.isLoadingMore &&
-        !userState.hasReachedMax) {
-      if (_isSearching) {
-        context.read<UserCubit>().searchUsers(
-          _searchController.text,
-          page: userState.currentPage + 1,
-        );
-      } else {
-        context.read<UserCubit>().fetchUsers(
-          _getCurrentRole(),
-          page: userState.currentPage + 1,
-        );
+  void _onScroll(ScrollController controller) {
+    if (_isBottom(controller)) {
+      final userState = context.read<UserCubit>().state;
+      final isTeacher = _getCurrentRole() == 'TEACHER';
+      final isLoading = isTeacher ? userState.isLoadingTeachers : userState.isLoadingStudents;
+      final isLoadingMore = isTeacher ? userState.isLoadingMoreTeachers : userState.isLoadingMoreStudents;
+      final hasReachedMax = isTeacher ? userState.hasReachedMaxTeachers : userState.hasReachedMaxStudents;
+      final currentPage = isTeacher ? userState.currentPageTeachers : userState.currentPageStudents;
+
+      if (!isLoading && !isLoadingMore && !hasReachedMax) {
+        if (_isSearching) {
+          context.read<UserCubit>().searchUsers(
+            _searchController.text,
+            _getCurrentRole(),
+            page: currentPage + 1,
+          );
+        } else {
+          context.read<UserCubit>().fetchUsers(
+            _getCurrentRole(),
+            page: currentPage + 1,
+          );
+        }
       }
     }
   }
 
-  bool get _isBottom {
-    if (!_scrollController.hasClients) return false;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.offset;
+  bool _isBottom(ScrollController controller) {
+    if (!controller.hasClients) return false;
+    final maxScroll = controller.position.maxScrollExtent;
+    final currentScroll = controller.offset;
     return currentScroll >= (maxScroll * 0.9);
   }
 
@@ -113,135 +144,156 @@ class _AdminMainScreenState extends State<AdminMainScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Image.asset('assets/icons/exam_guard_logo.png'),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/admin_profile_screen');
+    return BlocListener<UserCubit, UserState>(
+      listenWhen: (previous, current) => previous.deleteSuccess != current.deleteSuccess,
+      listener: (context, state) async {
+        if (state.deleteSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('User deleted successfully')),
+          );
+          final students = context.read<UserCubit>().state.students;
+          // Refresh the current tab data
+          await _loadDataForCurrentTab();
+          final studentsAfterDeleted = context.read<UserCubit>().state.students;
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Image.asset('assets/icons/exam_guard_logo.png'),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/admin_profile_screen');
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(width: 1, color: Colors.grey)),
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundImage:
+                          AssetImage('assets/images/teacher_avatar.png'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TabBar(
+                    dividerHeight: 0,
+                    tabAlignment: TabAlignment.start,
+                    controller: _tabController,
+                    labelColor: AppColors.primaryColor,
+                    unselectedLabelColor: Colors.black54,
+                    indicatorColor: AppColors.primaryColor,
+                    isScrollable: true,
+                    tabs: [
+                      Tab(text: 'Teacher'),
+                      Tab(text: 'Student'),
+                    ],
+                    onTap: (_) {
+                      _loadDataForCurrentTab();
                     },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(width: 1, color: Colors.grey)),
-                      child: CircleAvatar(
-                        radius: 20,
-                        backgroundImage:
-                            AssetImage('assets/images/teacher_avatar.png'),
-                      ),
-                    ),
                   ),
-                ],
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TabBar(
-                  dividerHeight: 0,
-                  tabAlignment: TabAlignment.start,
-                  controller: _tabController,
-                  labelColor: AppColors.primaryColor,
-                  unselectedLabelColor: Colors.black54,
-                  indicatorColor: AppColors.primaryColor,
-                  isScrollable: true,
-                  tabs: [
-                    Tab(text: 'Teacher'),
-                    Tab(text: 'Student'),
-                  ],
-                  onTap: (_) {
-                    if (_isSearching) {
-                      context.read<UserCubit>().searchUsers(_searchController.text);
-                    } else {
-                      context.read<UserCubit>().resetState();
-                      _loadInitialData();
-                    }
-                  },
-
                 ),
-              ),
-              SizedBox(height: 16),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: CupertinoSearchTextField(
-                        controller: _searchController,
-                        onChanged: (value) {
-                          _onSearchChanged();
-                        },
-                        onSuffixTap: _clearSearch,
+                SizedBox(height: 16),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: CupertinoSearchTextField(
+                          controller: _searchController,
+                          onChanged: (value) {
+                            _onSearchChanged();
+                          },
+                          onSuffixTap: _clearSearch,
+                        ),
                       ),
-                    ),
-                    IconButton(onPressed: () {}, icon: Icon(Icons.sort))
-                  ],
+                      IconButton(onPressed: () {}, icon: Icon(Icons.sort))
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: 16),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildUserList(),
-                    _buildUserList(),
-                  ],
+                SizedBox(height: 16),
+                Expanded(
+                  child: _isDataPreloaded
+                      ? TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildUserList(0),
+                      _buildUserList(1),
+                    ],
+                  )
+                      : Center(child: CircularProgressIndicator()),
                 ),
-              ),
-              SizedBox(height: 16),
-            ],
+                SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildUserList() {
+  Widget _buildUserList(int tabIndex) {
     return BlocBuilder<UserCubit, UserState>(
+      buildWhen: (previous, current) => previous.students != current.students || previous.teachers != current.teachers,
       builder: (context, state) {
-        print('Building user list');
-        print('Users count: ${state.users.length}');
-        print('Is loading: ${state.isLoading}');
-        print('Is loading more: ${state.isLoadingMore}');
-        print('Has reached max: ${state.hasReachedMax}');
+        final users = tabIndex == 0 ? state.teachers : state.students;
+        final isLoading = tabIndex == 0 ? state.isLoadingTeachers : state.isLoadingStudents;
+        final isLoadingMore = tabIndex == 0 ? state.isLoadingMoreTeachers : state.isLoadingMoreStudents;
+        final hasReachedMax = tabIndex == 0 ? state.hasReachedMaxTeachers : state.hasReachedMaxStudents;
 
-        if (state.users.isEmpty && state.isLoading) {
+        if (isLoading && users.isEmpty) {
           return Center(child: CircularProgressIndicator());
         }
-        if (state.users.isEmpty && state.error != null) {
-          return Center(child: Text('Error: ${state.error}'));
+
+        if (users.isEmpty) {
+          return Center(child: Text("No users found."));
         }
+
         return ListView.builder(
-          controller: _scrollController,
-          itemCount: state.users.length + 1, // Luôn thêm 1 item ở cuối
+          controller: _scrollControllers[tabIndex],
+          itemCount: users.length + (isLoadingMore || !hasReachedMax ? 1 : 0),
           itemBuilder: (context, index) {
-            if (index >= state.users.length) {
-              if (state.isLoadingMore) {
+            if (index < users.length) {
+              return KeyedSubtree(
+                key: ValueKey(users[index].id),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => UserDetailScreen2(
+                        user: users[index],
+                        onUserDeleted: () async {
+                          await context.read<UserCubit>().deleteUser(users[index].id, _getCurrentRole()).then((_) async {
+                            Navigator.of(context).pop();
+                            context.read<UserCubit>().fetchUsers(_getCurrentRole(), forceRefresh: true);
+                          });
+                        }
+                      ),
+                    ));
+                  },
+                  child: _buildUserCard(users[index]),
+                ),
+              );
+            } else {
+              if (isLoadingMore) {
                 return Center(child: CircularProgressIndicator());
-              } else if (state.hasReachedMax) {
+              } else if (!hasReachedMax) {
                 return _buildEndOfListMessage();
               } else {
-                return SizedBox
-                    .shrink(); // Khoảng trống nếu chưa tải hết và không đang tải
+                return SizedBox.shrink();
               }
             }
-            print('Rendering user at index: $index');
-            return GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) =>
-                      UserDetailScreen(user: state.users[index]),
-                ));
-              },
-              child: _buildUserCard(state.users[index]),
-            );
           },
         );
       },
@@ -309,7 +361,6 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                   ),
                 ],
               ),
-              //Dang set cung avatar
               CircleAvatar(
                 backgroundImage: NetworkImage(
                     'https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474015QSt/anh-gai-xinh-1.jpg'),

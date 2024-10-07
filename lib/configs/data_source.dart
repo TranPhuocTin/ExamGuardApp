@@ -1,8 +1,9 @@
 class ApiUrls {
-  static String login = '/auth/login';
-  static String getTeacherOrStudentList = '/v1/api/users';
-  static String findUserById(String userId) => '/v1/api/user/${userId}';
-  static String searchUser = '/v1/api/users/search';
-  static String deleteUser(String userId) => '/v1/api/user/${userId}';
-  static String logout = '/auth/logout';
+  static String login = '/api/auth/login';
+  static String getTeacherOrStudentList = '/api/user/list';
+  static String findUserById(String userId) => '/v1/api/user/$userId';
+  static String searchUser = '/api/user/search';
+  static String deleteUser(String userId) => '/api/user/$userId';
+  static String updateUser(String userId) => '/api/user/$userId';
+  static String logout = '/api/auth/logout';
 }

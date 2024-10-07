@@ -1,6 +1,6 @@
-import 'package:exam_guardian/features/login/cubit/AuthCubit.dart';
-import 'package:exam_guardian/features/login/cubit/AuthState.dart';
-import 'package:exam_guardian/share_preference/token_cubit.dart';
+import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
+import 'package:exam_guardian/features/login/cubit/auth_state.dart';
+import 'package:exam_guardian/utils/share_preference/token_cubit.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,9 +25,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // Kiểm tra token từ TokenCubit
     await context.read<TokenCubit>().loadTokens();
-    final token = context.read<TokenCubit>().state.accessToken;
 
-    if (token == null) {
+    if (context.read<TokenCubit>().state.accessToken == null) {
       Navigator.pushReplacementNamed(context, '/login');
     } else {
       Navigator.pushReplacementNamed(context, '/admin_main_screen');

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:exam_guardian/features/login/cubit/AuthCubit.dart';
-import 'package:exam_guardian/features/login/cubit/AuthState.dart';
+import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
+import 'package:exam_guardian/features/login/cubit/auth_state.dart';
 
 class AdminProfileScreen extends StatelessWidget {
   const AdminProfileScreen({super.key});

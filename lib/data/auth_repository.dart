@@ -3,8 +3,9 @@ import 'package:dio/dio.dart';
 import 'package:exam_guardian/configs/app_config.dart';
 import 'package:exam_guardian/configs/data_source.dart';
 import 'package:exam_guardian/features/login/models/login_request.dart';
-import 'package:exam_guardian/share_preference/shared_preference.dart';
 import 'package:exam_guardian/features/login/models/login_response.dart';
+
+import '../utils/share_preference/shared_preference.dart';
 
 class AuthRepository {
   final Dio _dio = Dio(
@@ -61,7 +62,7 @@ class AuthRepository {
         print('Delete successfully');
       }
       else{
-        throw Exception('Logout failled');
+        throw Exception('Logout failed');
       }
     } catch (e) {
       throw Exception(e);
