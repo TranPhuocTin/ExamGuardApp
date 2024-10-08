@@ -265,6 +265,7 @@ class _AdminMainScreenState extends State<AdminMainScreen>
         return ListView.builder(
           controller: _scrollControllers[tabIndex],
           itemCount: users.length + (isLoadingMore || !hasReachedMax ? 1 : 0),
+          // itemCount: users.length + (isLoadingMore || !hasReachedMax ? 1 : 0),
           itemBuilder: (context, index) {
             if (index < users.length) {
               return KeyedSubtree(

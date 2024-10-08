@@ -16,7 +16,7 @@ class UserCubit extends Cubit<UserState> {
     ]);
   }
 
-  Future<void> fetchUsers(String role, {int? page, int limit = 5, bool isPreloading = false, bool forceRefresh = false}) async {
+  Future<void> fetchUsers(String role, {int? page, int limit = 10, bool isPreloading = false, bool forceRefresh = false}) async {
     TokenStorage tokenStorage = TokenStorage();
 
     try {
@@ -33,7 +33,7 @@ class UserCubit extends Cubit<UserState> {
         emit(state.copyWith(
           isLoadingTeachers: role == 'TEACHER',
           isLoadingStudents: role == 'STUDENT',
-          isRefreshing: true, // New flag to trigger UI update
+          isRefreshing: forceRefresh,
         ));
       }
 
@@ -50,7 +50,7 @@ class UserCubit extends Cubit<UserState> {
       if (role == 'TEACHER') {
         emit(state.copyWith(
           teachers: newUsers,
-          currentPageTeachers: currentPage + 1,
+          currentPageTeachers: currentPage,
           totalPagesTeachers: response.metadata.totalPages,
           hasReachedMaxTeachers: hasReachedMax,
           isLoadingTeachers: false,
@@ -60,7 +60,7 @@ class UserCubit extends Cubit<UserState> {
       } else {
         emit(state.copyWith(
           students: newUsers,
-          currentPageStudents: currentPage + 1,
+          currentPageStudents: currentPage,
           totalPagesStudents: response.metadata.totalPages,
           hasReachedMaxStudents: hasReachedMax,
           isLoadingStudents: false,
@@ -68,7 +68,7 @@ class UserCubit extends Cubit<UserState> {
           isRefreshing: false,
         ));
       }
-    }catch (e) {
+    } catch (e) {
       print('Error fetching users: $e');
       emit(state.copyWith(
         errorTeachers: role == 'TEACHER' ? e.toString() : null,
@@ -208,7 +208,6 @@ class UserCubit extends Cubit<UserState> {
       ));
     }
   }
-
 
   Future<void> updateUser(User updatedUser) async {
     TokenStorage tokenStorage = TokenStorage();

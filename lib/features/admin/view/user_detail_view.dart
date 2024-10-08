@@ -179,7 +179,7 @@ class UserDetailView extends StatelessWidget {
           Opacity(
             opacity: 0.7,
             child: Image.asset(
-              'assets/images/teacher_avatar.png',
+              'assets/images/avatar_2.jpg',
               fit: BoxFit.cover,
             ),
           ),
@@ -191,7 +191,7 @@ class UserDetailView extends StatelessWidget {
                   tag: 'user-${user.id}',
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundImage: AssetImage('assets/images/teacher_avatar.png'),
+                    backgroundImage: AssetImage('assets/images/avatar_2.jpg'),
                     backgroundColor: Colors.white,
                   ),
                 ),
@@ -202,13 +202,6 @@ class UserDetailView extends StatelessWidget {
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                  ),
-                ),
-                Text(
-                  user.role ?? '',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
                   ),
                 ),
               ],
@@ -277,10 +270,11 @@ class UserDetailView extends StatelessWidget {
 
   Widget _buildRoleDropdown(BuildContext context, UserState state) {
     final List<String> _roles = ['STUDENT', 'TEACHER'];
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0),
       child: DropdownButtonFormField<String>(
-        value: user.role,
+        value: _roleController.text.isEmpty ? user.role : _roleController.text,
         decoration: InputDecoration(
           labelText: 'Role',
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -299,7 +293,7 @@ class UserDetailView extends StatelessWidget {
         onChanged: state.isEditing
             ? (String? newValue) {
           if (newValue != null) {
-            _roleController.text = newValue;
+            _roleController.text = newValue; // Chỉ cập nhật khi có sự thay đổi
           }
         }
             : null,
@@ -312,6 +306,7 @@ class UserDetailView extends StatelessWidget {
       ),
     );
   }
+
 
   Widget _buildDatePicker(BuildContext context, UserState state) {
     return Padding(
@@ -405,5 +400,6 @@ class UserDetailView extends StatelessWidget {
     _dobController.text = user.dob != null
         ? DateFormat('yyyy-MM-dd').format(user.dob!)
         : '';
+    _roleController.text = user.role ?? ''; // Gán giá trị role từ user
   }
 }
