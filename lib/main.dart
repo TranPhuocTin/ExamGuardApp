@@ -1,6 +1,5 @@
 import 'package:cloudinary_url_gen/cloudinary.dart';
 import 'package:exam_guardian/data/user_repository.dart';
-import 'package:exam_guardian/features/admin/cubit/avatar_upload_cubit.dart';
 import 'package:exam_guardian/features/admin/cubit/user_cubit.dart';
 import 'package:exam_guardian/features/admin/view/admin_profile_view.dart';
 import 'package:exam_guardian/features/admin/view/admin_homepage_view.dart';
@@ -11,7 +10,6 @@ import 'package:exam_guardian/utils/share_preference/token_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'ExamGuardObserver.dart';
-import 'package:cloudinary_flutter/cloudinary_context.dart';
 import 'features/splash/screens/splash_screen.dart';
 
 void main() {
@@ -35,9 +33,6 @@ void main() {
         ),
         BlocProvider<TokenCubit>(
           create: (context) => TokenCubit(tokenStorage),
-        ),
-        BlocProvider<AvatarCubit>(
-          create: (context) => AvatarCubit(userCubit: context.read<UserCubit>()),
         ),
       ],
       child: MyApp(),

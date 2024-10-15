@@ -13,24 +13,9 @@
 
     UserCubit(this._userRepository) : super(const UserState());
 
-    void setSelectedAvatar(String role, String id, File avatarFile) {
-      final tempUrl = avatarFile.path;
-      if (role == 'TEACHER') {
-        List<User> updatedTeachers = state.teachers.map((teacher) {
-          if (teacher.id == id) {
-            return teacher.copyWith(selectedAvatarFile: avatarFile);
-          }
-          return teacher;
-        }).toList();
-        emit(state.copyWith(teachers: updatedTeachers));
-      } else if (role == 'STUDENT') {
-        List<User> updatedStudents = state.students.map((student) {
-          if (student.id == id) {
-            return student.copyWith(selectedAvatarFile: avatarFile);
-          }
-          return student;
-        }).toList();
-        emit(state.copyWith(students: updatedStudents));
+    void setAvatarLoading(bool isLoading) {
+      if (state.isAvatarLoading != isLoading) {
+        emit(state.copyWith(isAvatarLoading: isLoading));
       }
     }
 

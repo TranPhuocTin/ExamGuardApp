@@ -1,15 +1,14 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../../utils/app_colors.dart';
-import '../cubit/avatar_upload_cubit.dart';
-import '../cubit/avatar_upload_state.dart';
 import '../models/user_response.dart';
 import '../cubit/user_cubit.dart';
 import '../cubit/user_state.dart';
 
-class UserDetailView extends StatelessWidget {
+class UserDetailView extends StatefulWidget {
   final User user;
   final VoidCallback onUserDeleted;
   final VoidCallback onUserUpdated;
@@ -21,6 +20,11 @@ class UserDetailView extends StatelessWidget {
       required this.onUserUpdated})
       : super(key: key);
 
+  @override
+  _UserDetailViewState createState() => _UserDetailViewState();
+}
+
+class _UserDetailViewState extends State<UserDetailView> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -29,6 +33,15 @@ class UserDetailView extends StatelessWidget {
   final _addressController = TextEditingController();
   final _dobController = TextEditingController();
   final _roleController = TextEditingController();
+
+  late User user;
+
+  @override
+  void initState() {
+    super.initState();
+    user = widget.user;
+    _initializeControllers();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +73,6 @@ class UserDetailView extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        _initializeControllers();
         return Scaffold(
           body: CustomScrollView(
             slivers: [
@@ -100,9 +112,9 @@ class UserDetailView extends StatelessWidget {
                             _buildInfoRow(
                                 'Status', user.status?.toString() ?? ''),
                             _buildInfoRow(
-                                'Created At', user.createdAt?.toString() ?? ''),
+                                'Created At', formatDateTime(user.createdAt)),
                             _buildInfoRow(
-                                'Updated At', user.updatedAt?.toString() ?? ''),
+                                'Updated At', formatDateTime(user.updatedAt)),
                           ],
                         ),
                         SizedBox(height: 50),
@@ -119,12 +131,7 @@ class UserDetailView extends StatelessWidget {
                   backgroundColor: Colors.red,
                   onPressed: () {
                     context.read<UserCubit>().toggleEditing();
-                    context
-                        .read<UserCubit>()
-                        .clearSelectedAvatar(user.role, user.id);
-                    user.copyWith(
-                        tempAvatarUrl: null, selectedAvatarFile: null);
-                    print('image picked: ${user.tempAvatarUrl}');
+                    _clearTempAvatar();
                     _initializeControllers();
                   },
                 )
@@ -169,113 +176,131 @@ class UserDetailView extends StatelessWidget {
   }
 
   Widget _buildUserImageHeader(BuildContext context, UserState userState) {
-    return BlocBuilder<AvatarCubit, AvatarState>(
-      builder: (context, avatarState) {
-        return GestureDetector(
-          onTap: userState.isEditing
-              ? () async {
-                  if (!userState.isUploading) {
-                    print('Picking image...');
-                    await context
-                        .read<AvatarCubit>()
-                        .pickImage(user.role, user.id);
-                    final pickedImage =
-                        context.read<AvatarCubit>().state.selectedImage;
-                    if (pickedImage != null) {
-                      print('Image picked: ${pickedImage.path}');
-                      context.read<UserCubit>().setSelectedAvatar(
-                            user.role,
-                            user.id,
-                            pickedImage,
-                          );
-                    } else {
-                      print('No image picked');
-                    }
-                  }
+    return GestureDetector(
+      onTap: userState.isEditing
+          ? () async {
+              if (!userState.isUploading) {
+                final pickedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
+                if (pickedImage != null) {
+                  setState(() {
+                    user = user.copyWith(tempAvatarFile: File(pickedImage.path));
+                  });
                 }
-              : null,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: [
-                  AppColors.cardLinearColor1,
-                  AppColors.cardLinearColor2,
+              }
+            }
+          : null,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              AppColors.cardLinearColor1,
+              AppColors.cardLinearColor2,
+            ],
+          ),
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Opacity(
+              opacity: 0.7,
+              child: _getAvatarImage(context, userState),
+            ),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Hero(
+                    tag: 'user-${user.id}',
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        _buildAvatarWithLoading(context, userState),
+                        if (userState.isEditing)
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    user.name ?? '',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ],
               ),
             ),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Opacity(
-                  opacity: 0.7,
-                  child: _getAvatarImage(context, userState),
-                ),
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Hero(
-                        tag: 'user-${user.id}',
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundImage:
-                                  _getAvatarImageProvider(context, userState),
-                              backgroundColor: Colors.white,
-                            ),
-                            if (userState.isUploading)
-                              CircularProgressIndicator(),
-                            if (userState.isEditing)
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: Container(
-                                  padding: EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primaryColor,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.edit,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        user.name ?? '',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarWithLoading(BuildContext context, UserState userState) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        CircleAvatar(
+          radius: 50,
+          backgroundImage: _getAvatarImageProvider(),
+          backgroundColor: Colors.white,
+          child: (user.avatar == null && user.tempAvatarFile == null)
+              ? Icon(Icons.person, size: 50, color: Colors.grey)
+              : null,
+        ),
+        if (userState.isAvatarLoading)
+          SizedBox(
+            height: 110,
+            width: 110,
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+              strokeWidth: 3,
             ),
           ),
-        );
-      },
+      ],
     );
   }
 
   Widget _getAvatarImage(BuildContext context, UserState userState) {
-    if (user.avatar != null && user.avatar!.isNotEmpty) {
+    if(user.tempAvatarFile != null){
+      return Image.file(user.tempAvatarFile!, fit: BoxFit.cover);
+    }
+    else if (user.avatar != null && user.avatar!.isNotEmpty) {
       return Image.network(
         user.avatar!,
         fit: BoxFit.cover,
+        loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+          if (loadingProgress == null) {
+            context.read<UserCubit>().setAvatarLoading(false);
+            return child;
+          }
+          if (!userState.isAvatarLoading) {
+            context.read<UserCubit>().setAvatarLoading(true);
+          }
+          return Center(child: CircularProgressIndicator());
+        },
         errorBuilder: (context, error, stackTrace) {
           print('Error loading network image: $error');
+          context.read<UserCubit>().setAvatarLoading(false);
           return Image.asset('assets/images/avatar_2.jpg', fit: BoxFit.cover);
         },
       );
@@ -284,9 +309,10 @@ class UserDetailView extends StatelessWidget {
     }
   }
 
-  ImageProvider _getAvatarImageProvider(
-      BuildContext context, UserState userState) {
-    if (user.avatar != null && user.avatar!.isNotEmpty) {
+  ImageProvider _getAvatarImageProvider() {
+    if (user.tempAvatarFile != null) {
+      return FileImage(user.tempAvatarFile!);
+    } else if (user.avatar != null && user.avatar!.isNotEmpty) {
       return NetworkImage(user.avatar!);
     } else {
       return AssetImage('assets/images/avatar_2.jpg');
@@ -409,24 +435,30 @@ class UserDetailView extends StatelessWidget {
         readOnly: true,
         onTap: state.isEditing
             ? () async {
-                DateTime? pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: _dobController.text.isNotEmpty
-                      ? DateTime.parse(_dobController.text)
-                      : DateTime.now(),
-                  firstDate: DateTime(1900),
-                  lastDate: DateTime.now(),
-                );
-                if (pickedDate != null) {
-                  String formattedDate =
-                      DateFormat('yyyy-MM-dd').format(pickedDate);
-                  _dobController.text = formattedDate;
-                }
-              }
+          DateTime initialDate = _dobController.text.isNotEmpty
+              ? DateTime.parse(_dobController.text)
+              : DateTime.now();
+          DateTime? pickedDate = await showDatePicker(
+            context: context,
+            initialDate: initialDate,
+            firstDate: DateTime(1900),
+            lastDate: DateTime.now(),
+          );
+          if (pickedDate != null) {
+            // Ensure we're not modifying the date when formatting
+            String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+            print('Picked date: $pickedDate');
+            print('Formatted date: $formattedDate');
+            setState(() {
+              _dobController.text = formattedDate;
+            });
+          }
+        }
             : null,
       ),
     );
   }
+
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
@@ -453,7 +485,6 @@ class UserDetailView extends StatelessWidget {
                 child: Text('Cancel'),
                 onPressed: () {
                   user.copyWith(tempAvatarUrl: null, selectedAvatarFile: null);
-                  context.read<AvatarCubit>().clearSelectedImage(user.role, user.id);
                   Navigator.of(dialogContext).pop();
                 }),
             TextButton(
@@ -462,7 +493,7 @@ class UserDetailView extends StatelessWidget {
                 Navigator.of(dialogContext).pop();
                 try {
                   // await context.read<UserCubit>().deleteUser(user.id, user.role);
-                  onUserDeleted();
+                  widget.onUserDeleted();
                 } catch (e) {
                   print("Error deleting user: $e");
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -493,7 +524,6 @@ class UserDetailView extends StatelessWidget {
                     .read<UserCubit>()
                     .clearSelectedAvatar(user.role, user.id);
                 user.copyWith(tempAvatarUrl: null, selectedAvatarFile: null);
-                context.read<AvatarCubit>().clearSelectedImage(user.role, user.id);
               },
             ),
             TextButton(
@@ -516,13 +546,12 @@ class UserDetailView extends StatelessWidget {
   Future<void> _updateUser(BuildContext context, UserState state) async {
     print('Current user avatar: ${user.avatar}');
 
-    final avatarFile = context.read<AvatarCubit>().state.selectedImage;
     String? avatarUrl;
 
-    if (avatarFile != null) {
+    if (user.tempAvatarFile != null) {
       avatarUrl = await context
           .read<UserCubit>()
-          .uploadAvatar(user.role, user.id, avatarFile);
+          .uploadAvatar(user.role, user.id, user.tempAvatarFile!);
     }
 
     final updatedUser = user.copyWith(
@@ -535,12 +564,12 @@ class UserDetailView extends StatelessWidget {
       role: _roleController.text,
       updatedAt: DateTime.now(),
       avatar: avatarUrl ?? user.avatar,
+      tempAvatarFile: null,
     );
 
     await context.read<UserCubit>().updateUser(updatedUser).then((_) {
-      onUserUpdated();
+      widget.onUserUpdated();
       context.read<UserCubit>().toggleEditing();
-      context.read<AvatarCubit>().clearSelectedImage(user.role, user.id);
     });
 
     print('Updated user avatar: ${updatedUser.avatar}');
@@ -555,5 +584,16 @@ class UserDetailView extends StatelessWidget {
     _dobController.text =
         user.dob != null ? DateFormat('yyyy-MM-dd').format(user.dob!) : '';
     _roleController.text = user.role ?? ''; // Gán giá trị role từ user
+  }
+
+  void _clearTempAvatar() {
+    setState(() {
+      user = user.copyWith(tempAvatarFile: null);
+    });
+  }
+
+  String formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) return '';
+    return DateFormat('yyyy-MM-dd HH:mm').format(dateTime.toLocal());
   }
 }

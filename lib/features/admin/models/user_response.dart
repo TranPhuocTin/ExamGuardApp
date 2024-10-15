@@ -66,12 +66,7 @@ class User extends Equatable {
   final String? status; // Nullable
   final DateTime? createdAt;
   final DateTime? updatedAt;
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final File? selectedAvatarFile;
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final String? tempAvatarUrl;
+  final File? tempAvatarFile;
 
   User({
     required this.id,
@@ -88,8 +83,7 @@ class User extends Equatable {
     this.status, // Nullable in the constructor
     this.createdAt,
     this.updatedAt,
-    this.selectedAvatarFile,
-    this.tempAvatarUrl
+    this.tempAvatarFile,
   });
 
   User copyWith({
@@ -107,7 +101,8 @@ class User extends Equatable {
     DateTime? updatedAt,
     String? avatar,
     File? selectedAvatarFile,
-    String? tempAvatarUrl
+    String? tempAvatarUrl,
+    File? tempAvatarFile,
   }) {
     return User(
       id: id ?? this.id,
@@ -124,8 +119,9 @@ class User extends Equatable {
       updatedAt: updatedAt ?? this.updatedAt,
       gender: gender ?? this.gender,
       avatar: avatar ?? this.avatar,
-      selectedAvatarFile: selectedAvatarFile ?? this.selectedAvatarFile,
-      tempAvatarUrl: tempAvatarUrl ?? this.tempAvatarUrl,
+      // selectedAvatarFile: selectedAvatarFile ?? this.selectedAvatarFile,
+      // tempAvatarUrl: tempAvatarUrl ?? this.tempAvatarUrl,
+      tempAvatarFile: tempAvatarFile ?? this.tempAvatarFile,
     );
   }
 
@@ -152,7 +148,8 @@ class User extends Equatable {
         updatedAt,
         gender,
         avatar,
-        selectedAvatarFile,
-        tempAvatarUrl
+        // selectedAvatarFile,
+        // tempAvatarUrl,
+        tempAvatarFile,
       ];
 }

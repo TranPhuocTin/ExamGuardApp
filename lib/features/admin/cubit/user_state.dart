@@ -29,6 +29,7 @@ import 'package:equatable/equatable.dart';
     final File? selectedAvatarFile;
     final bool isUploading;
     final bool isLoading;
+    final bool isAvatarLoading;
 
     const UserState({
       this.teachers = const [],
@@ -55,7 +56,8 @@ import 'package:equatable/equatable.dart';
       this.avatarUrl,
       this.selectedAvatarFile,
       this.isUploading = false,
-      this.isLoading = false
+      this.isLoading = false,
+      this.isAvatarLoading = false
     });
 
     UserState copyWith({
@@ -84,6 +86,7 @@ import 'package:equatable/equatable.dart';
       File? selectedAvatarFile,
       bool? isUploading,
       bool? isLoading,
+      bool? isAvatarLoading,
     }) {
       return UserState(
         teachers: teachers ?? this.teachers,
@@ -111,6 +114,7 @@ import 'package:equatable/equatable.dart';
         selectedAvatarFile: selectedAvatarFile ?? this.selectedAvatarFile,
         isUploading: isUploading ?? this.isUploading,
         isLoading: isLoading ?? this.isLoading,
+        isAvatarLoading: isAvatarLoading ?? this.isAvatarLoading
       );
     }
 
@@ -138,6 +142,7 @@ import 'package:equatable/equatable.dart';
       isRefreshing,
       selectedAvatarFile,
       isUpdating,
-      isLoading
+      isLoading,
+      isAvatarLoading
     ];
   }
