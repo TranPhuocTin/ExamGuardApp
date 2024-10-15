@@ -1,4 +1,6 @@
-  import 'package:equatable/equatable.dart';
+  import 'dart:io';
+
+import 'package:equatable/equatable.dart';
   import '../models/user_response.dart';
 
   class UserState extends Equatable {
@@ -23,6 +25,10 @@
     final bool updateSuccess;
     final bool isRefreshing;
     final bool isUpdating;
+    final String? avatarUrl;
+    final File? selectedAvatarFile;
+    final bool isUploading;
+    final bool isLoading;
 
     const UserState({
       this.teachers = const [],
@@ -46,6 +52,10 @@
       this.updateSuccess = false,
       this.isRefreshing = false,
       this.isUpdating = false,
+      this.avatarUrl,
+      this.selectedAvatarFile,
+      this.isUploading = false,
+      this.isLoading = false
     });
 
     UserState copyWith({
@@ -69,7 +79,11 @@
       bool? deleteSuccess,
       bool? updateSuccess,
       bool? isRefreshing,
-      bool? isUpdating
+      bool? isUpdating,
+      String? avatarUrl,
+      File? selectedAvatarFile,
+      bool? isUploading,
+      bool? isLoading,
     }) {
       return UserState(
         teachers: teachers ?? this.teachers,
@@ -92,7 +106,11 @@
         deleteSuccess: deleteSuccess ?? this.deleteSuccess,
         updateSuccess: updateSuccess ?? this.updateSuccess,
         isRefreshing: isRefreshing ?? this.isRefreshing,
-        isUpdating: isUpdating ?? this.isUpdating
+        isUpdating: isUpdating ?? this.isUpdating,
+        avatarUrl: avatarUrl ?? this.avatarUrl,
+        selectedAvatarFile: selectedAvatarFile ?? this.selectedAvatarFile,
+        isUploading: isUploading ?? this.isUploading,
+        isLoading: isLoading ?? this.isLoading,
       );
     }
 
@@ -118,6 +136,8 @@
       deleteSuccess,
       updateSuccess,
       isRefreshing,
-      isUpdating
+      selectedAvatarFile,
+      isUpdating,
+      isLoading
     ];
   }

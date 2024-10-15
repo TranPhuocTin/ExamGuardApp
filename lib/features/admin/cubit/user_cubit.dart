@@ -1,282 +1,369 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../data/user_repository.dart';
-import '../../../utils/share_preference/shared_preference.dart';
-import '../models/user_response.dart';
-import 'user_state.dart';
+  import 'dart:io';
 
-class UserCubit extends Cubit<UserState> {
-  final UserRepository _userRepository;
+  import 'package:cloudinary_public/cloudinary_public.dart';
+  import 'package:flutter_bloc/flutter_bloc.dart';
+  import 'package:image_picker/image_picker.dart';
+  import '../../../data/user_repository.dart';
+  import '../../../utils/share_preference/shared_preference.dart';
+  import '../models/user_response.dart';
+  import 'user_state.dart';
 
-  UserCubit(this._userRepository) : super(const UserState());
+  class UserCubit extends Cubit<UserState> {
+    final UserRepository _userRepository;
 
-  Future<void> preloadData() async {
-    await Future.wait([
-      fetchUsers('TEACHER', isPreloading: true),
-      fetchUsers('STUDENT', isPreloading: true),
-    ]);
-  }
+    UserCubit(this._userRepository) : super(const UserState());
 
-  Future<void> fetchUsers(String role, {int? page, int limit = 10, bool isPreloading = false, bool forceRefresh = false}) async {
-    TokenStorage tokenStorage = TokenStorage();
-
-    try {
-      final token = await tokenStorage.getAccessToken();
-      final clientId = await tokenStorage.getClientId();
-      if (token == null || clientId == null) {
-        throw Exception('Token or clientId in fetchUsers function have a null value');
-      }
-
-      final currentPage = forceRefresh ? 1 : (page ?? (role == 'TEACHER' ? state.currentPageTeachers : state.currentPageStudents));
-      print('Fetching $role users for page: $currentPage');
-
-      if (!isPreloading) {
-        emit(state.copyWith(
-          isLoadingTeachers: role == 'TEACHER',
-          isLoadingStudents: role == 'STUDENT',
-          isRefreshing: forceRefresh,
-        ));
-      }
-
-      final response = await _userRepository.getUserList(clientId, token, role, currentPage, limit);
-      final newUsers = (currentPage == 1 || forceRefresh)
-          ? response.metadata.users
-          : [
-        ...(role == 'TEACHER' ? state.teachers : state.students),
-        ...response.metadata.users
-      ];
-
-      final hasReachedMax = response.metadata.totalPages == 0 || currentPage >= response.metadata.totalPages;
-
+    void setSelectedAvatar(String role, String id, File avatarFile) {
+      final tempUrl = avatarFile.path;
       if (role == 'TEACHER') {
-        emit(state.copyWith(
-          teachers: newUsers,
-          currentPageTeachers: currentPage,
-          totalPagesTeachers: response.metadata.totalPages,
-          hasReachedMaxTeachers: hasReachedMax,
-          isLoadingTeachers: false,
-          isLoadingMoreTeachers: false,
-          isRefreshing: false,
-        ));
-      } else {
-        emit(state.copyWith(
-          students: newUsers,
-          currentPageStudents: currentPage,
-          totalPagesStudents: response.metadata.totalPages,
-          hasReachedMaxStudents: hasReachedMax,
-          isLoadingStudents: false,
-          isLoadingMoreStudents: false,
-          isRefreshing: false,
-        ));
+        List<User> updatedTeachers = state.teachers.map((teacher) {
+          if (teacher.id == id) {
+            return teacher.copyWith(selectedAvatarFile: avatarFile);
+          }
+          return teacher;
+        }).toList();
+        emit(state.copyWith(teachers: updatedTeachers));
+      } else if (role == 'STUDENT') {
+        List<User> updatedStudents = state.students.map((student) {
+          if (student.id == id) {
+            return student.copyWith(selectedAvatarFile: avatarFile);
+          }
+          return student;
+        }).toList();
+        emit(state.copyWith(students: updatedStudents));
       }
-    } catch (e) {
-      print('Error fetching users: $e');
-      emit(state.copyWith(
-        errorTeachers: role == 'TEACHER' ? e.toString() : null,
-        errorStudents: role == 'STUDENT' ? e.toString() : null,
-        isLoadingTeachers: false,
-        isLoadingStudents: false,
-        isLoadingMoreTeachers: false,
-        isLoadingMoreStudents: false,
-        isRefreshing: false,
-      ));
     }
-  }
 
-  Future<void> _handleTokenExpiration(String message) async {
-    // Clear token from storage
-    TokenStorage tokenStorage = TokenStorage();
-    await tokenStorage.clearTokens();
-
-    // Emit new state with error message and cleared data
-    emit(UserState(
-      errorTeachers: message,
-      errorStudents: message,
-    ));
-  }
-
-  Future<void> searchUsers(String query, String role, {int? page, int limit = 5}) async {
-    TokenStorage tokenStorage = TokenStorage();
-
-    try {
-      final token = await tokenStorage.getAccessToken();
-      final clientId = await tokenStorage.getClientId();
-      if (token == null || clientId == null) {
-        throw Exception(
-            'Token or clientId in searchUsers function have a null value');
-      }
-
-      final currentPage = page ?? 1;
-
-      if (currentPage == 1) {
-        emit(state.copyWith(isSearching: true, searchQuery: query));
-      }
-
-      final response = await _userRepository.searchUser(
-          clientId, token, query, currentPage, limit);
-      final newUsers = (currentPage == 1)
-          ? response.metadata.users
-          : [
-        ...(role == 'TEACHER' ? state.teachers : state.students),
-        ...response.metadata.users
-      ];
-
-      final hasReachedMax = currentPage >= response.metadata.totalPages;
-
+    void clearSelectedAvatar(String role, String id) {
       if (role == 'TEACHER') {
-        emit(state.copyWith(
-          teachers: newUsers,
-          currentPageTeachers: currentPage,
-          totalPagesTeachers: response.metadata.totalPages,
-          hasReachedMaxTeachers: hasReachedMax,
-          isLoadingTeachers: false,
-          isLoadingMoreTeachers: false,
-          isSearching: true,
-        ));
-      } else {
-        emit(state.copyWith(
-          students: newUsers,
-          currentPageStudents: currentPage,
-          totalPagesStudents: response.metadata.totalPages,
-          hasReachedMaxStudents: hasReachedMax,
-          isLoadingStudents: false,
-          isLoadingMoreStudents: false,
-          isSearching: true,
-        ));
+        List<User> updatedTeachers = state.teachers.map((teacher) {
+          if (teacher.id == id) {
+            return teacher.copyWith(selectedAvatarFile: null, tempAvatarUrl: null);
+          }
+          return teacher;
+        }).toList();
+        emit(state.copyWith(teachers: updatedTeachers));
+      } else if (role == 'STUDENT') {
+        List<User> updatedStudents = state.students.map((student) {
+          if (student.id == id) {
+            return student.copyWith(selectedAvatarFile: null, tempAvatarUrl: null);
+          }
+          return student;
+        }).toList();
+        emit(state.copyWith(students: updatedStudents));
       }
-    } on TokenExpiredException catch (e) {
-      await _handleTokenExpiration(e.message);
-    } catch (e) {
-      print('Error searching users: $e');
-      emit(state.copyWith(
-          errorTeachers: e.toString(),
-          errorStudents: e.toString(),
-          isLoadingTeachers: false,
-          isLoadingStudents: false,
-          isLoadingMoreTeachers: false,
-          isLoadingMoreStudents: false));
     }
-  }
 
-  void toggleEditing() {
-    emit(state.copyWith(isEditing: !state.isEditing));
-  }
+    Future<void> preloadData() async {
+      await Future.wait([
+        fetchUsers('TEACHER', isPreloading: true),
+        fetchUsers('STUDENT', isPreloading: true),
+      ]);
+    }
 
-  Future<void> deleteUser(String userId, String role) async {
-
-    try {
+    Future<void> fetchUsers(String role, {int? page, int limit = 10, bool isPreloading = false, bool forceRefresh = false}) async {
       TokenStorage tokenStorage = TokenStorage();
-      final currentStudents = state.students;
-      final currentTeachers = state.teachers;
-      emit(state.copyWith(
-          isLoadingTeachers: role == 'TEACHER',
-          isLoadingStudents: role == 'STUDENT',
-          deleteSuccess: false,
-          errorTeachers: null,
-          errorStudents: null
-      ));
 
-      final token = await tokenStorage.getAccessToken();
-      final clientId = await tokenStorage.getClientId();
-      if (token == null || clientId == null) {
-        throw Exception('Token or clientId null in deleteUser');
-      }
-
-      final deleteResponse = await _userRepository.deleteUser(clientId, token, userId);
-
-      if (deleteResponse) {
-        if (role == 'TEACHER') {
-          print("Teachers before filter: ${state.teachers}"); // In ra danh sách teachers trước khi lọc
-          final updatedTeachers = state.teachers.where((user) => user.id != userId).toList();
-          print("Teachers after filter: $updatedTeachers"); // In ra danh sách teachers sau khi lọc
-          emit(state.copyWith(teachers: updatedTeachers, /* ... */));
-        } else {
-          print("Students before filter: ${state.students}"); // In ra danh sách students trước khi lọc
-          final updatedStudents = state.students.where((user) => user.id != userId).toList();
-          print("Students after filter: $updatedStudents"); // In ra danh sách students sau khi lọc
-          emit(state.copyWith(students: updatedStudents, /* ... */));
+      try {
+        final token = await tokenStorage.getAccessToken();
+        final clientId = await tokenStorage.getClientId();
+        if (token == null || clientId == null) {
+          throw Exception('Token or clientId in fetchUsers function have a null value');
         }
-      } else {
-        throw Exception('Failed to delete user');
+
+        final currentPage = forceRefresh ? 1 : (page ?? (role == 'TEACHER' ? state.currentPageTeachers : state.currentPageStudents));
+        print('Fetching $role users for page: $currentPage');
+
+        if (!isPreloading) {
+          emit(state.copyWith(
+            isLoadingTeachers: role == 'TEACHER',
+            isLoadingStudents: role == 'STUDENT',
+            isRefreshing: forceRefresh,
+          ));
+        }
+
+        final response = await _userRepository.getUserList(clientId, token, role, currentPage, limit);
+        final newUsers = (currentPage == 1 || forceRefresh)
+            ? response.metadata.users
+            : [
+          ...(role == 'TEACHER' ? state.teachers : state.students),
+          ...response.metadata.users
+        ];
+
+        final hasReachedMax = response.metadata.totalPages == 0 || currentPage >= response.metadata.totalPages;
+
+        if (role == 'TEACHER') {
+          emit(state.copyWith(
+            teachers: newUsers,
+            currentPageTeachers: currentPage,
+            totalPagesTeachers: response.metadata.totalPages,
+            hasReachedMaxTeachers: hasReachedMax,
+            isLoadingTeachers: false,
+            isLoadingMoreTeachers: false,
+            isRefreshing: false,
+          ));
+        } else {
+          emit(state.copyWith(
+            students: newUsers,
+            currentPageStudents: currentPage,
+            totalPagesStudents: response.metadata.totalPages,
+            hasReachedMaxStudents: hasReachedMax,
+            isLoadingStudents: false,
+            isLoadingMoreStudents: false,
+            isRefreshing: false,
+          ));
+        }
+      } catch (e) {
+        print('Error fetching users: $e');
+        emit(state.copyWith(
+          errorTeachers: role == 'TEACHER' ? e.toString() : null,
+          errorStudents: role == 'STUDENT' ? e.toString() : null,
+          isLoadingTeachers: false,
+          isLoadingStudents: false,
+          isLoadingMoreTeachers: false,
+          isLoadingMoreStudents: false,
+          isRefreshing: false,
+        ));
       }
-    } catch (e) {
-      emit(state.copyWith(
-        isLoadingTeachers: false,
-        isLoadingStudents: false,
-        deleteSuccess: false,
-        errorTeachers: role == 'TEACHER' ? e.toString() : null,
-        errorStudents: role == 'STUDENT' ? e.toString() : null,
+    }
+
+    Future<void> _handleTokenExpiration(String message) async {
+      // Clear token from storage
+      TokenStorage tokenStorage = TokenStorage();
+      await tokenStorage.clearTokens();
+
+      // Emit new state with error message and cleared data
+      emit(UserState(
+        errorTeachers: message,
+        errorStudents: message,
       ));
     }
-  }
 
-  Future<void> updateUser(User updatedUser) async {
-    TokenStorage tokenStorage = TokenStorage();
+    Future<void> searchUsers(String query, String role, {int? page, int limit = 5}) async {
+      TokenStorage tokenStorage = TokenStorage();
 
-    try {
-      final token = await tokenStorage.getAccessToken();
-      final clientId = await tokenStorage.getClientId();
-      if (token == null || clientId == null) {
-        throw Exception('Token or clientId in updateUser function have a null value');
+      try {
+        final token = await tokenStorage.getAccessToken();
+        final clientId = await tokenStorage.getClientId();
+        if (token == null || clientId == null) {
+          throw Exception(
+              'Token or clientId in searchUsers function have a null value');
+        }
+
+        final currentPage = page ?? 1;
+
+        if (currentPage == 1) {
+          emit(state.copyWith(isSearching: true, searchQuery: query));
+        }
+
+        final response = await _userRepository.searchUser(
+            clientId, token, query, currentPage, limit);
+        final newUsers = (currentPage == 1)
+            ? response.metadata.users
+            : [
+          ...(role == 'TEACHER' ? state.teachers : state.students),
+          ...response.metadata.users
+        ];
+
+        final hasReachedMax = currentPage >= response.metadata.totalPages;
+
+        if (role == 'TEACHER') {
+          emit(state.copyWith(
+            teachers: newUsers,
+            currentPageTeachers: currentPage,
+            totalPagesTeachers: response.metadata.totalPages,
+            hasReachedMaxTeachers: hasReachedMax,
+            isLoadingTeachers: false,
+            isLoadingMoreTeachers: false,
+            isSearching: true,
+          ));
+        } else {
+          emit(state.copyWith(
+            students: newUsers,
+            currentPageStudents: currentPage,
+            totalPagesStudents: response.metadata.totalPages,
+            hasReachedMaxStudents: hasReachedMax,
+            isLoadingStudents: false,
+            isLoadingMoreStudents: false,
+            isSearching: true,
+          ));
+        }
+      } on TokenExpiredException catch (e) {
+        await _handleTokenExpiration(e.message);
+      } catch (e) {
+        print('Error searching users: $e');
+        emit(state.copyWith(
+            errorTeachers: e.toString(),
+            errorStudents: e.toString(),
+            isLoadingTeachers: false,
+            isLoadingStudents: false,
+            isLoadingMoreTeachers: false,
+            isLoadingMoreStudents: false));
       }
+    }
 
-      emit(state.copyWith(
-        isUpdating: true,
-        updateSuccess: false,
-        errorTeachers: null,
-        errorStudents: null,
-      ));
+    void toggleEditing() {
+      emit(state.copyWith(isEditing: !state.isEditing));
+    }
 
-      // Thực hiện cập nhật trên server
-      final bool success = await _userRepository.updateUser(clientId, token, updatedUser);
+    Future<void> deleteUser(String userId, String role) async {
 
-      if (success) {
-        final updatedUserFromServer = updatedUser; // Assuming the updated user data is in `updatedUser`
+      try {
+        TokenStorage tokenStorage = TokenStorage();
+        emit(state.copyWith(
+            isLoadingTeachers: role == 'TEACHER',
+            isLoadingStudents: role == 'STUDENT',
+            deleteSuccess: false,
+            errorTeachers: null,
+            errorStudents: null
+        ));
 
-        // Cập nhật state cục bộ
-        List<User> updatedTeachers = List.from(state.teachers);
-        List<User> updatedStudents = List.from(state.students);
+        final token = await tokenStorage.getAccessToken();
+        final clientId = await tokenStorage.getClientId();
+        if (token == null || clientId == null) {
+          throw Exception('Token or clientId null in deleteUser');
+        }
 
-        if (updatedUserFromServer.role == 'TEACHER') {
-          final index = updatedTeachers.indexWhere((teacher) => teacher.id == updatedUserFromServer.id);
-          if (index != -1) {
-            updatedTeachers[index] = updatedUserFromServer;
+        final deleteResponse = await _userRepository.deleteUser(clientId, token, userId);
+
+        if (deleteResponse) {
+          if (role == 'TEACHER') {
+            print("Teachers before filter: ${state.teachers}"); // In ra danh sách teachers trước khi lọc
+            final updatedTeachers = state.teachers.where((user) => user.id != userId).toList();
+            print("Teachers after filter: $updatedTeachers"); // In ra danh sách teachers sau khi lọc
+            emit(state.copyWith(teachers: updatedTeachers, /* ... */));
           } else {
-            updatedTeachers.add(updatedUserFromServer);
+            print("Students before filter: ${state.students}"); // In ra danh sách students trước khi lọc
+            final updatedStudents = state.students.where((user) => user.id != userId).toList();
+            print("Students after filter: $updatedStudents"); // In ra danh sách students sau khi lọc
+            emit(state.copyWith(students: updatedStudents, /* ... */));
           }
-        } else if (updatedUserFromServer.role == 'STUDENT') {
-          final index = updatedStudents.indexWhere((student) => student.id == updatedUserFromServer.id);
-          if (index != -1) {
-            updatedStudents[index] = updatedUserFromServer;
-          } else {
-            updatedStudents.add(updatedUserFromServer);
+        } else {
+          throw Exception('Failed to delete user');
+        }
+      } catch (e) {
+        emit(state.copyWith(
+          isLoadingTeachers: false,
+          isLoadingStudents: false,
+          deleteSuccess: false,
+          errorTeachers: role == 'TEACHER' ? e.toString() : null,
+          errorStudents: role == 'STUDENT' ? e.toString() : null,
+        ));
+      }
+    }
+
+    Future<String?> uploadAvatar(String role, String userId, File? image) async {
+      emit(state.copyWith(isUploading: true));
+      try {
+        if(image != null) {
+          final String? newAvatarUrl = await _userRepository.uploadAvatarToCloudinary(image);
+
+          if (role == 'TEACHER') {
+            final updatedTeachers = state.teachers.map((teacher) {
+              if (teacher.id == userId) {
+                return teacher.copyWith(avatar: newAvatarUrl, tempAvatarUrl: null);
+              }
+              return teacher;
+            }).toList();
+            emit(state.copyWith(
+              teachers: updatedTeachers,
+              isUploading: false,
+            ));
+          } else if (role == 'STUDENT') {
+            final updatedStudents = state.students.map((student) {
+              if (student.id == userId) {
+                return student.copyWith(avatar: newAvatarUrl, tempAvatarUrl: null);
+              }
+              return student;
+            }).toList();
+            emit(state.copyWith(
+              students: updatedStudents,
+              isUploading: false,
+            ));
           }
+
+          // Clear the selected avatar file after successful upload
+          clearSelectedAvatar(role, userId);
+          return newAvatarUrl;
+        }
+      } catch (e) {
+        emit(state.copyWith(isUploading: false, errorTeachers: e.toString()));
+      }
+    }
+
+    Future<void> updateUser(User updatedUser) async {
+      TokenStorage tokenStorage = TokenStorage();
+      try {
+        final token = await tokenStorage.getAccessToken();
+        final clientId = await tokenStorage.getClientId();
+        if (token == null || clientId == null) {
+          throw Exception('Token or clientId in updateUser function have a null value');
         }
 
         emit(state.copyWith(
-          teachers: updatedTeachers,
-          students: updatedStudents,
-          isUpdating: false,
-          updateSuccess: true,
+          isUpdating: true,
+          updateSuccess: false,
+          errorTeachers: null,
+          errorStudents: null,
         ));
-      } else {
-        throw Exception('Failed to update user.');
-      }
 
-    } on TokenExpiredException catch (e) {
-      await _handleTokenExpiration(e.message);
-    } catch (e) {
-      print('Error updating user: $e');
-      emit(state.copyWith(
-        errorTeachers: updatedUser.role == 'TEACHER' ? e.toString() : null,
-        errorStudents: updatedUser.role == 'STUDENT' ? e.toString() : null,
-        isUpdating: false,
-        updateSuccess: false,
-      ));
+        String? newAvatarUrl;
+        if (state.selectedAvatarFile != null) {
+          // Upload the new avatar if one is selected
+          newAvatarUrl = await _userRepository.uploadAvatarToCloudinary(state.selectedAvatarFile!);
+          updatedUser = updatedUser.copyWith(avatar: newAvatarUrl);
+        }
+
+        // Perform the update on the server
+        final bool success = await _userRepository.updateUser(clientId, token, updatedUser);
+
+        if (success) {
+          // Update local state
+          List<User> updatedTeachers = List.from(state.teachers);
+          List<User> updatedStudents = List.from(state.students);
+
+          if (updatedUser.role == 'TEACHER') {
+            final index = updatedTeachers.indexWhere((teacher) => teacher.id == updatedUser.id);
+            if (index != -1) {
+              updatedTeachers[index] = updatedUser;
+            } else {
+              updatedTeachers.add(updatedUser);
+            }
+          } else if (updatedUser.role == 'STUDENT') {
+            final index = updatedStudents.indexWhere((student) => student.id == updatedUser.id);
+            if (index != -1) {
+              updatedStudents[index] = updatedUser;
+            } else {
+              updatedStudents.add(updatedUser);
+            }
+          }
+
+          emit(state.copyWith(
+            teachers: updatedTeachers,
+            students: updatedStudents,
+            isUpdating: false,
+            updateSuccess: true,
+            avatarUrl: newAvatarUrl ?? state.avatarUrl,
+            selectedAvatarFile: null, // Clear the selected avatar file after successful update
+          ));
+        } else {
+          throw Exception('Failed to update user.');
+        }
+      } on TokenExpiredException catch (e) {
+        await _handleTokenExpiration(e.message);
+      } catch (e) {
+        print('Error updating user: $e');
+        emit(state.copyWith(
+          errorTeachers: updatedUser.role == 'TEACHER' ? e.toString() : null,
+          errorStudents: updatedUser.role == 'STUDENT' ? e.toString() : null,
+          isUpdating: false,
+          updateSuccess: false,
+        ));
+      }
+    }
+
+    void resetState() {
+      print('Resetting state');
+      emit(UserState());
     }
   }
-
-  void resetState() {
-    print('Resetting state');
-    emit(UserState());
-  }
-}

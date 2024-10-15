@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -18,6 +20,7 @@ class UserResponse extends Equatable {
   // JSON serialization methods
   factory UserResponse.fromJson(Map<String, dynamic> json) =>
       _$UserResponseFromJson(json);
+
   Map<String, dynamic> toJson() => _$UserResponseToJson(this);
 
   @override
@@ -39,12 +42,12 @@ class Metadata extends Equatable {
   // JSON serialization methods
   factory Metadata.fromJson(Map<String, dynamic> json) =>
       _$MetadataFromJson(json);
+
   Map<String, dynamic> toJson() => _$MetadataToJson(this);
 
   @override
   List<Object?> get props => [total, totalPages, users];
 }
-
 
 @JsonSerializable()
 class User extends Equatable {
@@ -54,15 +57,21 @@ class User extends Equatable {
   final String name;
   final String email;
   final String role;
-  final String? avatar;       // Nullable
-  final String? gender;       // Nullable
-  final int? ssn;             // Nullable
-  final DateTime? dob;        // Nullable
-  final String? address;      // Nullable
-  final String? phone_number;  // Nullable
-  final String? status;       // Nullable
+  final String? avatar; // Nullable
+  final String? gender; // Nullable
+  final int? ssn; // Nullable
+  final DateTime? dob; // Nullable
+  final String? address; // Nullable
+  final String? phone_number; // Nullable
+  final String? status; // Nullable
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final File? selectedAvatarFile;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final String? tempAvatarUrl;
 
   User({
     required this.id,
@@ -70,15 +79,17 @@ class User extends Equatable {
     required this.name,
     required this.email,
     required this.role,
-    this.avatar,              // Nullable in the constructor
-    this.gender,              // Nullable in the constructor
-    this.ssn,                 // Nullable in the constructor
-    this.dob,                 // Nullable in the constructor
-    this.address,             // Nullable in the constructor
-    this.phone_number,         // Nullable in the constructor
-    this.status,              // Nullable in the constructor
+    this.avatar, // Nullable in the constructor
+    this.gender, // Nullable in the constructor
+    this.ssn, // Nullable in the constructor
+    this.dob, // Nullable in the constructor
+    this.address, // Nullable in the constructor
+    this.phone_number, // Nullable in the constructor
+    this.status, // Nullable in the constructor
     this.createdAt,
     this.updatedAt,
+    this.selectedAvatarFile,
+    this.tempAvatarUrl
   });
 
   User copyWith({
@@ -95,6 +106,8 @@ class User extends Equatable {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? avatar,
+    File? selectedAvatarFile,
+    String? tempAvatarUrl
   }) {
     return User(
       id: id ?? this.id,
@@ -110,30 +123,36 @@ class User extends Equatable {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       gender: gender ?? this.gender,
-      avatar: avatar ?? this.avatar
+      avatar: avatar ?? this.avatar,
+      selectedAvatarFile: selectedAvatarFile ?? this.selectedAvatarFile,
+      tempAvatarUrl: tempAvatarUrl ?? this.tempAvatarUrl,
     );
   }
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
   Map<String, dynamic> toJson() => _$UserToJson(this);
 
   @override
-  List<Object?> get props => [  // Allow props to be nullable
-    id,
-    username,
-    name,
-    email,
-    role,
-    avatar,
-    gender,
-    ssn,
-    dob,
-    address,
-    phone_number,
-    status,
-    createdAt,
-    updatedAt,
-    gender,
-    avatar,
-  ];
+  List<Object?> get props => [
+        // Allow props to be nullable
+        id,
+        username,
+        name,
+        email,
+        role,
+        avatar,
+        gender,
+        ssn,
+        dob,
+        address,
+        phone_number,
+        status,
+        createdAt,
+        updatedAt,
+        gender,
+        avatar,
+        selectedAvatarFile,
+        tempAvatarUrl
+      ];
 }

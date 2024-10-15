@@ -14,9 +14,9 @@ class AdminProfileScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: Center(
-          child: TextButton(onPressed: () {
+          child: TextButton(onPressed: () async {
 
-            context.read<AuthCubit>().logout();
+            await context.read<AuthCubit>().logout();
             Navigator.pushNamedAndRemoveUntil(
               context,
               '/login',  // Route name của màn hình login
