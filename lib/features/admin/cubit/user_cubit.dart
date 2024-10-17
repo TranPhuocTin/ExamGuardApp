@@ -241,8 +241,8 @@
       emit(state.copyWith(isUploading: true));
       try {
         if(image != null) {
-          final String? newAvatarUrl = await _userRepository.uploadAvatarToCloudinary(image);
-
+          final updateResponse = await _userRepository.uploadAvatarToCloudinary(image);
+          final newAvatarUrl = updateResponse['url'] as String;
           if (role == 'TEACHER') {
             final updatedTeachers = state.teachers.map((teacher) {
               if (teacher.id == userId) {
@@ -276,6 +276,10 @@
       }
     }
 
+    Future<bool> deleteAvatar(String publicId) async {
+      return await _userRepository.deleteCloudinaryImage(publicId);
+    }
+
     Future<void> updateUser(User updatedUser) async {
       TokenStorage tokenStorage = TokenStorage();
       try {
@@ -292,16 +296,18 @@
           errorStudents: null,
         ));
 
-        String? newAvatarUrl;
-        if (state.selectedAvatarFile != null) {
-          // Upload the new avatar if one is selected
-          newAvatarUrl = await _userRepository.uploadAvatarToCloudinary(state.selectedAvatarFile!);
-          updatedUser = updatedUser.copyWith(avatar: newAvatarUrl);
-        }
+        // String? newAvatarUrl;
+        // if (state.selectedAvatarFile != null) {
+        //   // Upload the new avatar if one is selected
+        //   final uploadResponse = await _userRepository.uploadAvatarToCloudinary(state.selectedAvatarFile!);
+        //   newAvatarUrl = uploadResponse['url'] as String;
+        //   updatedUser = updatedUser.copyWith(avatar: newAvatarUrl);
+        // }
 
         // Perform the update on the server
         final bool success = await _userRepository.updateUser(clientId, token, updatedUser);
-
+        // final deleteStatus = await _userRepository.deleteCloudinaryImage('mov3iudjdgxwyqc1vj4x');
+        // print('delete status: $deleteStatus');
         if (success) {
           // Update local state
           List<User> updatedTeachers = List.from(state.teachers);
@@ -328,7 +334,7 @@
             students: updatedStudents,
             isUpdating: false,
             updateSuccess: true,
-            avatarUrl: newAvatarUrl ?? state.avatarUrl,
+            // avatarUrl: newAvatarUrl ?? state.avatarUrl,
             selectedAvatarFile: null, // Clear the selected avatar file after successful update
           ));
         } else {

@@ -67,6 +67,7 @@ class User extends Equatable {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final File? tempAvatarFile;
+  final String? avatar_public_id;
 
   User({
     required this.id,
@@ -84,6 +85,7 @@ class User extends Equatable {
     this.createdAt,
     this.updatedAt,
     this.tempAvatarFile,
+    this.avatar_public_id
   });
 
   User copyWith({
@@ -103,6 +105,7 @@ class User extends Equatable {
     File? selectedAvatarFile,
     String? tempAvatarUrl,
     File? tempAvatarFile,
+    String? avatar_public_id,
   }) {
     return User(
       id: id ?? this.id,
@@ -122,6 +125,7 @@ class User extends Equatable {
       // selectedAvatarFile: selectedAvatarFile ?? this.selectedAvatarFile,
       // tempAvatarUrl: tempAvatarUrl ?? this.tempAvatarUrl,
       tempAvatarFile: tempAvatarFile ?? this.tempAvatarFile,
+      avatar_public_id: avatar_public_id ?? this.avatar_public_id
     );
   }
 
@@ -151,5 +155,6 @@ class User extends Equatable {
         // selectedAvatarFile,
         // tempAvatarUrl,
         tempAvatarFile,
+    avatar_public_id
       ];
 }

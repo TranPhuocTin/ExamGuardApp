@@ -301,11 +301,11 @@ class _UserDetailViewState extends State<UserDetailView> {
         errorBuilder: (context, error, stackTrace) {
           print('Error loading network image: $error');
           context.read<UserCubit>().setAvatarLoading(false);
-          return Image.asset('assets/images/avatar_2.jpg', fit: BoxFit.cover);
+          return Image.network('https://i0.wp.com/sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png?ssl=1', fit: BoxFit.cover);
         },
       );
     } else {
-      return Image.asset('assets/images/avatar_2.jpg', fit: BoxFit.cover);
+      return Image.network('https://i0.wp.com/sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png?ssl=1', fit: BoxFit.cover);
     }
   }
 
@@ -315,7 +315,7 @@ class _UserDetailViewState extends State<UserDetailView> {
     } else if (user.avatar != null && user.avatar!.isNotEmpty) {
       return NetworkImage(user.avatar!);
     } else {
-      return AssetImage('assets/images/avatar_2.jpg');
+      return NetworkImage('https://i0.wp.com/sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png?ssl=1');
     }
   }
 
@@ -549,11 +549,16 @@ class _UserDetailViewState extends State<UserDetailView> {
     String? avatarUrl;
 
     if (user.tempAvatarFile != null) {
+      //Delete current avatar url
+      if(user.avatar != null && user.avatar != '' && user.avatar != 'https://i0.wp.com/sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png?ssl=1') {
+        await context
+            .read<UserCubit>().deleteAvatar(user.avatar!);
+      }
+      //Get new url
       avatarUrl = await context
           .read<UserCubit>()
           .uploadAvatar(user.role, user.id, user.tempAvatarFile!);
     }
-
     final updatedUser = user.copyWith(
       name: _usernameController.text,
       email: _emailController.text,

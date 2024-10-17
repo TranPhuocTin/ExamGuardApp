@@ -1,13 +1,9 @@
 import 'dart:async';
 
-import 'package:exam_guardian/data/user_repository.dart';
 import 'package:exam_guardian/features/admin/view/user_detail_page.dart';
-import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
 import 'package:exam_guardian/utils/app_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:exam_guardian/features/admin/view/user_detail_view.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../utils/text_style.dart';
 import 'package:exam_guardian/features/admin/models/user_response.dart';
@@ -254,6 +250,9 @@ class _AdminMainScreenState extends State<AdminMainScreen>
         final isLoading = tabIndex == 0 ? state.isLoadingTeachers : state.isLoadingStudents;
         final isLoadingMore = tabIndex == 0 ? state.isLoadingMoreTeachers : state.isLoadingMoreStudents;
         final hasReachedMax = tabIndex == 0 ? state.hasReachedMaxTeachers : state.hasReachedMaxStudents;
+        // if(state.errorStudents != null || state.errorTeachers != null) {
+        //   return Center(child: Text("Token expired."));
+        // }
         if (isLoading && users.isEmpty) {
           return Center(child: CircularProgressIndicator());
         }
@@ -272,6 +271,7 @@ class _AdminMainScreenState extends State<AdminMainScreen>
                 key: ValueKey(users[index].id),
                 child: GestureDetector(
                   onTap: () {
+                    print('Current avatar: ${users[index].avatar}');
                     Navigator.of(context).push(MaterialPageRoute(
                       builder: (context) => UserDetailScreen2(
                         user: users[index],
@@ -371,7 +371,7 @@ class _AdminMainScreenState extends State<AdminMainScreen>
               ),
               CircleAvatar(
                 backgroundImage: NetworkImage(
-                    'https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474015QSt/anh-gai-xinh-1.jpg'),
+                    (user.avatar != null && user.avatar != '') ? user.avatar! : 'https://i0.wp.com/sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png?ssl=1'),
                 radius: 30,
               )
             ],
