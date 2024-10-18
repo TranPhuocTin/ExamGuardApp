@@ -4,6 +4,7 @@ class TokenStorage {
   static const String accessTokenKey = 'accessToken';
   static const String refreshTokenKey = 'refreshToken';
   static const String adminClientId = 'clientId';
+  static const String clientRole = 'clientRole';
 
   // Lưu trữ accessToken
   Future<void> saveAccessToken(String accessToken) async {
@@ -22,6 +23,12 @@ class TokenStorage {
     await prefs.setString(adminClientId, clientId);
   }
 
+  Future<void> saveClientRole(String role) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(clientRole, role);
+  }
+
+
   // Lấy accessToken
   Future<String?> getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -39,11 +46,17 @@ class TokenStorage {
     return prefs.getString(adminClientId);
   }
 
+  Future<String?> getClientRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(clientRole);
+  }
+
   // Xóa cả accessToken và refreshToken khi đăng xuất
   Future<void> clearTokens() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(accessTokenKey);
     await prefs.remove(refreshTokenKey);
     await prefs.remove(adminClientId);
+    await prefs.remove(clientRole);
   }
 }

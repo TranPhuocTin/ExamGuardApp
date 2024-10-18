@@ -4,6 +4,7 @@ class TokenState extends Equatable {
   final String? accessToken;
   final String? refreshToken;
   final String? clientId;
+  final String? cliendRole;
   final bool loading;
   final bool isExpired;
 
@@ -11,6 +12,7 @@ class TokenState extends Equatable {
     this.accessToken,
     this.refreshToken,
     this.clientId,
+    this.cliendRole,
     this.loading = false,
     this.isExpired = false
   });
@@ -19,6 +21,7 @@ class TokenState extends Equatable {
     String? accessToken,
     String? refreshToken,
     String? clientId,
+    String? clientRole,
     bool? loading,
     bool? isExpired
   }) {
@@ -26,6 +29,7 @@ class TokenState extends Equatable {
       accessToken: accessToken ?? this.accessToken,
       refreshToken: refreshToken ?? this.refreshToken,
       clientId: clientId ?? this.clientId,
+      cliendRole: clientRole ?? this.cliendRole,
       loading: loading ?? this.loading,
       isExpired: isExpired ?? this.isExpired
     );

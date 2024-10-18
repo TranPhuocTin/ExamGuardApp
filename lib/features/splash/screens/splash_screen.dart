@@ -28,8 +28,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (context.read<TokenCubit>().state.accessToken == null) {
       Navigator.pushReplacementNamed(context, '/login');
-    } else {
+    } else if(context.read<TokenCubit>().state.cliendRole == 'ADMIN') {
       Navigator.pushReplacementNamed(context, '/admin_main_screen');
+    } else if(context.read<TokenCubit>().state.cliendRole == 'TEACHER'){
+      Navigator.pushReplacementNamed(context, '/teacher_homepage');
     }
   }
 

@@ -6,8 +6,6 @@ import 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository = AuthRepository();
-  final UserRepository _userRepository = UserRepository();
-
   AuthCubit()
       : super(AuthState(isLoading: false, isLoggedIn: false, isObscure: true));
 

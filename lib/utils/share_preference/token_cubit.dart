@@ -15,6 +15,7 @@ class TokenCubit extends Cubit<TokenState> {
       final accessToken = await _tokenStorage.getAccessToken();
       final refreshToken = await _tokenStorage.getRefreshToken();
       final clientId = await _tokenStorage.getClientId();
+      final clientRole = await _tokenStorage.getClientRole();
 
       // Kiểm tra nếu accessToken đã hết hạn
       if (accessToken != null && JwtDecoder.isExpired(accessToken)) {
@@ -28,30 +29,13 @@ class TokenCubit extends Cubit<TokenState> {
           accessToken: accessToken,
           refreshToken: refreshToken,
           clientId: clientId,
+          clientRole: clientRole,
           loading: false,
         ));
       }
     } catch (e) {
       emit(state.copyWith(loading: false));
     }
-  }
-
-  // Lưu accessToken
-  Future<void> saveAccessToken(String accessToken) async {
-    await _tokenStorage.saveAccessToken(accessToken);
-    emit(state.copyWith(accessToken: accessToken));
-  }
-
-  // Lưu refreshToken
-  Future<void> saveRefreshToken(String refreshToken) async {
-    await _tokenStorage.saveRefreshToken(refreshToken);
-    emit(state.copyWith(refreshToken: refreshToken));
-  }
-
-  // Lưu clientId
-  Future<void> saveClientId(String clientId) async {
-    await _tokenStorage.saveClientId(clientId);
-    emit(state.copyWith(clientId: clientId));
   }
 
   // Xóa tokens khi đăng xuất

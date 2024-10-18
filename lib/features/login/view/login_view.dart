@@ -30,10 +30,14 @@ class LoginView extends StatelessWidget {
       previous.isLoggedIn != current.isLoggedIn ||
           previous.shouldShowError != current.shouldShowError,
       listener: (context, state) {
-        if (state.isLoggedIn) {
+        if (state.isLoggedIn && state.user?.role == "ADMIN") {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           Navigator.pushReplacementNamed(context, '/admin_main_screen');
-        } else if (state.shouldShowError && state.errorMessage != null) {
+        }
+        else if(state.user?.role == "TEACHER"){
+          Navigator.pushReplacementNamed(context, '/teacher_homepage');
+        }
+        else if (state.shouldShowError && state.errorMessage != null) {
           showErrorSnackBar(context, state.errorMessage!);
           context.read<AuthCubit>().markErrorAsShown();
         }

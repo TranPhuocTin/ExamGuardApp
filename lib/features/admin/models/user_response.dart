@@ -66,7 +66,9 @@ class User extends Equatable {
   final String? status; // Nullable
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final File? tempAvatarFile;
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final String? avatar_public_id;
 
   User({

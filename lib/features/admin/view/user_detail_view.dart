@@ -570,6 +570,7 @@ class _UserDetailViewState extends State<UserDetailView> {
       updatedAt: DateTime.now(),
       avatar: avatarUrl ?? user.avatar,
       tempAvatarFile: null,
+      // status: "ACTIVE"
     );
 
     await context.read<UserCubit>().updateUser(updatedUser).then((_) {

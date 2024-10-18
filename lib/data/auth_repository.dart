@@ -32,6 +32,7 @@ class AuthRepository {
             .saveRefreshToken(loginResponse.metadata.tokens.refreshToken);
         await _tokenStorage.saveClientId(loginResponse.metadata.user.id);
         print(loginResponse.message);
+        await _tokenStorage.saveClientRole(loginResponse.metadata.user.role);
         return loginResponse;
       } else {
         throw Exception('Đăng nhập thất bại: ${response.statusMessage}');
@@ -58,7 +59,7 @@ class AuthRepository {
         ),
       );
       if(response.statusCode == 200) {
-        tokenStorage.clearTokens();
+        await tokenStorage.clearTokens();
         print('Delete successfully');
       }
       else{
