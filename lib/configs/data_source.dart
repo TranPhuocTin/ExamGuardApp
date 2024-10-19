@@ -7,4 +7,7 @@ class ApiUrls {
   static String updateUser(String userId) => '/api/user/$userId';
   static String logout = '/api/auth/logout';
   static const String getExamList = '/api/exam/list';
+  static const String getSearchExam = '/api/exam/search';
+  static String updateExam(String examId) => '/api/exam/$examId';
+  static String deleteExam(String examId) => '/api/exam/$examId';
 }

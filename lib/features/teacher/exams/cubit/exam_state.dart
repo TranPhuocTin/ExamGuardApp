@@ -36,19 +36,34 @@ class ExamRefreshing extends ExamState {
 class ExamLoaded extends ExamState {
   final List<Exam> exams;
   final bool hasReachedMax;
+  final int currentPage;
+  final String selectedStatus;
+  final String searchQuery;
 
-  const ExamLoaded(this.exams, {this.hasReachedMax = false});
+  const ExamLoaded(
+    this.exams, {
+    this.hasReachedMax = false,
+    this.currentPage = 1,
+    this.selectedStatus = 'All',
+    this.searchQuery = '',
+  });
 
   @override
-  List<Object> get props => [exams, hasReachedMax];
+  List<Object> get props => [exams, hasReachedMax, currentPage, selectedStatus, searchQuery];
 
   ExamLoaded copyWith({
     List<Exam>? exams,
     bool? hasReachedMax,
+    int? currentPage,
+    String? selectedStatus,
+    String? searchQuery,
   }) {
     return ExamLoaded(
       exams ?? this.exams,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+      currentPage: currentPage ?? this.currentPage,
+      selectedStatus: selectedStatus ?? this.selectedStatus,
+      searchQuery: searchQuery ?? this.searchQuery,
     );
   }
 }
@@ -61,3 +76,15 @@ class ExamError extends ExamState {
   @override
   List<Object> get props => [message];
 }
+
+class ExamUpdate extends ExamState{
+  final bool isSuccess;
+  const ExamUpdate(this.isSuccess);
+
+  ExamUpdate copyWith({
+    bool? isSuccess,
+  }) {
+    return ExamUpdate(isSuccess ?? this.isSuccess);
+  }
+}
+

@@ -17,7 +17,6 @@ import '../../exams/view/exam_page.dart';
 import '../../exams/widgets/exam_card.dart';
 import '../../models/exam.dart';
 import '../cubit/teacher_homepage_state.dart';
-import '../widgets/exam_card.dart';
 import 'package:exam_guardian/features/teacher/homepage/cubit/teacher_homepage_cubit.dart';
 
 class TeacherHomepageView extends StatefulWidget {
@@ -104,40 +103,6 @@ class TeacherHomePageWrapper extends StatefulWidget {
 }
 
 class _TeacherHomePageWrapperState extends State<TeacherHomePageWrapper> {
-  Timer? _refreshTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _startRefreshTimer();
-  }
-
-  @override
-  void dispose() {
-    _refreshTimer?.cancel();
-    super.dispose();
-  }
-
-  void _startRefreshTimer() {
-    _refreshTimer = Timer.periodic(Duration(minutes: 1), (_) {
-      _checkAndRefresh();
-    });
-  }
-
-  void _checkAndRefresh() {
-    final teacherHomepageCubit = context.read<TeacherHomepageCubit>();
-    final currentState = teacherHomepageCubit.state;
-    if (currentState is TeacherHomepageLoaded) {
-      final now = DateTime.now();
-      bool shouldRefresh = currentState.exams.any((exam) {
-        return exam.endTime!.isAfter(now) && exam.endTime!.difference(now).inMinutes <= 1;
-      });
-
-      if (shouldRefresh) {
-        teacherHomepageCubit.loadInProgressExams(forceReload: true);
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -152,26 +117,30 @@ class TeacherHomePageContent extends StatefulWidget {
 
 class _TeacherHomePageContentState extends State<TeacherHomePageContent> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    print('TeacherHomePageContent initialized');
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
-    print('TeacherHomePageContent disposed');
   }
 
   void _onScroll() {
     if (_isBottom) {
-      print('Reached bottom of the list, loading more exams');
       context.read<TeacherHomepageCubit>().loadInProgressExams();
     }
+  }
+
+  void _onSearchChanged() {
+    context.read<TeacherHomepageCubit>().searchExams(_searchController.text);
   }
 
   bool get _isBottom {
@@ -187,7 +156,6 @@ class _TeacherHomePageContentState extends State<TeacherHomePageContent> {
       backgroundColor: Colors.grey[100],
       body: RefreshIndicator(
         onRefresh: () async {
-          print('Manual refresh triggered');
           await context.read<TeacherHomepageCubit>().loadInProgressExams(forceReload: true);
         },
         child: CustomScrollView(
@@ -228,9 +196,17 @@ class _TeacherHomePageContentState extends State<TeacherHomePageContent> {
                     ),
                     SizedBox(height: 16),
                     TextField(
+                      controller: _searchController,
                       decoration: InputDecoration(
                         hintText: 'Search active exams...',
                         prefixIcon: Icon(Icons.search),
+                        suffixIcon: IconButton(
+                          icon: Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            context.read<TeacherHomepageCubit>().resetSearch();
+                          },
+                        ),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
@@ -245,7 +221,6 @@ class _TeacherHomePageContentState extends State<TeacherHomePageContent> {
             ),
             BlocBuilder<TeacherHomepageCubit, TeacherHomepageState>(
               builder: (context, state) {
-                print('Current state: $state');
                 if (state is TeacherHomepageInitial) {
                   return SliverFillRemaining(
                     child: Center(
@@ -271,7 +246,6 @@ class _TeacherHomePageContentState extends State<TeacherHomePageContent> {
   }
 
   Widget _buildExamList(List<Exam> exams, {bool isLoading = false, bool hasReachedMax = false}) {
-    print('Building exam list: ${exams.length} exams, isLoading: $isLoading, hasReachedMax: $hasReachedMax');
     return SliverPadding(
       padding: EdgeInsets.all(16.0),
       sliver: SliverList(
@@ -279,13 +253,11 @@ class _TeacherHomePageContentState extends State<TeacherHomePageContent> {
           (context, index) {
             if (index >= exams.length) {
               if (isLoading) {
-                print('Showing loading indicator at the bottom');
                 return Padding(
                   padding: EdgeInsets.symmetric(vertical: 16.0),
                   child: Center(child: CircularProgressIndicator()),
                 );
               } else if (hasReachedMax) {
-                print('Showing "No more exams" message');
                 return Padding(
                   padding: EdgeInsets.symmetric(vertical: 16.0),
                   child: Center(child: Text('No more exams')),
@@ -295,7 +267,7 @@ class _TeacherHomePageContentState extends State<TeacherHomePageContent> {
             }
             return Padding(
               padding: EdgeInsets.only(bottom: 16.0),
-              child: ExamCard(exam: exams[index]),
+              child: ExamCard(exam: exams[index], isShowMoreIcon: false,),
             );
           },
           childCount: exams.length + (isLoading || hasReachedMax ? 1 : 0),

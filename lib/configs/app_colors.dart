@@ -17,6 +17,7 @@ class AppColors {
   
   static const Color cardBackground = Colors.white;
   static const Color divider = Color(0xFFE0E0E0);
+  static const Color viewButton = Color(0xFF0000FF);
 
   // Thêm các màu gradient nếu cần
   static const LinearGradient primaryGradient = LinearGradient(

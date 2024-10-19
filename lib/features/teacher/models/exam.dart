@@ -13,8 +13,8 @@ class Exam extends Equatable {
   final DateTime startTime;
   final DateTime endTime;
   final String status;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   const Exam({
     required this.id,
@@ -23,8 +23,8 @@ class Exam extends Equatable {
     required this.startTime,
     required this.endTime,
     required this.status,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory Exam.fromJson(Map<String, dynamic> json) => _$ExamFromJson(json);
@@ -32,4 +32,22 @@ class Exam extends Equatable {
 
   @override
   List<Object?> get props => [id, title, description, startTime, endTime, status, createdAt, updatedAt];
+
+  Exam copyWith({
+    String? id,
+    String? title,
+    String? description,
+    DateTime? startTime,
+    DateTime? endTime,
+    String? status,
+  }) {
+    return Exam(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      status: status ?? this.status,
+    );
+  }
 }

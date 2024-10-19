@@ -5,6 +5,7 @@ import 'package:exam_guardian/features/admin/view/admin_profile_view.dart';
 import 'package:exam_guardian/features/admin/view/admin_homepage_view.dart';
 import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
 import 'package:exam_guardian/features/login/view/login_view.dart';
+import 'package:exam_guardian/features/teacher/exams/view/update_exam_view.dart';
 import 'package:exam_guardian/features/teacher/homepage/view/teacher_homepage_view.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
 import 'package:exam_guardian/utils/share_preference/token_cubit.dart';
@@ -13,6 +14,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'ExamGuardObserver.dart';
 import 'data/exam_repository.dart';
 import 'features/splash/screens/splash_screen.dart';
+import 'features/teacher/exams/cubit/exam_cubit.dart';
 import 'features/teacher/homepage/cubit/teacher_homepage_cubit.dart';
 
 void main() {
@@ -46,6 +48,9 @@ void main() {
         BlocProvider<TeacherHomepageCubit>(
           create: (context) => TeacherHomepageCubit(examRepository, tokenStorage),
         ),
+        BlocProvider<ExamCubit>(
+          create: (context) => ExamCubit(examRepository, tokenStorage),
+        ),
       ],
       child: MyApp(),
     ),
@@ -69,7 +74,8 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginView(), // Màn hình chính
         '/admin_main_screen': (context) => AdminMainScreen(),
         '/admin_profile_screen': (context) => AdminProfileScreen(),
-        '/teacher_homepage' : (context) => TeacherHomepageView()
+        '/teacher_homepage' : (context) => TeacherHomepageView(),
+        '/teacher_homepage' : (context) => TeacherHomepageView(),
       },
     );
   }

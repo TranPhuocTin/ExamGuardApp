@@ -1,13 +1,18 @@
+import 'package:exam_guardian/features/teacher/exams/view/update_exam_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/exam.dart';
 import '../../../../configs/app_colors.dart';
+import '../cubit/exam_cubit.dart';
+import 'delete_confirm_dialog.dart';
 
 class ExamCard extends StatelessWidget {
+  final bool isShowMoreIcon;
   final Exam exam;
 
-  const ExamCard({Key? key, required this.exam}) : super(key: key);
+  const ExamCard({Key? key, required this.exam, required this.isShowMoreIcon}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -74,12 +79,12 @@ class ExamCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  IconButton(
+                  isShowMoreIcon ? IconButton(
                     icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
-                    onPressed: () {
-                      // Hiển thị menu tùy chọn
-                    },
-                  ),
+                    onPressed: () => _showOptions(context),
+                  ) : TextButton(onPressed: () {
+                    
+                  }, child: Text('View', style: TextStyle(color: AppColors.viewButton, fontSize: 12),))
                 ],
               ),
             ],
@@ -119,6 +124,64 @@ class ExamCard extends StatelessWidget {
       label: Text(status),
       backgroundColor: backgroundColor,
       labelStyle: TextStyle(color: textColor, fontSize: 12),
+    );
+  }
+
+  void _showOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: Icon(Icons.edit, color: AppColors.primaryColor),
+                title: Text('Update'),
+                onTap: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UpdateExamView(exam: exam),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.visibility, color: AppColors.primaryColor),
+                title: Text('View'),
+                onTap: () {
+                  // Xử lý khi chọn View Exam
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete, color: Colors.red),
+                title: Text('Delete', style: TextStyle(color: Colors.red)),
+                onTap: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return DeleteConfirmationDialog(
+                        examTitle: exam.title,
+                        onConfirm: () async {
+                         await context.read<ExamCubit>().deleteExam(exam.id, exam.status);
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

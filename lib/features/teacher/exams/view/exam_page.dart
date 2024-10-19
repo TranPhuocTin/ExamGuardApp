@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../models/exam.dart';
-import '../../homepage/widgets/exam_card.dart';
+import '../cubit/exam_cubit.dart';
+import '../cubit/exam_state.dart';
 import '../data/sample_exams.dart';
 import '../widgets/exam_card.dart';
 import '../../../../configs/app_colors.dart';
@@ -15,12 +17,27 @@ class _ExamListPageState extends State<ExamListPage> {
   String _selectedStatus = 'All';
   List<String> _statusOptions = ['All', 'Scheduled', 'In Progress', 'Completed'];
   TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    context.read<ExamCubit>().loadExams();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundGrey,
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: [
           _buildSliverAppBar(),
           SliverToBoxAdapter(
@@ -155,10 +172,6 @@ class _ExamListPageState extends State<ExamListPage> {
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.filter_list, color: Colors.white),
-          onPressed: _showFilterDialog,
-        ),
-        IconButton(
           icon: Icon(Icons.notifications_none, color: Colors.white),
           onPressed: () {
             // Handle notifications
@@ -209,6 +222,10 @@ class _ExamListPageState extends State<ExamListPage> {
                   setState(() {
                     _selectedStatus = status;
                   });
+                  context.read<ExamCubit>().loadExams(
+                    status: status == 'All' ? null : status,
+                    forceReload: true
+                  );
                 }
               },
               selectedColor: AppColors.primaryColor.withOpacity(0.2),
@@ -224,67 +241,66 @@ class _ExamListPageState extends State<ExamListPage> {
   }
 
   Widget _buildExamList() {
-    final filteredExams = _getFilteredExams();
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: ExamCard(exam: filteredExams[index]),
+    return BlocBuilder<ExamCubit, ExamState>(
+      builder: (context, state) {
+        if (state is ExamInitial || (state is ExamLoading && state.isFirstFetch)) {
+          return SliverFillRemaining(
+            child: Center(child: CircularProgressIndicator()),
           );
-        },
-        childCount: filteredExams.length,
-      ),
-    );
-  }
+        } else if (state is ExamLoaded || (state is ExamLoading && !state.isFirstFetch)) {
+          List<Exam> exams = [];
+          bool isLoading = false;
 
-  List<Exam> _getFilteredExams() {
-    if (_selectedStatus == 'All') {
-      return sampleExams;
-    } else {
-      return sampleExams
-          .where((exam) => exam.status?.toLowerCase() == _selectedStatus.toLowerCase())
-          .toList();
-    }
-  }
+          if (state is ExamLoaded) {
+            exams = state.exams;
+          } else if (state is ExamLoading) {
+            exams = state.currentExams;
+            isLoading = true;
+          }
 
-  void _showFilterDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Advanced Filter'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Search by title',
-                  prefixIcon: Icon(Icons.search),
-                ),
-              ),
-              SizedBox(height: 16),
-              Text('Date Range'),
-              // Thêm widget chọn khoảng thời gian
-            ],
-          ),
-          actions: [
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
+          return SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                if (index < exams.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: ExamCard(exam: exams[index], isShowMoreIcon: true,),
+                  );
+                } else if (isLoading) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                } else {
+                  return SizedBox.shrink();
+                }
               },
+              childCount: exams.length + (isLoading ? 1 : 0),
             ),
-            ElevatedButton(
-              child: Text('Apply'),
-              onPressed: () {
-                // Áp dụng bộ lọc
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
+          );
+        } else if (state is ExamError) {
+          return SliverFillRemaining(
+            child: Center(child: Text('Error: ${state.message}')),
+          );
+        } else {
+          return SliverFillRemaining(
+            child: Center(child: Text('No exams available')),
+          );
+        }
       },
     );
+  }
+
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    return currentScroll >= (maxScroll * 0.9);
+  }
+
+  void _onScroll() {
+    if (_isBottom) {
+      context.read<ExamCubit>().loadMoreExams();
+    }
   }
 }

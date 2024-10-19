@@ -3,6 +3,8 @@ import 'package:exam_guardian/configs/app_config.dart';
 import 'package:exam_guardian/configs/data_source.dart';
 import 'package:exam_guardian/features/teacher/models/exam_response.dart';
 
+import '../features/teacher/models/exam.dart';
+
 class TokenExpiredException implements Exception {
   final String message;
   TokenExpiredException(this.message);
@@ -50,7 +52,7 @@ class ExamRepository {
     }
   }
 
-  Future<ExamResponse> getInProgressExams(String clientId, String token, {String? status, int page = 1}) async {
+  Future<ExamResponse> getExams(String clientId, String token, {String? status, int page = 1}) async {
     final response = await _performRequest(
       ApiUrls.getExamList,
       clientId: clientId,
@@ -63,5 +65,25 @@ class ExamRepository {
     } else {
       throw Exception('Failed to load in-progress exams: ${response.statusMessage}');
     }
+  }
+
+  Future<ExamResponse> searchExams(String clientId, String token, String query, {int page = 1}) async {
+    final response = await _performRequest(ApiUrls.getSearchExam, clientId: clientId, token: token, queryParameters: {'query': query, 'page': page});
+    return ExamResponse.fromJson(response.data);
+  }
+
+  Future<Exam> updateExam(String clientId, String token, String examId, Exam exam) async {
+    final response = await _performRequest(
+      ApiUrls.updateExam(examId),
+      clientId: clientId,
+      token: token,
+      data: exam.toJson(),
+      method: 'PATCH',
+    );
+    return Exam.fromJson(response.data['metadata']);
+  }
+
+  Future<void> deleteExam(String clientId, String token, String examId) async {
+    await _performRequest(ApiUrls.deleteExam(examId), clientId: clientId, token: token, method: 'DELETE');
   }
 }
