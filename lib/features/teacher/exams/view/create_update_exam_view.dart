@@ -6,16 +6,17 @@ import '../cubit/exam_cubit.dart';
 import '../../../../configs/app_colors.dart';
 import '../cubit/exam_state.dart';
 
-class UpdateExamView extends StatefulWidget {
-  final Exam exam;
+class CreateUpdateExamView extends StatefulWidget {
+  final String? filteredStatus;
+  final Exam? exam;
 
-  const UpdateExamView({Key? key, required this.exam}) : super(key: key);
+  const CreateUpdateExamView({Key? key, this.exam, this.filteredStatus}) : super(key: key);
 
   @override
-  _UpdateExamViewState createState() => _UpdateExamViewState();
+  _CreateUpdateExamViewState createState() => _CreateUpdateExamViewState();
 }
 
-class _UpdateExamViewState extends State<UpdateExamView> {
+class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
@@ -23,14 +24,16 @@ class _UpdateExamViewState extends State<UpdateExamView> {
   late TextEditingController _endTimeController;
   late String _selectedStatus;
 
+  bool get isUpdating => widget.exam != null;
+
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.exam.title);
-    _descriptionController = TextEditingController(text: widget.exam.description);
-    _startTimeController = TextEditingController(text: _formatDateTime(widget.exam.startTime));
-    _endTimeController = TextEditingController(text: _formatDateTime(widget.exam.endTime));
-    _selectedStatus = widget.exam.status;
+    _titleController = TextEditingController(text: widget.exam?.title ?? '');
+    _descriptionController = TextEditingController(text: widget.exam?.description ?? '');
+    _startTimeController = TextEditingController(text: widget.exam != null ? _formatDateTime(widget.exam!.startTime) : '');
+    _endTimeController = TextEditingController(text: widget.exam != null ? _formatDateTime(widget.exam!.endTime) : '');
+    _selectedStatus = widget.filteredStatus ?? widget.exam?.status ?? 'Scheduled';
   }
 
   @override
@@ -39,18 +42,18 @@ class _UpdateExamViewState extends State<UpdateExamView> {
       listener: (context, state) {
         if (state is ExamUpdate && state.isSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Exam updated successfully')),
+            SnackBar(content: Text('${isUpdating ? "Updated" : "Created"} exam successfully')),
           );
-          Navigator.of(context).pop(); // Pop immediately after successful update
+          Navigator.of(context).pop();
         } else if (state is ExamError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to update exam: ${state.message}')),
+            SnackBar(content: Text('Failed to ${isUpdating ? "update" : "create"} exam: ${state.message}')),
           );
         }
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Update Exam', style: TextStyle(color: Colors.white)),
+          title: Text('${isUpdating ? "Update" : "Create"} Exam', style: TextStyle(color: Colors.white)),
           backgroundColor: AppColors.primaryColor,
           elevation: 0,
           iconTheme: IconThemeData(color: Colors.white),
@@ -99,7 +102,7 @@ class _UpdateExamViewState extends State<UpdateExamView> {
                 Center(
                   child: ElevatedButton(
                     onPressed: _submitForm,
-                    child: Text('Update Exam', style: TextStyle(fontSize: 16)),
+                    child: Text('${isUpdating ? "Update" : "Create"} Exam', style: TextStyle(fontSize: 16)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
                       padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
@@ -247,14 +250,20 @@ class _UpdateExamViewState extends State<UpdateExamView> {
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      final updatedExam = widget.exam.copyWith(
+      final examData = Exam(
+        id: isUpdating ? widget.exam!.id : null,  // Use null for new exams
         title: _titleController.text,
         description: _descriptionController.text,
         startTime: DateFormat('yyyy-MM-dd HH:mm').parse(_startTimeController.text),
         endTime: DateFormat('yyyy-MM-dd HH:mm').parse(_endTimeController.text),
         status: _selectedStatus,
       );
-      await context.read<ExamCubit>().updateExam(updatedExam, widget.exam.status);
+
+      if (isUpdating) {
+        await context.read<ExamCubit>().updateExam(examData, widget.exam!.status);
+      } else {
+        await context.read<ExamCubit>().createExam(examData);
+      }
     }
   }
 

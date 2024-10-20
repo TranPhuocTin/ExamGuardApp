@@ -7,6 +7,7 @@ import '../cubit/exam_state.dart';
 import '../data/sample_exams.dart';
 import '../widgets/exam_card.dart';
 import '../../../../configs/app_colors.dart';
+import 'create_update_exam_view.dart';
 
 class ExamListPage extends StatefulWidget {
   @override
@@ -70,7 +71,10 @@ class _ExamListPageState extends State<ExamListPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Tạo bài kiểm tra mới
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => CreateUpdateExamView(filteredStatus: _selectedStatus,)),
+          );
         },
         child: Icon(Icons.add),
         backgroundColor: AppColors.primaryColor,

@@ -7,7 +7,7 @@ part of 'exam.dart';
 // **************************************************************************
 
 Exam _$ExamFromJson(Map<String, dynamic> json) => Exam(
-      id: json['_id'] as String,
+      id: json['_id'] as String?,
       title: json['title'] as String,
       description: json['description'] as String,
       startTime: DateTime.parse(json['startTime'] as String),

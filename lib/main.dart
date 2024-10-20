@@ -5,7 +5,7 @@ import 'package:exam_guardian/features/admin/view/admin_profile_view.dart';
 import 'package:exam_guardian/features/admin/view/admin_homepage_view.dart';
 import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
 import 'package:exam_guardian/features/login/view/login_view.dart';
-import 'package:exam_guardian/features/teacher/exams/view/update_exam_view.dart';
+import 'package:exam_guardian/features/teacher/exams/view/create_update_exam_view.dart';
 import 'package:exam_guardian/features/teacher/homepage/view/teacher_homepage_view.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
 import 'package:exam_guardian/utils/share_preference/token_cubit.dart';

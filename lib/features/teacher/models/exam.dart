@@ -7,7 +7,7 @@ enum ExamStatus { scheduled, inProgress, completed }
 @JsonSerializable()
 class Exam extends Equatable {
   @JsonKey(name: '_id')
-  final String id;
+  final String? id;
   final String title;
   final String description;
   final DateTime startTime;
@@ -17,7 +17,7 @@ class Exam extends Equatable {
   final DateTime? updatedAt;
 
   const Exam({
-    required this.id,
+    this.id,
     required this.title,
     required this.description,
     required this.startTime,

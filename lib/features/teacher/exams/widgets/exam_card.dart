@@ -1,4 +1,4 @@
-import 'package:exam_guardian/features/teacher/exams/view/update_exam_view.dart';
+import 'package:exam_guardian/features/teacher/exams/view/create_update_exam_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -147,7 +147,7 @@ class ExamCard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => UpdateExamView(exam: exam),
+                      builder: (context) => CreateUpdateExamView(exam: exam),
                     ),
                   );
                 },
@@ -171,7 +171,7 @@ class ExamCard extends StatelessWidget {
                       return DeleteConfirmationDialog(
                         examTitle: exam.title,
                         onConfirm: () async {
-                         await context.read<ExamCubit>().deleteExam(exam.id, exam.status);
+                         await context.read<ExamCubit>().deleteExam(exam.id!, exam.status);
                         },
                       );
                     },

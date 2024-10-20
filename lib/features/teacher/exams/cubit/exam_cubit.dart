@@ -122,10 +122,10 @@ class ExamCubit extends Cubit<ExamState> {
         return;
       }
 
-      final updatedExamFromApi = await _examRepository.updateExam(
+      await _examRepository.updateExam(
         clientId,
         token,
-        updatedExam.id,
+        updatedExam.id!,
         updatedExam,
       );
 
@@ -147,6 +147,23 @@ class ExamCubit extends Cubit<ExamState> {
       }
       await _examRepository.deleteExam(clientId, token, examId);
       await loadExams(status: examStatus);
+    } catch (e) {
+      emit(ExamError(e.toString()));
+    }
+  }
+
+  Future<void> createExam(Exam exam) async {
+    try {
+      final clientId = await _tokenStorage.getClientId();
+      final token = await _tokenStorage.getAccessToken();
+      if (clientId == null || token == null) {
+        emit(ExamError('Authentication information is missing'));
+        return;
+      }
+
+      await _examRepository.createExam(clientId, token, exam);
+      emit(ExamUpdate(true)); // Emit success state
+      await loadExams(); // Reload exams list
     } catch (e) {
       emit(ExamError(e.toString()));
     }

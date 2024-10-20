@@ -86,4 +86,9 @@ class ExamRepository {
   Future<void> deleteExam(String clientId, String token, String examId) async {
     await _performRequest(ApiUrls.deleteExam(examId), clientId: clientId, token: token, method: 'DELETE');
   }
+
+  Future<Exam> createExam(String clientId, String token, Exam exam) async {
+    final response = await _performRequest(ApiUrls.createExam, clientId: clientId, token: token, data: exam.toJson(), method: 'POST');
+    return Exam.fromJson(response.data['metadata']);
+  }
 }

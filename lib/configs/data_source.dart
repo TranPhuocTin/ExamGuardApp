@@ -10,4 +10,5 @@ class ApiUrls {
   static const String getSearchExam = '/api/exam/search';
   static String updateExam(String examId) => '/api/exam/$examId';
   static String deleteExam(String examId) => '/api/exam/$examId';
+  static String createExam = '/api/exam/create';
 }
