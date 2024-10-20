@@ -15,6 +15,7 @@ import 'ExamGuardObserver.dart';
 import 'data/exam_repository.dart';
 import 'features/splash/screens/splash_screen.dart';
 import 'features/teacher/exams/cubit/exam_cubit.dart';
+import 'features/teacher/exams/cubit/question_cubit.dart';
 import 'features/teacher/homepage/cubit/teacher_homepage_cubit.dart';
 
 void main() {
@@ -50,6 +51,9 @@ void main() {
         ),
         BlocProvider<ExamCubit>(
           create: (context) => ExamCubit(examRepository, tokenStorage),
+        ),
+        BlocProvider<QuestionCubit>(
+          create: (context) => QuestionCubit(examRepository, tokenStorage),
         ),
       ],
       child: MyApp(),

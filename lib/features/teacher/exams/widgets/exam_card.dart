@@ -7,18 +7,21 @@ import '../../models/exam.dart';
 import '../../../../configs/app_colors.dart';
 import '../cubit/exam_cubit.dart';
 import '../view/create_update_exam_view.dart';
+import '../view/exam_detail_view.dart';
 import 'delete_confirm_dialog.dart';
 
 class ExamCard extends StatelessWidget {
   final bool isShowMoreIcon;
   final Exam exam;
   final VoidCallback? onExamUpdated;
+  final VoidCallback? onExamTapped;
 
   const ExamCard({
     Key? key,
     required this.exam,
     required this.isShowMoreIcon,
     this.onExamUpdated,
+    this.onExamTapped
   }) : super(key: key);
 
   @override
@@ -29,7 +32,7 @@ class ExamCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () {
-          // Xử lý khi người dùng nhấn vào card
+          onExamTapped!();
         },
         child: Container(
           padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
@@ -148,7 +151,7 @@ class ExamCard extends StatelessWidget {
             children: <Widget>[
               ListTile(
                 leading: Icon(Icons.edit, color: AppColors.primaryColor),
-                title: Text('Update'),
+                title: Text('Edit'),
                 onTap: () async {
                   Navigator.pop(context); // Close the bottom sheet
                   final result = await Navigator.push(
@@ -164,8 +167,8 @@ class ExamCard extends StatelessWidget {
                 leading: Icon(Icons.visibility, color: AppColors.primaryColor),
                 title: Text('View'),
                 onTap: () {
-                  // Xử lý khi chọn View Exam
                   Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ExamDetailView(exam: exam)));
                 },
               ),
               ListTile(

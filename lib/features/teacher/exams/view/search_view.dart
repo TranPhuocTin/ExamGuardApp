@@ -4,6 +4,7 @@ import '../cubit/exam_cubit.dart';
 import '../cubit/exam_state.dart';
 import '../widgets/exam_card.dart';
 import '../../../../configs/app_colors.dart';
+import 'exam_detail_view.dart';
 
 class SearchView extends StatefulWidget {
   @override
@@ -164,6 +165,11 @@ class _SearchViewState extends State<SearchView> {
             onExamUpdated: () {
               if (mounted) {
                 context.read<ExamCubit>().refreshSearchResults();
+              }
+            },
+            onExamTapped: () {
+              if (mounted) {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ExamDetailView(exam: state.searchResults[index])));
               }
             },
           );

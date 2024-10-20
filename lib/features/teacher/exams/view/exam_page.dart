@@ -10,6 +10,7 @@ import '../data/sample_exams.dart';
 import '../widgets/exam_card.dart';
 import '../../../../configs/app_colors.dart';
 import 'create_update_exam_view.dart';
+import 'exam_detail_view.dart';
 
 class ExamListPage extends StatefulWidget {
   @override
@@ -271,7 +272,9 @@ class _ExamListPageState extends State<ExamListPage> {
                 if (index < exams.length) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
-                    child: ExamCard(exam: exams[index], isShowMoreIcon: true,),
+                    child: ExamCard(exam: exams[index], isShowMoreIcon: true,onExamTapped: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => ExamDetailView(exam: exams[index])));
+                    },),
                   );
                 } else if (isLoading) {
                   return Padding(

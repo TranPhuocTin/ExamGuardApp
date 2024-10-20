@@ -4,6 +4,7 @@ import 'package:exam_guardian/configs/data_source.dart';
 import 'package:exam_guardian/features/teacher/models/exam_response.dart';
 
 import '../features/teacher/models/exam.dart';
+import '../features/teacher/models/question_response.dart';
 
 class TokenExpiredException implements Exception {
   final String message;
@@ -90,5 +91,31 @@ class ExamRepository {
   Future<Exam> createExam(String clientId, String token, Exam exam) async {
     final response = await _performRequest(ApiUrls.createExam, clientId: clientId, token: token, data: exam.toJson(), method: 'POST');
     return Exam.fromJson(response.data['metadata']);
+  }
+
+  Future<QuestionResponse> getQuestions(String clientId, String token, String examId, {int page = 1}) async {
+    final response = await _performRequest(ApiUrls.getQuestionList(examId), clientId: clientId, token: token, queryParameters: {'page': page});
+    return QuestionResponse.fromJson(response.data);
+  }
+
+  Future<Question> createQuestion(String clientId, String token, String examId, Question question) async {
+    print('ExamRepository: Starting to create question');
+    print('ExamRepository: ExamId - $examId');
+    print('ExamRepository: Question details - ${question.toJson()}');
+    try {
+      final response = await _performRequest(
+        ApiUrls.createQuestion(examId),
+        clientId: clientId,
+        token: token,
+        data: question.toJson(),
+        method: 'POST',
+      );
+      print('ExamRepository: Question created successfully');
+      print('ExamRepository: Response data - ${response.data}');
+      return Question.fromJson(response.data['metadata']);
+    } catch (e) {
+      print('ExamRepository: Error creating question - ${e.toString()}');
+      rethrow;
+    }
   }
 }
