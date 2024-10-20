@@ -44,7 +44,7 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${isUpdating ? "Updated" : "Created"} exam successfully')),
           );
-          Navigator.of(context).pop();
+          Navigator.of(context).pop(true); // Trả về true để chỉ ra rằng đã cập nhật thành công
         } else if (state is ExamError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to ${isUpdating ? "update" : "create"} exam: ${state.message}')),
@@ -251,7 +251,7 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       final examData = Exam(
-        id: isUpdating ? widget.exam!.id : null,  // Use null for new exams
+        id: isUpdating ? widget.exam!.id : null,
         title: _titleController.text,
         description: _descriptionController.text,
         startTime: DateFormat('yyyy-MM-dd HH:mm').parse(_startTimeController.text),
@@ -261,9 +261,11 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
 
       if (isUpdating) {
         await context.read<ExamCubit>().updateExam(examData, widget.exam!.status);
+        // Thay vì pop ngay lập tức, chúng ta sẽ để BlocListener xử lý việc này
       } else {
         await context.read<ExamCubit>().createExam(examData);
       }
+      // Xóa dòng Navigator.of(context).pop() ở đây
     }
   }
 

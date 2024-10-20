@@ -1,18 +1,25 @@
-import 'package:exam_guardian/features/teacher/exams/view/create_update_exam_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../utils/transitions/slide_up_route.dart';
 import '../../models/exam.dart';
 import '../../../../configs/app_colors.dart';
 import '../cubit/exam_cubit.dart';
+import '../view/create_update_exam_view.dart';
 import 'delete_confirm_dialog.dart';
 
 class ExamCard extends StatelessWidget {
   final bool isShowMoreIcon;
   final Exam exam;
+  final VoidCallback? onExamUpdated;
 
-  const ExamCard({Key? key, required this.exam, required this.isShowMoreIcon}) : super(key: key);
+  const ExamCard({
+    Key? key,
+    required this.exam,
+    required this.isShowMoreIcon,
+    this.onExamUpdated,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -142,14 +149,15 @@ class ExamCard extends StatelessWidget {
               ListTile(
                 leading: Icon(Icons.edit, color: AppColors.primaryColor),
                 title: Text('Update'),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context); // Close the bottom sheet
-                  Navigator.push(
+                  final result = await Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => CreateUpdateExamView(exam: exam),
-                    ),
+                    MaterialPageRoute(builder: (context) => CreateUpdateExamView(exam: exam)),
                   );
+                  if (result == true && onExamUpdated != null) {
+                    onExamUpdated!();
+                  }
                 },
               ),
               ListTile(

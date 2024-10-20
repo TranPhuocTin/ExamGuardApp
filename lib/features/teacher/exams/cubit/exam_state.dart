@@ -88,3 +88,72 @@ class ExamUpdate extends ExamState{
   }
 }
 
+class ExamSearching extends ExamState {
+  final List<Exam> searchResults;
+  final String searchQuery;
+  final bool hasReachedMax;
+  final int currentPage;
+
+  const ExamSearching({
+    required this.searchResults,
+    required this.searchQuery,
+    this.hasReachedMax = false,
+    this.currentPage = 1,
+  });
+
+  @override
+  List<Object> get props => [searchResults, searchQuery, hasReachedMax, currentPage];
+
+  ExamSearching copyWith({
+    List<Exam>? searchResults,
+    String? searchQuery,
+    bool? hasReachedMax,
+    int? currentPage,
+  }) {
+    return ExamSearching(
+      searchResults: searchResults ?? this.searchResults,
+      searchQuery: searchQuery ?? this.searchQuery,
+      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+      currentPage: currentPage ?? this.currentPage,
+    );
+  }
+}
+
+class ExamSearchState extends ExamState {
+  final List<Exam> searchResults;
+  final bool isLoading;
+  final bool hasReachedMax;
+  final String searchQuery;
+  final int currentPage;
+  final String? error;
+
+  const ExamSearchState({
+    this.searchResults = const [],
+    this.isLoading = false,
+    this.hasReachedMax = false,
+    this.searchQuery = '',
+    this.currentPage = 1,
+    this.error,
+  });
+
+  ExamSearchState copyWith({
+    List<Exam>? searchResults,
+    bool? isLoading,
+    bool? hasReachedMax,
+    String? searchQuery,
+    int? currentPage,
+    String? error,
+  }) {
+    return ExamSearchState(
+      searchResults: searchResults ?? this.searchResults,
+      isLoading: isLoading ?? this.isLoading,
+      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+      searchQuery: searchQuery ?? this.searchQuery,
+      currentPage: currentPage ?? this.currentPage,
+      error: error ?? this.error,
+    );
+  }
+
+  @override
+  List<Object> get props => [searchResults, isLoading, hasReachedMax, searchQuery, currentPage, error ?? ''];
+}

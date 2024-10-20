@@ -1,6 +1,8 @@
+import 'package:exam_guardian/features/teacher/exams/view/search_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import '../../../../utils/transitions/slide_up_route.dart';
 import '../../models/exam.dart';
 import '../cubit/exam_cubit.dart';
 import '../cubit/exam_state.dart';
@@ -73,7 +75,7 @@ class _ExamListPageState extends State<ExamListPage> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => CreateUpdateExamView(filteredStatus: _selectedStatus,)),
+            SlideUpRoute(page: CreateUpdateExamView(filteredStatus: _selectedStatus != 'All' ? _selectedStatus : null)),
           );
         },
         child: Icon(Icons.add),
@@ -188,6 +190,7 @@ class _ExamListPageState extends State<ExamListPage> {
   Widget _buildSearchBar() {
     return TextField(
       controller: _searchController,
+      readOnly: true,
       decoration: InputDecoration(
         hintText: 'Search exams...',
         prefixIcon: Icon(Icons.search, color: AppColors.primaryColor),
@@ -197,13 +200,13 @@ class _ExamListPageState extends State<ExamListPage> {
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide(color: AppColors.primaryColor),
-        ),
+        // focusedBorder: OutlineInputBorder(
+        //   borderRadius: BorderRadius.circular(30),
+        //   borderSide: BorderSide(color: AppColors.primaryColor),
+        // ),
       ),
-      onChanged: (value) {
-        // Implement search functionality
+      onTap: () {
+        Navigator.push(context, SlideUpRoute(page: SearchView()));
       },
     );
   }

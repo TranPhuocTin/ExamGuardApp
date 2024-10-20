@@ -8,6 +8,7 @@ import 'dart:async';
 class ExamCubit extends Cubit<ExamState> {
   final ExamRepository _examRepository;
   final TokenStorage _tokenStorage;
+  String _currentSearchQuery = '';
   Timer? _debounce;
 
   ExamCubit(this._examRepository, this._tokenStorage) : super(ExamInitial());
@@ -53,15 +54,41 @@ class ExamCubit extends Cubit<ExamState> {
     }
   }
 
-  void searchExams(String query) {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      final currentState = state;
-      if (currentState is ExamLoaded) {
-        emit(currentState.copyWith(searchQuery: query, currentPage: 1));
-        loadExams(forceReload: true);
+  Future<void> searchExams(String query) async {
+    _currentSearchQuery = query;
+    if (state is! ExamSearchState) {
+      emit(ExamSearchState(searchQuery: query, isLoading: true));
+    } else {
+      emit((state as ExamSearchState).copyWith(searchQuery: query, isLoading: true, currentPage: 1, searchResults: []));
+    }
+
+    try {
+      final clientId = await _tokenStorage.getClientId();
+      final token = await _tokenStorage.getAccessToken();
+      if (clientId == null || token == null) {
+        emit(ExamSearchState(error: 'Authentication information is missing'));
+        return;
       }
-    });
+
+      final examResponse = await _examRepository.searchExams(clientId, token, query);
+      
+      emit(ExamSearchState(
+        searchResults: examResponse.metadata.exams,
+        hasReachedMax: examResponse.metadata.exams.isEmpty,
+        currentPage: 1,
+        searchQuery: query,
+        isLoading: false,
+      ));
+      // await loadExams();
+    } catch (e) {
+      emit(ExamSearchState(error: e.toString()));
+    }
+  }
+
+  Future<void> refreshSearchResults() async {
+    if (_currentSearchQuery.isNotEmpty) {
+      await searchExams(_currentSearchQuery);
+    }
   }
 
   void changeStatus(String status) {
@@ -163,9 +190,43 @@ class ExamCubit extends Cubit<ExamState> {
 
       await _examRepository.createExam(clientId, token, exam);
       emit(ExamUpdate(true)); // Emit success state
-      await loadExams(); // Reload exams list
+      await loadExams(status: exam.status); // Reload exams list
     } catch (e) {
       emit(ExamError(e.toString()));
+    }
+  }
+
+  Future<void> loadMoreSearchResults() async {
+    if (state is! ExamSearchState) return;
+    final currentState = state as ExamSearchState;
+    
+    if (currentState.isLoading || currentState.hasReachedMax) return;
+
+    emit(currentState.copyWith(isLoading: true));
+
+    try {
+      final clientId = await _tokenStorage.getClientId();
+      final token = await _tokenStorage.getAccessToken();
+      if (clientId == null || token == null) {
+        emit(currentState.copyWith(error: 'Authentication information is missing', isLoading: false));
+        return;
+      }
+
+      final examResponse = await _examRepository.searchExams(
+        clientId,
+        token,
+        currentState.searchQuery,
+        page: currentState.currentPage + 1,
+      );
+
+      emit(currentState.copyWith(
+        searchResults: [...currentState.searchResults, ...examResponse.metadata.exams],
+        hasReachedMax: examResponse.metadata.exams.isEmpty,
+        currentPage: currentState.currentPage + 1,
+        isLoading: false,
+      ));
+    } catch (e) {
+      emit(currentState.copyWith(error: e.toString(), isLoading: false));
     }
   }
 
