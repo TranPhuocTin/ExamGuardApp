@@ -38,7 +38,7 @@ class TeacherProfilePage extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundImage: NetworkImage(teacher.avatar!),
+            backgroundImage: NetworkImage('https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/175421/Originals/avatar-la-gi-2.jpg'),
           ),
           SizedBox(height: 16),
           Text(

@@ -118,4 +118,13 @@ class ExamRepository {
       rethrow;
     }
   }
+
+  Future<Question> updateQuestion(String clientId, String token, String examId, String questionId, Question question) async {
+    final response = await _performRequest(ApiUrls.updateQuestion(examId, questionId), clientId: clientId, token: token, data: question.toJson(), method: 'PATCH');
+    return Question.fromJson(response.data['metadata']);
+  }
+
+  Future<void> deleteQuestion(String clientId, String token, String examId, String questionId) async {
+    await _performRequest(ApiUrls.deleteQuestion(examId, questionId), clientId: clientId, token: token, method: 'DELETE');
+  }
 }

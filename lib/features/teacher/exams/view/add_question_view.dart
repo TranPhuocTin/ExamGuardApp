@@ -9,8 +9,14 @@ import '../cubit/question_state.dart';
 class AddQuestionView extends StatefulWidget {
   final String examId;
   final String questionType;
+  final Question? question;
 
-  const AddQuestionView({Key? key, required this.examId, required this.questionType}) : super(key: key);
+  const AddQuestionView({
+    Key? key,
+    required this.examId,
+    required this.questionType,
+    this.question,
+  }) : super(key: key);
 
   @override
   _AddQuestionViewState createState() => _AddQuestionViewState();
@@ -18,9 +24,32 @@ class AddQuestionView extends StatefulWidget {
 
 class _AddQuestionViewState extends State<AddQuestionView> {
   final _formKey = GlobalKey<FormState>();
-  final _questionController = TextEditingController();
-  final List<TextEditingController> _optionControllers = [TextEditingController()];
-  int _correctAnswerIndex = 0;
+  late TextEditingController _questionController;
+  late List<TextEditingController> _optionControllers;
+  late int _correctAnswerIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeControllers();
+  }
+
+  void _initializeControllers() {
+    if (widget.question != null) {
+      // Editing existing question
+      _questionController = TextEditingController(text: widget.question!.questionText);
+      _optionControllers = widget.question!.options
+          .map((option) => TextEditingController(text: option))
+          .toList();
+      _correctAnswerIndex = widget.question!.options
+          .indexOf(widget.question!.correctAnswer);
+    } else {
+      // Creating new question
+      _questionController = TextEditingController();
+      _optionControllers = [TextEditingController()];
+      _correctAnswerIndex = 0;
+    }
+  }
 
   @override
   void dispose() {
@@ -52,10 +81,13 @@ class _AddQuestionViewState extends State<AddQuestionView> {
   Widget build(BuildContext context) {
     return BlocListener<QuestionCubit, QuestionState>(
       listener: (context, state) {
-        if (state is QuestionCreated) {
-          print('AddQuestionView: Question created successfully');
+        if (state is QuestionCreated || state is QuestionUpdated) {
+          String message = state is QuestionCreated 
+              ? 'Question created successfully' 
+              : 'Question updated successfully';
+          print('AddQuestionView: $message');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Question created successfully')),
+            SnackBar(content: Text(message)),
           );
           Navigator.of(context).pop();
         } else if (state is QuestionError) {
@@ -176,15 +208,24 @@ class _AddQuestionViewState extends State<AddQuestionView> {
     print('AddQuestionView: Submitting question');
     if (_formKey.currentState!.validate()) {
       final question = Question(
+        id: widget.question?.id, // Include the id if editing
         questionText: _questionController.text,
         options: _optionControllers.map((c) => c.text).toList(),
         correctAnswer: _optionControllers[_correctAnswerIndex].text,
         questionType: widget.questionType,
-        questionScore: 1, // You might want to make this configurable
+        questionScore: widget.question?.questionScore ?? 1, // Use existing score or default to 1
       );
       print('AddQuestionView: Created question object');
       print('AddQuestionView: Question details - ${question.toJson()}');
-      context.read<QuestionCubit>().createQuestion(widget.examId, question);
+      if (widget.question != null) {
+        context.read<QuestionCubit>().updateQuestion(widget.examId, widget.question!.id!, widget.question!.copyWith(
+          questionText: _questionController.text,
+          options: _optionControllers.map((c) => c.text).toList(),
+          correctAnswer: _optionControllers[_correctAnswerIndex].text,
+        ));
+      } else {
+        context.read<QuestionCubit>().createQuestion(widget.examId, question);
+      }
     } else {
       print('AddQuestionView: Form validation failed');
     }

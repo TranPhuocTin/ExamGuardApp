@@ -106,4 +106,37 @@ class QuestionCubit extends Cubit<QuestionState> {
       emit(QuestionError(e.toString()));
     }
   }
+
+  Future<void> updateQuestion(String examId, String questionId, Question question) async {
+    try {
+      print('On update question');
+      final clientId = await _tokenStorage.getClientId();
+      final token = await _tokenStorage.getAccessToken();
+      if (clientId == null || token == null) {
+        emit(QuestionError('Authentication information is missing'));
+        return;
+      }
+      final updatedQuestion = await _examRepository.updateQuestion(clientId, token, examId, questionId, question);
+      emit(QuestionUpdated());
+      await loadQuestions(examId: examId);
+    } catch (e) {
+      emit(QuestionError(e.toString()));
+    }
+  }
+
+  Future<void> deleteQuestion(String examId, String questionId) async {
+    try {
+      final clientId = await _tokenStorage.getClientId();
+      final token = await _tokenStorage.getAccessToken();
+      if (clientId == null || token == null) {
+        emit(QuestionError('Authentication information is missing'));
+        return;
+      }
+      await _examRepository.deleteQuestion(clientId, token, examId, questionId);
+      // emit(QuestionDeleted(questionId));
+      await loadQuestions(examId: examId);
+    } catch (e) {
+      emit(QuestionError(e.toString()));
+    }
+  } 
 }

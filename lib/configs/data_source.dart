@@ -13,4 +13,6 @@ class ApiUrls {
   static String createExam = '/api/exam/create';
   static String getQuestionList(String examId) => '/api/question/$examId/list';
   static String createQuestion(String examId) => '/api/question/$examId/create';
+  static String updateQuestion(String examId, String questionId) => '/api/question/$examId/$questionId';
+  static String deleteQuestion(String examId, String questionId) => '/api/question/$examId/$questionId';
 }

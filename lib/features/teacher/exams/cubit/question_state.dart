@@ -72,3 +72,4 @@ class QuestionCreated extends QuestionState {
   List<Object> get props => [question];
 }
 
+class QuestionUpdated extends QuestionState {}

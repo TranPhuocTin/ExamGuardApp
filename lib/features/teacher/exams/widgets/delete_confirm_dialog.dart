@@ -1,3 +1,4 @@
+import 'package:exam_guardian/configs/app_animation.dart';
 import 'package:flutter/material.dart';
 import 'package:exam_guardian/configs/app_colors.dart';
 import 'package:lottie/lottie.dart';
@@ -49,7 +50,7 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
         children: <Widget>[
           if (isProcessing)
             Lottie.network(
-              'https://lottie.host/07eec636-4eb6-4174-821f-2c1cced9a2c4/huFxjZ6eDd.json',
+              AppAnimation.deleteAnimation,
               width: 150,
               height: 150,
               fit: BoxFit.fill,
@@ -64,7 +65,7 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
                 ),
                 SizedBox(height: 15),
                 Text(
-                  "Do you really want to delete the exam '${widget.examTitle}'? This process cannot be undone.",
+                  "Do you really want to delete the '${widget.examTitle}'? This process cannot be undone.",
                   style: TextStyle(fontSize: 14),
                   textAlign: TextAlign.center,
                 ),
@@ -105,10 +106,11 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
   Future<void> _handleDelete() async {
     setState(() => isProcessing = true);
     await widget.onConfirm();
-    
-    // Delay for 1 second to show the animation
     await Future.delayed(Duration(seconds: 2));
-    
+  
+    if (!mounted) return;
+
+    // Now you can safely use context
     Navigator.of(context).pop();
   }
 }

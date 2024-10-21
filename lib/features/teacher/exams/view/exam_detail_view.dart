@@ -8,6 +8,7 @@ import '../../models/question_response.dart';
 import '../cubit/question_cubit.dart';
 import '../cubit/question_state.dart';
 import '../view/add_question_view.dart';
+import '../widgets/delete_confirm_dialog.dart';
 
 class ExamDetailView extends StatefulWidget {
   final Exam exam;
@@ -19,7 +20,6 @@ class ExamDetailView extends StatefulWidget {
 }
 
 class _ExamDetailViewState extends State<ExamDetailView> {
-
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -55,55 +55,54 @@ class _ExamDetailViewState extends State<ExamDetailView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          _buildSliverAppBar(),
-          SliverPadding(
-            padding: EdgeInsets.all(16),
-            sliver: BlocBuilder<QuestionCubit, QuestionState>(
-              builder: (context, state) {
-                if (state is QuestionLoading && state.isFirstFetch) {
-                  return SliverFillRemaining(
-                    child: Center(child: CircularProgressIndicator()),
+        backgroundColor: Colors.grey[100],
+        body: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            _buildSliverAppBar(),
+            SliverPadding(
+              padding: EdgeInsets.all(16),
+              sliver: BlocBuilder<QuestionCubit, QuestionState>(
+                builder: (context, state) {
+                  if (state is QuestionLoading && state.isFirstFetch) {
+                    return SliverFillRemaining(
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  List<Question> questions = [];
+                  bool isLoading = false;
+
+                  if (state is QuestionLoading) {
+                    questions = state.currentQuestions;
+                    isLoading = true;
+                  } else if (state is QuestionLoaded) {
+                    questions = state.questions;
+                  }
+
+                  if (questions.isEmpty && !isLoading) {
+                    return _buildNoQuestionsView();
+                  }
+
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        if (index < questions.length) {
+                          return _buildQuestionCard(questions[index], index);
+                        } else if (isLoading) {
+                          return Center(child: CircularProgressIndicator());
+                        } else {
+                          return SizedBox.shrink();
+                        }
+                      },
+                      childCount: questions.length + (isLoading ? 1 : 0),
+                    ),
                   );
-                }
-                
-                List<Question> questions = [];
-                bool isLoading = false;
-
-                if (state is QuestionLoading) {
-                  questions = state.currentQuestions;
-                  isLoading = true;
-                } else if (state is QuestionLoaded) {
-                  questions = state.questions;
-                }
-
-                if (questions.isEmpty && !isLoading) {
-                  return _buildNoQuestionsView();
-                }
-
-                return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index < questions.length) {
-                        return _buildQuestionCard(questions[index], index);
-                      } else if (isLoading) {
-                        return Center(child: CircularProgressIndicator());
-                      } else {
-                        return SizedBox.shrink();
-                      }
-                    },
-                    childCount: questions.length + (isLoading ? 1 : 0),
-                  ),
-                );
-              },
+                },
+              ),
             ),
-          ),
-        ],
-      )
-    );
+          ],
+        ));
   }
 
   Widget _buildSliverAppBar() {
@@ -146,9 +145,11 @@ class _ExamDetailViewState extends State<ExamDetailView> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Spacer(),
-                  _buildInfoRow(Icons.calendar_today, DateFormat('dd MMM yyyy').format(widget.exam.startTime)),
+                  _buildInfoRow(Icons.calendar_today,
+                      DateFormat('dd MMM yyyy').format(widget.exam.startTime)),
                   SizedBox(height: 4),
-                  _buildInfoRow(Icons.access_time, '${DateFormat('HH:mm').format(widget.exam.startTime)} - ${DateFormat('HH:mm').format(widget.exam.endTime)}'),
+                  _buildInfoRow(Icons.access_time,
+                      '${DateFormat('HH:mm').format(widget.exam.startTime)} - ${DateFormat('HH:mm').format(widget.exam.endTime)}'),
                 ],
               ),
             ),
@@ -195,7 +196,9 @@ class _ExamDetailViewState extends State<ExamDetailView> {
               children: [
                 Text(
                   'Q${index + 1}: ',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryColor),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryColor),
                 ),
                 Expanded(
                   child: Text(
@@ -206,7 +209,7 @@ class _ExamDetailViewState extends State<ExamDetailView> {
               ],
             ),
             SizedBox(height: 8),
-            Text('${question.questionType} - ${question.questionScore} points'),
+            Text('${question.questionType}'),
             SizedBox(height: 12),
             ..._buildAnswerOptions(question),
             SizedBox(height: 16),
@@ -217,7 +220,8 @@ class _ExamDetailViewState extends State<ExamDetailView> {
                   icon: Icon(Icons.edit, size: 18),
                   label: Text('Edit'),
                   onPressed: () => _editQuestion(question),
-                  style: TextButton.styleFrom(foregroundColor: AppColors.primaryColor),
+                  style: TextButton.styleFrom(
+                      foregroundColor: AppColors.primaryColor),
                 ),
                 SizedBox(width: 8),
                 TextButton.icon(
@@ -345,7 +349,8 @@ class _ExamDetailViewState extends State<ExamDetailView> {
                   children: [
                     Text(
                       title,
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 4),
                     Text(
@@ -365,14 +370,14 @@ class _ExamDetailViewState extends State<ExamDetailView> {
 
   void _createQuestion(String type) {
     Navigator.pop(context);
-    if(type == 'Single Choice') {
+    if (type == 'Single Choice') {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => AddQuestionView(examId: widget.exam.id!, questionType: type),
+          builder: (context) =>
+              AddQuestionView(examId: widget.exam.id!, questionType: type),
         ),
       );
-    }
-    else if(type == 'Multiple Choice') {
+    } else if (type == 'Multiple Choice') {
       AlertDialog(
         title: Text('The feature is not available yet'),
         content: Text(''),
@@ -381,11 +386,28 @@ class _ExamDetailViewState extends State<ExamDetailView> {
   }
 
   void _editQuestion(Question question) {
-    // TODO: Navigate to question edit screen
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AddQuestionView(examId: widget.exam.id!, questionType: question.questionType, question: question),
+      ),
+    );
   }
 
   void _deleteQuestion(Question question) {
-    // TODO: Show confirmation dialog and delete question
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return DeleteConfirmationDialog(
+          examTitle: widget.exam.title,
+          onConfirm: () async {
+            await context
+                .read<QuestionCubit>()
+                .deleteQuestion(widget.exam.id!, question.id!);
+            Navigator.of(context).pop(); // Đóng dialog
+          },
+        );
+      },
+    );
   }
 
   Widget _buildNoQuestionsView() {
