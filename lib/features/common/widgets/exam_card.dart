@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../utils/transitions/slide_up_route.dart';
-import '../../models/exam.dart';
+import '../../../common/models/exam.dart';
 import '../../../../configs/app_colors.dart';
 import '../cubit/exam_cubit.dart';
 import '../view/create_update_exam_view.dart';
