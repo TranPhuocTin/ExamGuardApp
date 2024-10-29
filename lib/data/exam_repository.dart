@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:exam_guardian/configs/app_config.dart';
 import 'package:exam_guardian/configs/data_source.dart';
-import 'package:exam_guardian/features/teacher/models/exam_response.dart';
+import 'package:exam_guardian/features/common/models/exam_response.dart';
 
-import '../features/teacher/models/exam.dart';
-import '../features/teacher/models/question_response.dart';
+import '../features/common/models/exam.dart';
+import '../features/common/models/question_response.dart';
 
 class TokenExpiredException implements Exception {
   final String message;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../configs/app_colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../models/question_response.dart';
+import '../../../common/models/question_response.dart';
 import '../cubit/question_cubit.dart';
 import '../cubit/question_state.dart';
 

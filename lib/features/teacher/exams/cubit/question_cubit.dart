@@ -1,7 +1,7 @@
 import 'package:exam_guardian/data/exam_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
-import '../../models/question_response.dart';
+import '../../../common/models/question_response.dart';
 import 'question_state.dart';
 
 class QuestionCubit extends Cubit<QuestionState> {

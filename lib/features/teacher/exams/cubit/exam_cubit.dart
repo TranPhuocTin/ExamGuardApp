@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:exam_guardian/data/exam_repository.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
-import '../../models/exam.dart';
+import '../../../common/models/exam.dart';
 import 'exam_state.dart';
 import 'dart:async';
 

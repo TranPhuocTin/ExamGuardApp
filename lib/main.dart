@@ -1,8 +1,8 @@
-
 import 'package:exam_guardian/data/user_repository.dart';
 import 'package:exam_guardian/features/admin/cubit/user_cubit.dart';
 import 'package:exam_guardian/features/admin/view/admin_profile_view.dart';
 import 'package:exam_guardian/features/admin/view/admin_homepage_view.dart';
+import 'package:exam_guardian/features/common/cubit/base_homepage_cubit.dart';
 import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
 import 'package:exam_guardian/features/login/view/login_view.dart';
 import 'package:exam_guardian/features/teacher/exams/view/create_update_exam_view.dart';
@@ -14,6 +14,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'ExamGuardObserver.dart';
 import 'data/exam_repository.dart';
 import 'features/splash/screens/splash_screen.dart';
+import 'features/student/homepage/view/student_homepage_view.dart';
 import 'features/teacher/exams/cubit/exam_cubit.dart';
 import 'features/teacher/exams/cubit/question_cubit.dart';
 import 'features/teacher/homepage/cubit/teacher_homepage_cubit.dart';
@@ -46,14 +47,17 @@ void main() {
         BlocProvider<TokenCubit>(
           create: (context) => TokenCubit(tokenStorage),
         ),
-        BlocProvider<TeacherHomepageCubit>(
-          create: (context) => TeacherHomepageCubit(examRepository, tokenStorage),
-        ),
+        // BlocProvider<TeacherHomepageCubit>(
+        //   create: (context) => TeacherHomepageCubit(examRepository, tokenStorage),
+        // ),
         BlocProvider<ExamCubit>(
           create: (context) => ExamCubit(examRepository, tokenStorage),
         ),
         BlocProvider<QuestionCubit>(
           create: (context) => QuestionCubit(examRepository, tokenStorage),
+        ),
+        BlocProvider<BaseHomepageCubit>(
+          create: (context) => BaseHomepageCubit(examRepository, tokenStorage),  // Replace with your concrete implementation
         ),
       ],
       child: MyApp(),
@@ -79,7 +83,7 @@ class MyApp extends StatelessWidget {
         '/admin_main_screen': (context) => AdminMainScreen(),
         '/admin_profile_screen': (context) => AdminProfileScreen(),
         '/teacher_homepage' : (context) => TeacherHomepageView(),
-        '/teacher_homepage' : (context) => TeacherHomepageView(),
+        '/student_homepage' : (context) => StudentHomepageView(),
       },
     );
   }

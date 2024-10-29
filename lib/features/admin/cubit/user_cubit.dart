@@ -115,7 +115,7 @@
     Future<void> _handleTokenExpiration(String message) async {
       // Clear token from storage
       TokenStorage tokenStorage = TokenStorage();
-      await tokenStorage.clearTokens();
+      await tokenStorage.clearAll();
 
       // Emit new state with error message and cleared data
       emit(UserState(

@@ -26,13 +26,21 @@ class AuthRepository {
       if (response.statusCode == 200) {
         final loginResponse = LoginResponse.fromJson(response.data);
 
-        await _tokenStorage
-            .saveAccessToken(loginResponse.metadata.tokens.accessToken);
-        await _tokenStorage
-            .saveRefreshToken(loginResponse.metadata.tokens.refreshToken);
+        // Lưu tokens
+        await _tokenStorage.saveAccessToken(loginResponse.metadata.tokens.accessToken);
+        await _tokenStorage.saveRefreshToken(loginResponse.metadata.tokens.refreshToken);
         await _tokenStorage.saveClientId(loginResponse.metadata.user.id);
-        print(loginResponse.message);
         await _tokenStorage.saveClientRole(loginResponse.metadata.user.role);
+        
+         final userJson = loginResponse.metadata.user.toJson();
+        await _tokenStorage.saveUser(userJson);
+
+        final storedUserJson = await _tokenStorage.getUser();
+        print('Stored User Data: $storedUserJson');
+        print('=======================================');
+        print('User info saved: $storedUserJson');
+        
+        print(loginResponse.message);
         return loginResponse;
       } else {
         throw Exception('Đăng nhập thất bại: ${response.statusMessage}');
@@ -59,7 +67,7 @@ class AuthRepository {
         ),
       );
       if(response.statusCode == 200) {
-        await tokenStorage.clearTokens();
+        await tokenStorage.clearAll();
         print('Delete successfully');
       }
       else{

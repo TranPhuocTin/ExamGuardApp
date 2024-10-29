@@ -22,7 +22,7 @@ class TokenCubit extends Cubit<TokenState> {
         // Xử lý token hết hạn, ví dụ: yêu cầu refresh token, hoặc đăng xuất
         print("Access token đã hết hạn.");
         // Có thể emit một trạng thái khác hoặc xử lý làm mới token
-        await _tokenStorage.clearTokens();
+        await _tokenStorage.clearAll();
         emit(state.copyWith(accessToken: null, refreshToken: null, clientId: null));
       } else {
         emit(state.copyWith(
@@ -40,7 +40,7 @@ class TokenCubit extends Cubit<TokenState> {
 
   // Xóa tokens khi đăng xuất
   Future<void> clearTokens() async {
-    await _tokenStorage.clearTokens();
-    emit(state.copyWith(accessToken: null, refreshToken: null, clientId: null));
+    await _tokenStorage.clearAll();
+    emit(state.copyWith(accessToken: null, refreshToken: null, clientId: null, clientRole: null));
   }
 }

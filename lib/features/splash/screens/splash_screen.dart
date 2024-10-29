@@ -1,10 +1,8 @@
 import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
-import 'package:exam_guardian/features/login/cubit/auth_state.dart';
 import 'package:exam_guardian/utils/share_preference/token_cubit.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:exam_guardian/features/admin/view/admin_homepage_view.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -25,6 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // Kiểm tra token từ TokenCubit
     await context.read<TokenCubit>().loadTokens();
+    await context.read<AuthCubit>().loadUserInfo();
 
     if (context.read<TokenCubit>().state.accessToken == null) {
       Navigator.pushReplacementNamed(context, '/login');
@@ -32,7 +31,10 @@ class _SplashScreenState extends State<SplashScreen> {
       Navigator.pushReplacementNamed(context, '/admin_main_screen');
     } else if(context.read<TokenCubit>().state.cliendRole == 'TEACHER'){
       Navigator.pushReplacementNamed(context, '/teacher_homepage');
-    }
+    } else if(context.read<TokenCubit>().state.cliendRole == 'STUDENT'){
+      print('student login');
+      Navigator.pushReplacementNamed(context, '/student_homepage');
+    } else print('Role null');
   }
 
   @override

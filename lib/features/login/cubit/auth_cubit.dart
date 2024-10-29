@@ -1,7 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:exam_guardian/data/auth_repository.dart';
-import 'package:exam_guardian/data/user_repository.dart';
+import 'package:exam_guardian/features/login/models/login_response.dart';
+import '../../../utils/share_preference/shared_preference.dart';
 import 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
@@ -27,10 +28,7 @@ class AuthCubit extends Cubit<AuthState> {
         tokens: loginResponse.metadata.tokens,
         shouldShowError: false,
       ));
-      // final userResponse = await _userRepository.getUserList(loginResponse.metadata.user.id, 'STUDENT', 1, 5);
-      // final findUserById = await _userRepository.findUserById(loginResponse.metadata.user.id, '66f67dda8ac04e1a9b553f94');
-      // print(userResponse.metadata.users[1].name);
-      // print('User information: ${findUserById.name}');
+      print('user: ${loginResponse.metadata.user}');
     } catch (error) {
       String errorMessage = 'An error occurred. Please try again.';
       if (error is DioException) {
@@ -50,11 +48,23 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> loadUserInfo() async {
+    TokenStorage tokenStorage = TokenStorage();
+    final userFromTokenStorage = await tokenStorage.getUser();
+    if (userFromTokenStorage != null) {
+      User user = User.fromJson(userFromTokenStorage);
+      emit(state.copyWith(
+        user: user,
+      ));
+      print('Loaded user: ${user.name}');
+    }
+  }
+
   Future<void> logout() async {
     try{
       await _authRepository.logout();
       emit(
-        AuthState(isLoading: false, isLoggedIn: false, isObscure: true),
+        AuthState(isLoading: false, isLoggedIn: false, isObscure: true, user: null),
       );
     }catch(e){
       Exception(e);

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:exam_guardian/features/teacher/models/exam.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../configs/app_colors.dart';
-import '../../models/question_response.dart';
+import '../../../common/models/exam.dart';
+import '../../../common/models/question_response.dart';
 import '../cubit/question_cubit.dart';
 import '../cubit/question_state.dart';
 import '../view/add_question_view.dart';
-import '../widgets/delete_confirm_dialog.dart';
+import '../../../common/widgets/delete_confirm_dialog.dart';
 
 class ExamDetailView extends StatefulWidget {
   final Exam exam;

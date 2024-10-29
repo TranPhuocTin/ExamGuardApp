@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/exam_cubit.dart';
 import '../cubit/exam_state.dart';
-import '../widgets/exam_card.dart';
+import '../../../common/widgets/exam_card.dart';
 import '../../../../configs/app_colors.dart';
 import 'exam_detail_view.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import '../../models/exam.dart';
+import '../../../common/models/exam.dart';
 import '../cubit/exam_cubit.dart';
 import '../../../../configs/app_colors.dart';
 import '../cubit/exam_state.dart';

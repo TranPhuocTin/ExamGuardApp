@@ -51,7 +51,7 @@ class User extends Equatable {
   final String name;
   final String email;
   final String role;
-  final String avatar;
+  final String? avatar;
   final String gender;
   final String dob;
   final int ssn;
@@ -68,7 +68,7 @@ class User extends Equatable {
     required this.name,
     required this.email,
     required this.role,
-    required this.avatar,
+    this.avatar,
     required this.gender,
     required this.dob,
     required this.ssn,

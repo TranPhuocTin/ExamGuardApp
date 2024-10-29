@@ -36,7 +36,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       name: json['name'] as String,
       email: json['email'] as String,
       role: json['role'] as String,
-      avatar: json['avatar'] as String,
+      avatar: json['avatar'] as String?,
       gender: json['gender'] as String,
       dob: json['dob'] as String,
       ssn: (json['ssn'] as num).toInt(),

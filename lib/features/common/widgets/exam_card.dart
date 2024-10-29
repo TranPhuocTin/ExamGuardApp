@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../utils/transitions/slide_up_route.dart';
-import '../../../common/models/exam.dart';
-import '../../../../configs/app_colors.dart';
-import '../cubit/exam_cubit.dart';
-import '../view/create_update_exam_view.dart';
-import '../view/exam_detail_view.dart';
+import '../../../utils/transitions/slide_up_route.dart';
+import '../models/exam.dart';
+import '../../../configs/app_colors.dart';
+import '../../teacher/exams/cubit/exam_cubit.dart';
+import '../../teacher/exams/view/create_update_exam_view.dart';
+import '../../teacher/exams/view/exam_detail_view.dart';
 import 'delete_confirm_dialog.dart';
 
 class ExamCard extends StatelessWidget {

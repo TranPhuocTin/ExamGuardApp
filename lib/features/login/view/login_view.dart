@@ -37,6 +37,9 @@ class LoginView extends StatelessWidget {
         else if(state.user?.role == "TEACHER"){
           Navigator.pushReplacementNamed(context, '/teacher_homepage');
         }
+        else if(state.user?.role == "STUDENT"){
+          Navigator.pushReplacementNamed(context, '/student_homepage');
+        }
         else if (state.shouldShowError && state.errorMessage != null) {
           showErrorSnackBar(context, state.errorMessage!);
           context.read<AuthCubit>().markErrorAsShown();

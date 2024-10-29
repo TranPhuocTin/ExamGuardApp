@@ -1,8 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:exam_guardian/data/exam_repository.dart';
-import 'package:exam_guardian/features/teacher/models/exam.dart';
-import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
+
+import '../../../common/models/exam.dart';
 
 // State
 abstract class ExamState extends Equatable {
