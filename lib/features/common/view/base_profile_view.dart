@@ -23,14 +23,6 @@ abstract class AbstractProfilePage extends StatelessWidget {
         }
         return Scaffold(
           backgroundColor: Colors.grey[100],
-          appBar: AppBar(
-            title: const Text('Profile'),
-            backgroundColor: AppColors.primaryColor,
-            elevation: 0,
-            actions: [
-              buildExtraActions(context),
-            ],
-          ),
           body: SingleChildScrollView(
             child: Column(
               children: [
@@ -62,6 +54,7 @@ abstract class AbstractProfilePage extends StatelessWidget {
       ),
       child: Column(
         children: [
+          const SizedBox(height: 30,),
           CircleAvatar(
             radius: 50,
             backgroundImage: NetworkImage(

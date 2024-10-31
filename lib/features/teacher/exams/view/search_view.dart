@@ -162,6 +162,7 @@ class _SearchViewState extends State<SearchView> {
           return ExamCard(
             exam: state.searchResults[index],
             isShowMoreIcon: true,
+            isShowJoinButton: false,
             onExamUpdated: () {
               if (mounted) {
                 context.read<ExamCubit>().refreshSearchResults();

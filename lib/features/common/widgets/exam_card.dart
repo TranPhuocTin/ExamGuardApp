@@ -12,6 +12,7 @@ import 'delete_confirm_dialog.dart';
 
 class ExamCard extends StatelessWidget {
   final bool isShowMoreIcon;
+  final bool isShowJoinButton;
   final Exam exam;
   final VoidCallback? onExamUpdated;
   final VoidCallback? onExamTapped;
@@ -20,6 +21,7 @@ class ExamCard extends StatelessWidget {
     Key? key,
     required this.exam,
     required this.isShowMoreIcon,
+    required this.isShowJoinButton,
     this.onExamUpdated,
     this.onExamTapped
   }) : super(key: key);
@@ -92,7 +94,9 @@ class ExamCard extends StatelessWidget {
                   isShowMoreIcon ? IconButton(
                     icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
                     onPressed: () => _showOptions(context),
-                  ) : TextButton(onPressed: () {
+                  ) : isShowJoinButton ? TextButton(onPressed: () {
+                    
+                  }, child: Text('Join', style: TextStyle(color: AppColors.viewButton, fontSize: 12),)  ) : TextButton(onPressed: () {
                     
                   }, child: Text('View', style: TextStyle(color: AppColors.viewButton, fontSize: 12),))
                 ],

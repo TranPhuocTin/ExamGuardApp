@@ -272,7 +272,7 @@ class _ExamListPageState extends State<ExamListPage> {
                 if (index < exams.length) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
-                    child: ExamCard(exam: exams[index], isShowMoreIcon: true,onExamTapped: () {
+                    child: ExamCard(exam: exams[index], isShowMoreIcon: true, isShowJoinButton: false,onExamTapped: () {
                       Navigator.of(context).push(MaterialPageRoute(builder: (context) => ExamDetailView(exam: exams[index])));
                     },),
                   );

@@ -1,3 +1,5 @@
+import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
+import 'package:exam_guardian/features/login/cubit/auth_state.dart';
 import 'package:exam_guardian/features/student/homepage/view/student_exam_detail_view.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
 import 'package:flutter/material.dart';
@@ -76,7 +78,7 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
           slivers: [
             SliverAppBar(
               floating: true,
-              backgroundColor: Colors.white,
+              backgroundColor: Colors.grey[100],
               elevation: 0,
               title:
                   Image.asset('assets/icons/exam_guard_logo.png', height: 40),
@@ -184,20 +186,44 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
             }
             return Padding(
               padding: EdgeInsets.only(bottom: 16.0),
-              child: ExamCard(
-                exam: exams[index],
-                isShowMoreIcon: false,
-                onExamTapped: () async {
-                  final role = await TokenStorage().getClientRole();
-                  print('role: $role');
-                  role == 'STUDENT'
-                      ? Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) =>
-                              StudentExamDetailView(exam: exams[index]),
-                        ))
-                      : null;
-                },
-              ),
+              child: BlocBuilder<AuthCubit, AuthState>(builder: (context, state) {
+                return ExamCard(
+                  exam: exams[index],
+                  isShowMoreIcon: false,
+                  isShowJoinButton: state.user?.role == 'STUDENT' ? true : false,
+                  onExamTapped: () async {
+                    final role = await TokenStorage().getClientRole();
+                    if (role == 'STUDENT') {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Confirm Participation'),
+                            content: Text('Are you sure you want to start this exam?'),
+                            actions: [
+                              TextButton(
+                                child: Text('Cancel'),
+                                onPressed: () => Navigator.of(context).pop(),
+                              ),
+                              TextButton(
+                                child: Text('Confirm'),
+                                onPressed: () {
+                                  Navigator.of(context).pop(); // Close dialog
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => StudentExamDetailView(exam: exams[index]),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
+                  },
+                );
+              },)
             );
           },
           childCount: exams.length + (isLoading || hasReachedMax ? 1 : 0),

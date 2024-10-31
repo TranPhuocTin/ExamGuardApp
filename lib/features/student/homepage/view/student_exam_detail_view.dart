@@ -5,6 +5,8 @@ import '../../../common/models/exam.dart';
 import '../../../common/models/question_response.dart';
 import '../../../teacher/exams/cubit/question_cubit.dart';
 import '../../../teacher/exams/cubit/question_state.dart';
+import '../../exam_monitoring/view/face_monitoring_view.dart';
+import '../../exam_monitoring/cubit/face_monitoring_cubit.dart';
 
 class StudentExamDetailView extends StatefulWidget {
   final Exam exam;
@@ -31,40 +33,57 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.exam.title),
-        backgroundColor: AppColors.primaryColor,
-      ),
-      backgroundColor: Colors.grey[100],
-      body: BlocBuilder<QuestionCubit, QuestionState>(
-        builder: (context, state) {
-          if (state is QuestionLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => FaceMonitoringCubit()),
+      ],
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.exam.title),
+          backgroundColor: AppColors.primaryColor,
+        ),
+        backgroundColor: Colors.grey[100],
+        body: Column(
+          children: [
+            // Camera preview cho face monitoring
+            SizedBox(
+              height: 200, // Điều chỉnh kích thước phù hợp
+              child: FaceMonitoringView(examId: widget.exam.id!),
+            ),
+            // Existing exam content
+            Expanded(
+              child: BlocBuilder<QuestionCubit, QuestionState>(
+                builder: (context, state) {
+                  if (state is QuestionLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-          if (state is QuestionError) {
-            return Center(child: Text(state.message));
-          }
+                  if (state is QuestionError) {
+                    return Center(child: Text(state.message));
+                  }
 
-          if (state is QuestionLoaded) {
-            final questions = state.questions;
-            return ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: questions.length + 1, // +1 for submit button
-              itemBuilder: (context, index) {
-                if (index < questions.length) {
-                  return _buildQuestionCard(questions[index], index);
-                } else {
-                  return _buildSubmitButton();
-                }
-              },
-            );
-          }
+                  if (state is QuestionLoaded) {
+                    final questions = state.questions;
+                    return ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: questions.length + 1, // +1 for submit button
+                      itemBuilder: (context, index) {
+                        if (index < questions.length) {
+                          return _buildQuestionCard(questions[index], index);
+                        } else {
+                          return _buildSubmitButton();
+                        }
+                      },
+                    );
+                  }
 
-          return const Center(child: Text('No questions available'));
-        },
+                  return const Center(child: Text('No questions available'));
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

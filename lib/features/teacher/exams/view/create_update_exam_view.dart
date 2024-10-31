@@ -34,6 +34,10 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
     _startTimeController = TextEditingController(text: widget.exam != null ? _formatDateTime(widget.exam!.startTime) : '');
     _endTimeController = TextEditingController(text: widget.exam != null ? _formatDateTime(widget.exam!.endTime) : '');
     _selectedStatus = widget.filteredStatus ?? widget.exam?.status ?? 'Scheduled';
+    
+    if (widget.exam != null) {
+      _updateExamStatus();
+    }
   }
 
   @override
@@ -210,26 +214,25 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
           child: Text(status),
         );
       }).toList(),
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectedStatus = newValue!;
-        });
-      },
+      onChanged: null, // Disable status change
       validator: (value) => value == null ? 'Please select a status' : null,
     );
   }
 
   String _formatDateTime(DateTime dateTime) {
-    return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
+    final vietnamDateTime = dateTime.add(Duration(hours: 7));
+    return DateFormat('yyyy-MM-dd HH:mm').format(vietnamDateTime);
   }
 
   Future<void> _selectDateTime(BuildContext context, TextEditingController controller) async {
+    final now = DateTime.now();
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
+      initialDate: now,
+      firstDate: now,
       lastDate: DateTime(2100),
     );
+    
     if (picked != null) {
       final TimeOfDay? timePicked = await showTimePicker(
         context: context,
@@ -243,29 +246,89 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
           timePicked.hour,
           timePicked.minute,
         );
-        controller.text = _formatDateTime(selectedDateTime);
+        
+        if (selectedDateTime.isBefore(now)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Please select a future date and time')),
+          );
+          return;
+        }
+
+        if (controller == _endTimeController) {
+          final startTime = _startTimeController.text.isNotEmpty 
+              ? DateFormat('yyyy-MM-dd HH:mm').parse(_startTimeController.text)
+              : null;
+          if (startTime != null && selectedDateTime.isBefore(startTime)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('End time must be after start time')),
+            );
+            return;
+          }
+        }
+
+        final utcDateTime = selectedDateTime.subtract(Duration(hours: 7));
+        controller.text = _formatDateTime(utcDateTime);
+        _updateExamStatus();
       }
     }
   }
 
-  void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      final examData = Exam(
-        id: isUpdating ? widget.exam!.id : null,
-        title: _titleController.text,
-        description: _descriptionController.text,
-        startTime: DateFormat('yyyy-MM-dd HH:mm').parse(_startTimeController.text),
-        endTime: DateFormat('yyyy-MM-dd HH:mm').parse(_endTimeController.text),
-        status: _selectedStatus,
-      );
+  void _updateExamStatus() {
+    final now = DateTime.now();
+    final startTime = DateFormat('yyyy-MM-dd HH:mm').parse(_startTimeController.text);
+    final endTime = _endTimeController.text.isNotEmpty 
+        ? DateFormat('yyyy-MM-dd HH:mm').parse(_endTimeController.text)
+        : null;
 
-      if (isUpdating) {
-        await context.read<ExamCubit>().updateExam(examData, widget.exam!.status);
-        // Thay vì pop ngay lập tức, chúng ta sẽ để BlocListener xử lý việc này
+    setState(() {
+      if (startTime.isAfter(now)) {
+        _selectedStatus = 'Scheduled';
+      } else if (endTime != null && now.isAfter(endTime)) {
+        _selectedStatus = 'Completed';
       } else {
-        await context.read<ExamCubit>().createExam(examData);
+        _selectedStatus = 'In Progress';
       }
-      // Xóa dòng Navigator.of(context).pop() ở đây
+    });
+  }
+
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (!mounted) return; // Kiểm tra widget còn mounted không
+
+    final startTime = DateFormat('yyyy-MM-dd HH:mm').parse(_startTimeController.text);
+    final endTime = DateFormat('yyyy-MM-dd HH:mm').parse(_endTimeController.text);
+    final now = DateTime.now();
+
+    if (startTime.isBefore(now)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Start time must be in the future')),
+      );
+      return;
+    }
+
+    if (endTime.isBefore(startTime)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('End time must be after start time')),
+      );
+      return;
+    }
+
+    final examData = Exam(
+      id: isUpdating ? widget.exam!.id : null,
+      title: _titleController.text,
+      description: _descriptionController.text,
+      startTime: startTime,
+      endTime: endTime,
+      status: _selectedStatus,
+    );
+
+    if (isUpdating) {
+      await context.read<ExamCubit>().updateExam(examData, widget.exam!.status);
+    } else {
+      await context.read<ExamCubit>().createExam(examData);
     }
   }
 
@@ -278,3 +341,4 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
     super.dispose();
   }
 }
+
