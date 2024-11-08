@@ -53,45 +53,44 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> {
           backgroundColor: AppColors.primaryColor
         ),
         backgroundColor: Colors.grey[100],
-        body: Column(
+        body: Stack(
           children: [
-            // Camera preview cho face monitoring
-            SizedBox(
-              height: 200, // Điều chỉnh kích thước phù hợp
-              child: FaceMonitoringView(examId: widget.exam.id!),
+            Column(
+              children: [
+                Expanded(
+                  child: BlocBuilder<QuestionCubit, QuestionState>(
+                    builder: (context, state) {
+                      if (state is QuestionLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (state is QuestionError) {
+                        return Center(child: Text(state.message));
+                      }
+
+                      if (state is QuestionLoaded) {
+                        final questions = state.questions;
+                        return ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: questions.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index < questions.length) {
+                              return _buildQuestionCard(questions[index], index);
+                            } else {
+                              return _buildSubmitButton();
+                            }
+                          },
+                        );
+                      }
+
+                      return const Center(child: Text('No questions available'));
+                    },
+                  ),
+                ),
+              ],
             ),
-            // Existing exam content
-            Expanded(
-              child: BlocBuilder<QuestionCubit, QuestionState>(
-                builder: (context, state) {
-                  if (state is QuestionLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (state is QuestionError) {
-                    return Center(child: Text(state.message));
-                  }
-
-                  if (state is QuestionLoaded) {
-                    final questions = state.questions;
-                    return ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.all(16),
-                      itemCount: questions.length + 1, // +1 for submit button
-                      itemBuilder: (context, index) {
-                        if (index < questions.length) {
-                          return _buildQuestionCard(questions[index], index);
-                        } else {
-                          return _buildSubmitButton();
-                        }
-                      },
-                    );
-                  }
-
-                  return const Center(child: Text('No questions available'));
-                },
-              ),
-            ),
+            FaceMonitoringView(examId: widget.exam.id!),
           ],
         ),
       ),

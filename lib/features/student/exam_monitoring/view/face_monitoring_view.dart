@@ -23,11 +23,25 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
   late CameraController _cameraController;
   late FaceDetectionService _faceDetectionService;
   bool _isCameraInitialized = false;
+  
+  // Thêm các biến quản lý PiP mode
+  bool _isPipMode = false;
+  double _xPosition = 0.0;
+  double _yPosition = 0.0;
+  
+  // Kích thước cho normal mode và pip mode
+  static const double _normalWidth = 320.0;
+  static const double _normalHeight = 240.0;
+  static const double _pipWidth = 160.0;
+  static const double _pipHeight = 120.0;
 
   @override
   void initState() {
     super.initState();
     _initializeCamera();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setDefaultPosition();
+    });
   }
 
   Future<void> _initializeCamera() async {
@@ -79,56 +93,174 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
     });
   }
 
+  void _setDefaultPosition() {
+    final screenSize = MediaQuery.of(context).size;
+    setState(() {
+      if (_isPipMode) {
+        // PiP mode: góc trên bên phải
+        _xPosition = screenSize.width - _pipWidth - 20;
+        _yPosition = 20.0;
+      } else {
+        // Normal mode: giữa trên cùng
+        _xPosition = (screenSize.width - _normalWidth) / 2;
+        _yPosition = 20.0;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final currentWidth = _isPipMode ? _pipWidth : _normalWidth;
+    final currentHeight = _isPipMode ? _pipHeight : _normalHeight;
+
     return BlocBuilder<FaceMonitoringCubit, FaceMonitoringState>(
       builder: (context, state) {
-        return Stack(
-          children: [
-            if (_isCameraInitialized)
-              Transform.scale(
-                scale: 1.0,
-                child: AspectRatio(
-                  aspectRatio: _cameraController.value.aspectRatio,
-                  child: CameraPreview(_cameraController),
-                ),
+        return Positioned(
+          left: _xPosition,
+          top: _yPosition,
+          child: GestureDetector(
+            onPanUpdate: (details) {
+              setState(() {
+                _xPosition += details.delta.dx;
+                _yPosition += details.delta.dy;
+                
+                // Giới hạn không cho widget ra khỏi màn hình
+                _xPosition = _xPosition.clamp(
+                  0.0,
+                  screenSize.width - currentWidth,
+                );
+                _yPosition = _yPosition.clamp(
+                  0.0,
+                  screenSize.height - currentHeight,
+                );
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              width: currentWidth,
+              height: currentHeight,
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
               ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: _buildStatusBar(state),
+              child: Column(
+                children: [
+                  _buildControlBar(),
+                  Expanded(child: _buildMonitoringContent(state)),
+                ],
+              ),
             ),
-          ],
+          ),
         );
       },
     );
   }
 
+  Widget _buildControlBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            _isPipMode ? '' : 'Camera Monitor',
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+          ),
+          IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            icon: Icon(
+              _isPipMode ? Icons.open_in_full : Icons.close_fullscreen,
+              color: Colors.white,
+              size: 16,
+            ),
+            onPressed: () {
+              setState(() {
+                _isPipMode = !_isPipMode;
+                _setDefaultPosition(); // Reset về vị trí mặc định khi chuyển mode
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonitoringContent(FaceMonitoringState state) {
+    return Stack(
+      children: [
+        if (_isCameraInitialized)
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(8),
+            ),
+            child: Transform.scale(
+              scale: 1.0,
+              child: AspectRatio(
+                aspectRatio: _cameraController.value.aspectRatio,
+                child: CameraPreview(_cameraController),
+              ),
+            ),
+          ),
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: _buildStatusBar(state),
+        ),
+      ],
+    );
+  }
+
   Widget _buildStatusBar(FaceMonitoringState state) {
     final isWarning = state.currentBehavior != CheatingBehavior.normal;
-
+    
     return Container(
-      padding: const EdgeInsets.all(16),
-      color: isWarning
-          ? Colors.red.withOpacity(0.9)
-          : Colors.green.withOpacity(0.9),
+      padding: EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: _isPipMode ? 2 : 4,
+      ),
+      decoration: BoxDecoration(
+        color: isWarning
+            ? Colors.red.withOpacity(0.9)
+            : Colors.green.withOpacity(0.9),
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(8),
+        ),
+      ),
       child: Row(
         children: [
           Icon(
             isWarning ? Icons.warning : Icons.check_circle,
             color: Colors.white,
+            size: _isPipMode ? 12 : 14,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           Expanded(
             child: Text(
               state.cheatingLogs.isNotEmpty
                   ? state.cheatingLogs.last.message
                   : 'Đang giám sát...',
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.bold,
+                fontSize: _isPipMode ? 10 : 12,
+                fontWeight: FontWeight.w500,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
