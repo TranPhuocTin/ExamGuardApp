@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../configs/app_colors.dart';
+import '../../../../data/cheating_repository.dart';
+import '../../../../utils/share_preference/shared_preference.dart';
+import '../../../../utils/share_preference/token_cubit.dart';
 import '../../../common/models/exam.dart';
 import '../../../common/models/question_response.dart';
 import '../../../teacher/exams/cubit/question_cubit.dart';
@@ -35,12 +38,19 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => FaceMonitoringCubit()),
+        BlocProvider<FaceMonitoringCubit>(
+          create: (context) => FaceMonitoringCubit(
+            examId: widget.exam.id!,
+            cheatingRepository: context.read<CheatingRepository>(),
+            tokenStorage: context.read<TokenStorage>(),
+            tokenCubit: context.read<TokenCubit>(),
+          ),
+        ),
       ],
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.exam.title),
-          backgroundColor: AppColors.primaryColor,
+          backgroundColor: AppColors.primaryColor
         ),
         backgroundColor: Colors.grey[100],
         body: Column(

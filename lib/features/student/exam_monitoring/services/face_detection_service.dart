@@ -105,18 +105,18 @@ class FaceDetectionService {
 
     if (Platform.isIOS) {
       rotation = InputImageRotation.values.firstWhere(
-        (element) => element.rawValue == sensorOrientation,
+            (element) => element.rawValue == sensorOrientation,
       );
     } else if (Platform.isAndroid) {
       final rotationCompensation = _orientations[DeviceOrientation.portraitUp]!;
-      
+
       if (camera.lensDirection == CameraLensDirection.front) {
         rotation = InputImageRotation.values.firstWhere(
-          (element) => element.rawValue == ((sensorOrientation + rotationCompensation) % 360),
+              (element) => element.rawValue == ((sensorOrientation + rotationCompensation) % 360),
         );
       } else {
         rotation = InputImageRotation.values.firstWhere(
-          (element) => element.rawValue == ((sensorOrientation - rotationCompensation + 360) % 360),
+              (element) => element.rawValue == ((sensorOrientation - rotationCompensation + 360) % 360),
         );
       }
     }

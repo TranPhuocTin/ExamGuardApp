@@ -15,4 +15,5 @@ class ApiUrls {
   static String createQuestion(String examId) => '/api/question/$examId/create';
   static String updateQuestion(String examId, String questionId) => '/api/question/$examId/$questionId';
   static String deleteQuestion(String examId, String questionId) => '/api/question/$examId/$questionId';
+  static String reportCheating(String examId) => '/api/cheating/detect-cheating/$examId';
 }

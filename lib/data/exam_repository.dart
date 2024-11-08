@@ -1,60 +1,12 @@
-import 'package:dio/dio.dart';
-import 'package:exam_guardian/configs/app_config.dart';
-import 'package:exam_guardian/configs/data_source.dart';
+  import 'package:exam_guardian/configs/data_source.dart';
 import 'package:exam_guardian/features/common/models/exam_response.dart';
-
+import '../configs/dio_config.dart';
 import '../features/common/models/exam.dart';
 import '../features/common/models/question_response.dart';
 
-class TokenExpiredException implements Exception {
-  final String message;
-  TokenExpiredException(this.message);
-}
-
 class ExamRepository {
-  final Dio _dio = Dio(
-    BaseOptions(
-      method: 'GET',
-      baseUrl: AppConfigs.baseUrl,
-      contentType: 'application/json',
-    ),
-  );
-
-  Future<Response> _performRequest(
-    String endpoint, {
-    required String clientId,
-    required String token,
-    Map<String, dynamic>? queryParameters,
-    dynamic data,
-    String method = 'GET',
-  }) async {
-    try {
-      final response = await _dio.request(
-        endpoint,
-        queryParameters: queryParameters,
-        options: Options(
-          headers: {'Authorization': token, 'x-client-id': clientId},
-          method: method,
-        ),
-        data: data,
-      );
-      return response;
-    } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.unknown) {
-        throw Exception('No internet');
-      } else if (e.response?.statusCode == 401) {
-        throw TokenExpiredException('Token expired');
-      } else {
-        throw Exception('Unknown error: ${e.message}');
-      }
-    } catch (e) {
-      throw Exception('Unexpected error: $e');
-    }
-  }
-
   Future<ExamResponse> getExams(String clientId, String token, {String? status, int page = 1}) async {
-    final response = await _performRequest(
+    final response = await DioClient.performRequest(
       ApiUrls.getExamList,
       clientId: clientId,
       token: token,
@@ -69,12 +21,17 @@ class ExamRepository {
   }
 
   Future<ExamResponse> searchExams(String clientId, String token, String query, {int page = 1}) async {
-    final response = await _performRequest(ApiUrls.getSearchExam, clientId: clientId, token: token, queryParameters: {'query': query, 'page': page});
+    final response = await DioClient.performRequest(
+      ApiUrls.getSearchExam, 
+      clientId: clientId, 
+      token: token, 
+      queryParameters: {'query': query, 'page': page}
+    );
     return ExamResponse.fromJson(response.data);
   }
 
   Future<Exam> updateExam(String clientId, String token, String examId, Exam exam) async {
-    final response = await _performRequest(
+    final response = await DioClient.performRequest(
       ApiUrls.updateExam(examId),
       clientId: clientId,
       token: token,
@@ -85,16 +42,32 @@ class ExamRepository {
   }
 
   Future<void> deleteExam(String clientId, String token, String examId) async {
-    await _performRequest(ApiUrls.deleteExam(examId), clientId: clientId, token: token, method: 'DELETE');
+    await DioClient.performRequest(
+      ApiUrls.deleteExam(examId), 
+      clientId: clientId, 
+      token: token, 
+      method: 'DELETE'
+    );
   }
 
   Future<Exam> createExam(String clientId, String token, Exam exam) async {
-    final response = await _performRequest(ApiUrls.createExam, clientId: clientId, token: token, data: exam.toJson(), method: 'POST');
+    final response = await DioClient.performRequest(
+      ApiUrls.createExam,
+      clientId: clientId,
+      token: token,
+      data: exam.toJson(),
+      method: 'POST'
+    );
     return Exam.fromJson(response.data['metadata']);
   }
 
   Future<QuestionResponse> getQuestions(String clientId, String token, String examId, {int page = 1}) async {
-    final response = await _performRequest(ApiUrls.getQuestionList(examId), clientId: clientId, token: token, queryParameters: {'page': page});
+    final response = await DioClient.performRequest(
+      ApiUrls.getQuestionList(examId),
+      clientId: clientId,
+      token: token,
+      queryParameters: {'page': page}
+    );
     return QuestionResponse.fromJson(response.data);
   }
 
@@ -103,7 +76,7 @@ class ExamRepository {
     print('ExamRepository: ExamId - $examId');
     print('ExamRepository: Question details - ${question.toJson()}');
     try {
-      final response = await _performRequest(
+      final response = await DioClient.performRequest(
         ApiUrls.createQuestion(examId),
         clientId: clientId,
         token: token,
@@ -120,11 +93,22 @@ class ExamRepository {
   }
 
   Future<Question> updateQuestion(String clientId, String token, String examId, String questionId, Question question) async {
-    final response = await _performRequest(ApiUrls.updateQuestion(examId, questionId), clientId: clientId, token: token, data: question.toJson(), method: 'PATCH');
+    final response = await DioClient.performRequest(
+      ApiUrls.updateQuestion(examId, questionId),
+      clientId: clientId,
+      token: token,
+      data: question.toJson(),
+      method: 'PATCH'
+    );
     return Question.fromJson(response.data['metadata']);
   }
 
   Future<void> deleteQuestion(String clientId, String token, String examId, String questionId) async {
-    await _performRequest(ApiUrls.deleteQuestion(examId, questionId), clientId: clientId, token: token, method: 'DELETE');
+    await DioClient.performRequest(
+      ApiUrls.deleteQuestion(examId, questionId),
+      clientId: clientId,
+      token: token,
+      method: 'DELETE'
+    );
   }
 }

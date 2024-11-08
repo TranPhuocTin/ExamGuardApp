@@ -3,7 +3,8 @@
   import 'package:cloudinary_public/cloudinary_public.dart';
   import 'package:flutter_bloc/flutter_bloc.dart';
   import 'package:image_picker/image_picker.dart';
-  import '../../../data/user_repository.dart';
+  import '../../../configs/dio_config.dart';
+import '../../../data/user_repository.dart';
   import '../../../utils/share_preference/shared_preference.dart';
   import '../models/user_response.dart';
   import 'user_state.dart';

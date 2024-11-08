@@ -246,6 +246,7 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
           timePicked.hour,
           timePicked.minute,
         );
+
         
         if (selectedDateTime.isBefore(now)) {
           ScaffoldMessenger.of(context).showSnackBar(

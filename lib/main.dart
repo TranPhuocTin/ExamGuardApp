@@ -12,8 +12,10 @@ import 'package:exam_guardian/utils/share_preference/token_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'ExamGuardObserver.dart';
+import 'data/cheating_repository.dart';
 import 'data/exam_repository.dart';
 import 'features/splash/screens/splash_screen.dart';
+import 'features/student/exam_monitoring/cubit/face_monitoring_cubit.dart';
 import 'features/student/homepage/view/student_homepage_view.dart';
 import 'features/teacher/exams/cubit/exam_cubit.dart';
 import 'features/teacher/exams/cubit/question_cubit.dart';
@@ -23,6 +25,7 @@ void main() {
   UserRepository userRepository = UserRepository();
   ExamRepository examRepository = ExamRepository();
   TokenStorage tokenStorage = TokenStorage();
+  CheatingRepository cheatingRepository = CheatingRepository();
 
   runApp(MultiRepositoryProvider(
     providers: [
@@ -34,6 +37,9 @@ void main() {
       ),
       RepositoryProvider<TokenStorage>(
         create: (context) => tokenStorage,
+      ),
+      RepositoryProvider<CheatingRepository>(
+        create: (context) => cheatingRepository,
       ),
     ],
     child: MultiBlocProvider(

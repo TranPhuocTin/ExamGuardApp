@@ -10,6 +10,7 @@ class TokenCubit extends Cubit<TokenState> {
 
   // Lấy accessToken, refreshToken, và clientId từ SharedPreferences
   Future<void> loadTokens() async {
+    print('🔄 TokenCubit: Đang load tokens...');
     emit(state.copyWith(loading: true));
     try {
       final accessToken = await _tokenStorage.getAccessToken();
@@ -17,30 +18,34 @@ class TokenCubit extends Cubit<TokenState> {
       final clientId = await _tokenStorage.getClientId();
       final clientRole = await _tokenStorage.getClientRole();
 
-      // Kiểm tra nếu accessToken đã hết hạn
-      if (accessToken != null && JwtDecoder.isExpired(accessToken)) {
-        // Xử lý token hết hạn, ví dụ: yêu cầu refresh token, hoặc đăng xuất
-        print("Access token đã hết hạn.");
-        // Có thể emit một trạng thái khác hoặc xử lý làm mới token
-        await _tokenStorage.clearAll();
-        emit(state.copyWith(accessToken: null, refreshToken: null, clientId: null));
-      } else {
-        emit(state.copyWith(
-          accessToken: accessToken,
-          refreshToken: refreshToken,
-          clientId: clientId,
-          clientRole: clientRole,
-          loading: false,
-        ));
-      }
+      print('📝 TokenCubit - Token hiện tại:');
+      print('- AccessToken: ${accessToken?.substring(0, 20)}... (truncated)');
+      print('- ClientId: $clientId');
+      print('- Role: $clientRole');
+      
+      emit(state.copyWith(
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        clientId: clientId,
+        clientRole: clientRole,
+        loading: false,
+      ));
     } catch (e) {
+      print('❌ TokenCubit - Lỗi khi load tokens: $e');
       emit(state.copyWith(loading: false));
     }
   }
 
   // Xóa tokens khi đăng xuất
   Future<void> clearTokens() async {
+    print('🗑️ TokenCubit: Đang xóa tokens...');
     await _tokenStorage.clearAll();
-    emit(state.copyWith(accessToken: null, refreshToken: null, clientId: null, clientRole: null));
+    emit(state.copyWith(
+      accessToken: null, 
+      refreshToken: null, 
+      clientId: null, 
+      clientRole: null,
+    ));
+    print('✅ TokenCubit: Đã xóa tokens thành công');
   }
 }
