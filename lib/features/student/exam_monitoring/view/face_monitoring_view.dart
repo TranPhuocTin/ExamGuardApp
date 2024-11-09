@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/face_monitoring_cubit.dart';
 import '../services/face_detection_service.dart';
 import '../models/cheating_detection_state.dart';
+import 'package:exam_guardian/features/student/exam_monitoring/services/pip_service.dart';
+import 'package:flutter/services.dart';
 
 class FaceMonitoringView extends StatefulWidget {
   final String examId;
@@ -35,6 +37,8 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
   static const double _pipWidth = 160.0;
   static const double _pipHeight = 120.0;
 
+  final PipService _pipService = PipService();
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +46,7 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setDefaultPosition();
     });
+    _setupPipModeListener();
   }
 
   Future<void> _initializeCamera() async {
@@ -105,6 +110,15 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
         _xPosition = (screenSize.width - _normalWidth) / 2;
         _yPosition = 20.0;
       }
+    });
+  }
+
+  Future<void> _setupPipModeListener() async {
+    const eventChannel = EventChannel('com.example.app/pip_events');
+    eventChannel.receiveBroadcastStream().listen((dynamic isInPipMode) {
+      setState(() {
+        _isPipMode = isInPipMode;
+      });
     });
   }
 
@@ -187,11 +201,13 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
               color: Colors.white,
               size: 16,
             ),
-            onPressed: () {
-              setState(() {
-                _isPipMode = !_isPipMode;
-                _setDefaultPosition(); // Reset về vị trí mặc định khi chuyển mode
-              });
+            onPressed: () async {
+              if (!_isPipMode) {
+                // Enter PiP mode
+                await _pipService.enterPipMode();
+              } else {
+                // Exit PiP mode (handled by Android system)
+              }
             },
           ),
         ],

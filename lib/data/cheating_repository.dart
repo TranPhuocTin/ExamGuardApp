@@ -4,6 +4,7 @@ import 'package:exam_guardian/features/student/exam_monitoring/models/detect_che
 import 'package:exam_guardian/features/student/exam_monitoring/models/cheating_detection_state.dart';
 
 import '../configs/dio_config.dart';
+import '../features/teacher/exams/model/cheating_statistics_response.dart';
 
 class CheatingRepository {
   Future<void> submitDetectCheating(
@@ -28,6 +29,26 @@ class CheatingRepository {
       method: 'POST',
       data: data,
     );
+  }
+
+ Future<CheatingStatisticsResponse> getCheatingStatistics(
+    String clientId,
+    String token,
+    String examId, {
+    int page = 1,
+    int limit = 10,
+  }) async {
+    final response = await DioClient.performRequest(
+      ApiUrls.getcheatingStatistics(examId),
+      clientId: clientId,
+      token: token,
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+      },
+    );
+    
+    return CheatingStatisticsResponse.fromJson(response.data);
   }
 
   InfractionType _mapBehaviorToInfractionType(CheatingBehavior behavior) {

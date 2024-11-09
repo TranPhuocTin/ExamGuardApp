@@ -5,8 +5,10 @@ import 'package:exam_guardian/features/admin/view/admin_homepage_view.dart';
 import 'package:exam_guardian/features/common/cubit/base_homepage_cubit.dart';
 import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
 import 'package:exam_guardian/features/login/view/login_view.dart';
+import 'package:exam_guardian/features/realtime/cubit/realtime_cubit.dart';
 import 'package:exam_guardian/features/teacher/exams/view/create_update_exam_view.dart';
 import 'package:exam_guardian/features/teacher/homepage/view/teacher_homepage_view.dart';
+import 'package:exam_guardian/services/socket_service.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
 import 'package:exam_guardian/utils/share_preference/token_cubit.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +28,7 @@ void main() {
   ExamRepository examRepository = ExamRepository();
   TokenStorage tokenStorage = TokenStorage();
   CheatingRepository cheatingRepository = CheatingRepository();
+  SocketService socketService = SocketService();
 
   runApp(MultiRepositoryProvider(
     providers: [
@@ -41,6 +44,9 @@ void main() {
       RepositoryProvider<CheatingRepository>(
         create: (context) => cheatingRepository,
       ),
+      RepositoryProvider<SocketService>(
+        create: (context) => socketService,
+      ),
     ],
     child: MultiBlocProvider(
       providers: [
@@ -53,9 +59,6 @@ void main() {
         BlocProvider<TokenCubit>(
           create: (context) => TokenCubit(tokenStorage),
         ),
-        // BlocProvider<TeacherHomepageCubit>(
-        //   create: (context) => TeacherHomepageCubit(examRepository, tokenStorage),
-        // ),
         BlocProvider<ExamCubit>(
           create: (context) => ExamCubit(examRepository, tokenStorage),
         ),
@@ -63,7 +66,10 @@ void main() {
           create: (context) => QuestionCubit(examRepository, tokenStorage),
         ),
         BlocProvider<BaseHomepageCubit>(
-          create: (context) => BaseHomepageCubit(examRepository, tokenStorage),  // Replace with your concrete implementation
+          create: (context) => BaseHomepageCubit(examRepository, tokenStorage),
+        ),
+        BlocProvider<RealtimeCubit>(
+          create: (context) => RealtimeCubit(tokenStorage, socketService),
         ),
       ],
       child: MyApp(),

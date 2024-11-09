@@ -48,51 +48,122 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> {
         ),
       ],
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.exam.title),
-          backgroundColor: AppColors.primaryColor
-        ),
         backgroundColor: Colors.grey[100],
-        body: Stack(
-          children: [
-            Column(
-              children: [
-                Expanded(
-                  child: BlocBuilder<QuestionCubit, QuestionState>(
-                    builder: (context, state) {
-                      if (state is QuestionLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
+        body: SafeArea(
+          child: Stack(
+            children: [
+              // Main content
+              Column(
+                children: [
+                  _buildHeader(context),
+                  Expanded(
+                    child: BlocBuilder<QuestionCubit, QuestionState>(
+                      builder: (context, state) {
+                        if (state is QuestionLoading) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
 
-                      if (state is QuestionError) {
-                        return Center(child: Text(state.message));
-                      }
+                        if (state is QuestionError) {
+                          return Center(child: Text(state.message));
+                        }
 
-                      if (state is QuestionLoaded) {
-                        final questions = state.questions;
-                        return ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.all(16),
-                          itemCount: questions.length + 1,
-                          itemBuilder: (context, index) {
-                            if (index < questions.length) {
-                              return _buildQuestionCard(questions[index], index);
-                            } else {
-                              return _buildSubmitButton();
-                            }
-                          },
-                        );
-                      }
+                        if (state is QuestionLoaded) {
+                          final questions = state.questions;
+                          return ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.all(16),
+                            itemCount: questions.length + 1,
+                            itemBuilder: (context, index) {
+                              if (index < questions.length) {
+                                return _buildQuestionCard(
+                                    questions[index], index);
+                              } else {
+                                return _buildSubmitButton();
+                              }
+                            },
+                          );
+                        }
 
-                      return const Center(child: Text('No questions available'));
-                    },
+                        return const Center(
+                            child: Text('No questions available'));
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-            FaceMonitoringView(examId: widget.exam.id!),
-          ],
+                ],
+              ),
+              // Draggable monitoring view
+              FaceMonitoringView(examId: widget.exam.id!),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Back button
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Leave Exam?'),
+                  content: const Text(
+                    'Are you sure you want to leave? Your progress will be saved automatically.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context); // Close dialog
+                        Navigator.pop(context); // Go back
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                      ),
+                      child: const Text('Leave'),
+                    ),
+                  ],
+                ),
+              );
+            },
+            icon: const Icon(Icons.arrow_back_ios, size: 20),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+          const SizedBox(width: 16),
+          // Centered title
+          Expanded(
+            child: Text(
+              widget.exam.title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          // Spacer to balance the back button
+          const SizedBox(width: 36),
+        ],
       ),
     );
   }
@@ -108,7 +179,8 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -149,7 +221,9 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> {
               ),
             ),
             const SizedBox(height: 16),
-            ...question.options.map((option) => _buildAnswerOption(option, question)).toList(),
+            ...question.options
+                .map((option) => _buildAnswerOption(option, question))
+                .toList(),
           ],
         ),
       ),
@@ -158,7 +232,7 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> {
 
   Widget _buildAnswerOption(String option, Question question) {
     bool isSelected = selectedAnswers[question.id] == option;
-    
+
     return InkWell(
       onTap: () {
         setState(() {
@@ -178,7 +252,9 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> {
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(8),
-          color: isSelected ? AppColors.primaryColor.withOpacity(0.1) : Colors.white,
+          color: isSelected
+              ? AppColors.primaryColor.withOpacity(0.1)
+              : Colors.white,
         ),
         child: Row(
           children: [

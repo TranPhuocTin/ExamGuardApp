@@ -5,6 +5,7 @@ import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../teacher/exams/view/teacher_exam_monitoring_view.dart';
 import '../widgets/exam_card.dart';
 import '../../teacher/homepage/cubit/teacher_homepage_cubit.dart';
 import '../cubit/base_homepage_cubit.dart';
@@ -186,44 +187,53 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
             }
             return Padding(
               padding: EdgeInsets.only(bottom: 16.0),
-              child: BlocBuilder<AuthCubit, AuthState>(builder: (context, state) {
-                return ExamCard(
-                  exam: exams[index],
-                  isShowMoreIcon: false,
-                  isShowJoinButton: state.user?.role == 'STUDENT' ? true : false,
-                  onExamTapped: () async {
-                    final role = await TokenStorage().getClientRole();
-                    if (role == 'STUDENT') {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text('Confirm Participation'),
-                            content: Text('Are you sure you want to start this exam?'),
-                            actions: [
-                              TextButton(
-                                child: Text('Cancel'),
-                                onPressed: () => Navigator.of(context).pop(),
-                              ),
-                              TextButton(
-                                child: Text('Confirm'),
-                                onPressed: () {
-                                  Navigator.of(context).pop(); // Close dialog
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => StudentExamDetailView(exam: exams[index]),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    }
-                  },
-                );
-              },)
+              child: BlocBuilder<AuthCubit, AuthState>(
+                builder: (context, state) {
+                  return ExamCard(
+                    exam: exams[index],
+                    isShowMoreIcon: false,
+                    isShowJoinButton: state.user?.role == 'STUDENT' ? true : false,
+                    onExamTapped: () async {
+                      final role = await TokenStorage().getClientRole();
+                      if (role == 'TEACHER') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TeacherExamMonitoringView(exam: exams[index]),
+                          ),
+                        );
+                      } else if (role == 'STUDENT') {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Confirm Participation'),
+                              content: Text('Are you sure you want to start this exam?'),
+                              actions: [
+                                TextButton(
+                                  child: Text('Cancel'),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+                                TextButton(
+                                  child: Text('Confirm'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => StudentExamDetailView(exam: exams[index]),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    },
+                  );
+                },
+              ),
             );
           },
           childCount: exams.length + (isLoading || hasReachedMax ? 1 : 0),
