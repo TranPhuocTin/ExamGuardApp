@@ -46,6 +46,7 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setDefaultPosition();
     });
+    print('📱 Khởi tạo Face Monitoring View');
     _setupPipModeListener();
   }
 
@@ -121,6 +122,7 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
       });
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -201,13 +203,12 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
               color: Colors.white,
               size: 16,
             ),
-            onPressed: () async {
-              if (!_isPipMode) {
-                // Enter PiP mode
-                await _pipService.enterPipMode();
-              } else {
-                // Exit PiP mode (handled by Android system)
-              }
+            onPressed: () {
+              print('🔄 Toggle view size');
+              setState(() {
+                _isPipMode = !_isPipMode;
+                _setDefaultPosition();
+              });
             },
           ),
         ],

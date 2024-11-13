@@ -81,7 +81,6 @@ class _StatisticsTab extends StatelessWidget {
               Expanded(
                 child: Column(
                   children: [
-                    _buildSearchBar(context),
                     Expanded(
                       child: RefreshIndicator(
                         onRefresh: () async {
@@ -146,24 +145,6 @@ class _StatisticsTab extends StatelessWidget {
     return 'Initializing...';
   }
 
-  Widget _buildSearchBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: 'Search by student name or email',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        onChanged: (query) {
-          context.read<CheatingStatisticsCubit>().filterStatistics(query);
-        },
-      ),
-    );
-  }
-
   Widget _buildStatisticsCard(CheatingStatistic stat) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -174,10 +155,6 @@ class _StatisticsTab extends StatelessWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  backgroundImage: NetworkImage(stat.student.avatar),
-                  radius: 24,
-                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -188,12 +165,6 @@ class _StatisticsTab extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        stat.student.email,
-                        style: TextStyle(
-                          color: Colors.grey[600],
                         ),
                       ),
                     ],

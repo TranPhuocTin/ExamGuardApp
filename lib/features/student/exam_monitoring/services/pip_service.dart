@@ -6,10 +6,12 @@ class PipService {
   // Check if device supports PiP
   Future<bool> isPipSupported() async {
     try {
+      print('🔍 Checking PiP support...');
       final bool isSupported = await platform.invokeMethod('isPipSupported');
+      print('✅ PiP supported: $isSupported');
       return isSupported;
     } on PlatformException catch (e) {
-      print('Error checking PiP support: ${e.message}');
+      print('❌ Error checking PiP support: ${e.message}');
       return false;
     }
   }
@@ -28,9 +30,11 @@ class PipService {
   // Enter PiP mode
   Future<void> enterPipMode() async {
     try {
+      print('🎯 Attempting to enter PiP mode...');
       await platform.invokeMethod('enterPipMode');
+      print('✅ Entered PiP mode successfully');
     } on PlatformException catch (e) {
-      print('Error entering PiP mode: ${e.message}');
+      print('❌ Error entering PiP mode: ${e.message}');
     }
   }
 } 

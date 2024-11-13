@@ -1,10 +1,6 @@
-import 'dart:async';
-
 import 'package:exam_guardian/features/common/cubit/base_homepage_cubit.dart';
 import 'package:exam_guardian/features/student/profile/view/student_profile_page.dart';
-import 'package:exam_guardian/features/teacher/profile/view/teacher_profile_page.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../data/exam_repository.dart';
 import '../../../../utils/share_preference/shared_preference.dart';
