@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+
 import 'package:exam_guardian/configs/data_source.dart';
 import 'package:exam_guardian/features/student/exam_monitoring/models/detect_cheating.dart';
 import 'package:exam_guardian/features/student/exam_monitoring/models/cheating_detection_state.dart';
@@ -59,8 +59,6 @@ class CheatingRepository {
       case CheatingBehavior.multipleFaces:
         return InfractionType.face;
       case CheatingBehavior.noFaceDetected:
-        return InfractionType.face;
-      case CheatingBehavior.eyesClosed:
         return InfractionType.face;
       case CheatingBehavior.spoofing:
         return InfractionType.face;

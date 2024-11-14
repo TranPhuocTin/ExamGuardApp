@@ -44,15 +44,15 @@ class RealtimeCubit extends Cubit<RealtimeState> {
 
   Future<void> initializeSocket() async {
     try {
-      final token = await _tokenStorage.getAccessToken();
-      if (token == null) {
-        print('❌ No token found');
-        emit(RealtimeError('No authentication token found'));
+      final clientId = await _tokenStorage.getClientId();
+      if (clientId == null) {
+        print('❌ No clientId found');
+        emit(RealtimeError('No client ID found'));
         return;
       }
 
       print('🔌 Initializing socket connection...');
-      _socketService.initSocket(token);
+      _socketService.initSocket(teacherId: clientId);
       
       // Thêm listener này để debug
       _socketService.socket.onAny((event, data) {
@@ -87,9 +87,10 @@ class RealtimeCubit extends Cubit<RealtimeState> {
       _socketService.socket.on('newCheatingDetected', (data) {
         print('🎯 Nhận được newCheatingDetected event');
         if (!_isClosed && onEventReceived != null) {
-          onEventReceived!('newCheatingDetected', data);
+          onEventReceived!('newCheatingDetected', Map<String, dynamic>.from(data));
         }
       });
+
 
     } catch (e) {
       print('❌ Socket initialization error: $e');
@@ -121,16 +122,19 @@ class RealtimeCubit extends Cubit<RealtimeState> {
     print('- Event: $event');
     print('- Data: $data');
     
-    if (event == 'newCheatingDetected') {
-      print('✅ Nhận được event newCheatingDetected');
-      final cheatingData = data['data'] as Map<String, dynamic>;
-      print('📦 Dữ liệu cheating: $cheatingData');
+    if (event == 'newCheatingDetected' && data != null) {
+      // Cast the entire data object first
+      final Map<String, dynamic> eventData = Map<String, dynamic>.from(data);
       
-      try {
-        context.read<CheatingStatisticsCubit>().handleNewCheatingDetected(cheatingData);
-        print('✅ Đã gửi dữ liệu đến CheatingStatisticsCubit');
-      } catch (e) {
-        print('❌ Lỗi khi gửi dữ liệu đến CheatingStatisticsCubit: $e');
+      // Access the nested data field
+      if (eventData.containsKey('data')) {
+        final cheatingData = Map<String, dynamic>.from(eventData['data']);
+        try {
+          context.read<CheatingStatisticsCubit>().handleNewCheatingDetected(cheatingData);
+          print('✅ Đã gửi dữ liệu đến CheatingStatisticsCubit');
+        } catch (e) {
+          print('❌ Lỗi khi gửi dữ liệu đến CheatingStatisticsCubit: $e');
+        }
       }
     }
   }

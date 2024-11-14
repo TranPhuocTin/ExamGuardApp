@@ -70,19 +70,6 @@ class MainActivity: FlutterActivity() {
         eventSink?.success(isInPictureInPictureMode)
     }
 
-    override fun onUserLeaveHint() {
-        super.onUserLeaveHint()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            try {
-                val pipBuilder = PictureInPictureParams.Builder()
-                pipBuilder.setAspectRatio(Rational(16, 9))
-                enterPictureInPictureMode(pipBuilder.build())
-            } catch (e: Exception) {
-                print("Error entering PiP mode: ${e.message}")
-            }
-        }
-    }
-
     override fun onStop() {
         super.onStop()
         if (isInPictureInPictureMode) {

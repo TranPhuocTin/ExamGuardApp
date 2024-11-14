@@ -7,6 +7,7 @@ import '../cubit/cheating_statistics_cubit.dart';
 import '../../../../utils/share_preference/shared_preference.dart';
 import '../../../../data/cheating_repository.dart';
 import '../cubit/cheating_statistics_state.dart';
+import '../cubit/exam_cubit.dart';
 import '../model/cheating_statistics_response.dart';
 
 class TeacherExamMonitoringView extends StatelessWidget {
@@ -32,11 +33,17 @@ class TeacherExamMonitoringView extends StatelessWidget {
             context.read<TokenStorage>(),
             context.read<SocketService>(),
             onEventReceived: (event, data) {
-              if (event == 'newCheatingDetected') {
-                print('📊 Gửi dữ liệu đến CheatingStatisticsCubit');
-                context
-                  .read<CheatingStatisticsCubit>()
-                  .handleNewCheatingDetected(data['data']);
+              if (event == 'newCheatingDetected' && data != null) {
+                if (data['data'] is Map<String, dynamic>) {
+                  context
+                    .read<CheatingStatisticsCubit>()
+                    .handleNewCheatingDetected(data['data']);
+                }
+              } else if (event == 'examUpdated' && data != null) {
+                if (data['exam'] is Map<String, dynamic>) {
+                  final updatedExam = common.Exam.fromJson(data['exam']);
+                  context.read<ExamCubit>().handleExamUpdated(updatedExam);
+                }
               }
             },
           )..initializeSocket(),

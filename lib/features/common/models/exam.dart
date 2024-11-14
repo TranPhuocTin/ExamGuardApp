@@ -14,6 +14,8 @@ class Exam extends Equatable {
   final DateTime startTime;
   final DateTime endTime;
   final String status;
+   @JsonKey(defaultValue: null)
+  final int? duration;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -25,6 +27,7 @@ class Exam extends Equatable {
     required this.startTime,
     required this.endTime,
     required this.status,
+    this.duration,
     this.createdAt,
     this.updatedAt,
   });
@@ -33,7 +36,7 @@ class Exam extends Equatable {
   Map<String, dynamic> toJson() => _$ExamToJson(this);
 
   @override
-  List<Object?> get props => [id, title, description, questionCount, startTime, endTime, status, createdAt, updatedAt];
+  List<Object?> get props => [id, title, description, questionCount, startTime, endTime, status, duration, createdAt, updatedAt];
 
   Exam copyWith({
     String? id,
@@ -43,6 +46,7 @@ class Exam extends Equatable {
     DateTime? startTime,
     DateTime? endTime,
     String? status,
+    int? duration,
   }) {
     return Exam(
       id: id ?? this.id,
@@ -52,6 +56,7 @@ class Exam extends Equatable {
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
       status: status ?? this.status,
+      duration: duration ?? this.duration,
     );
   }
 }

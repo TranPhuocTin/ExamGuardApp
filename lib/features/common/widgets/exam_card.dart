@@ -88,6 +88,21 @@ class ExamCard extends StatelessWidget {
               ),
               SizedBox(height: 8),
               Row(
+                children: [
+                  Icon(Icons.timer, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 4),
+                  Text(
+                    exam.duration != null ? '${exam.duration} minutes' : 'No time limit',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                
+                ],
+              ),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(

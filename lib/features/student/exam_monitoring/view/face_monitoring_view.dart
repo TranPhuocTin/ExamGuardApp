@@ -37,17 +37,18 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
   static const double _pipWidth = 160.0;
   static const double _pipHeight = 120.0;
 
-  final PipService _pipService = PipService();
+  late PipService _pipService;
 
   @override
   void initState() {
     super.initState();
+    _pipService = PipService();
+    _setupPipModeListener();
     _initializeCamera();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setDefaultPosition();
     });
     print('📱 Khởi tạo Face Monitoring View');
-    _setupPipModeListener();
   }
 
   Future<void> _initializeCamera() async {
@@ -115,11 +116,8 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
   }
 
   Future<void> _setupPipModeListener() async {
-    const eventChannel = EventChannel('com.example.app/pip_events');
-    eventChannel.receiveBroadcastStream().listen((dynamic isInPipMode) {
-      setState(() {
-        _isPipMode = isInPipMode;
-      });
+    _pipService.pipModeEvents.listen((isInPipMode) {
+      context.read<FaceMonitoringCubit>().handlePipModeChange(isInPipMode);
     });
   }
 

@@ -4,8 +4,8 @@ enum CheatingBehavior {
   multipleFaces,
   lookingLeft,
   lookingRight,
-  eyesClosed,
   spoofing,
+  pipMode,
   error
 }
 

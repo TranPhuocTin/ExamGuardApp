@@ -93,11 +93,25 @@ class CheatingStatisticsCubit extends Cubit<CheatingStatisticsState> {
     print('🔄 handleNewCheatingDetected được gọi với data: $cheatingData');
     
     if (state is CheatingStatisticsLoaded) {
-      print('✅ State hiện tại là CheatingStatisticsLoaded');
       final currentState = state as CheatingStatisticsLoaded;
       final currentStats = List<CheatingStatistic>.from(currentState.statistics);
       
-      final studentId = cheatingData['student'] as String;
+      final studentData = cheatingData['student'];
+      if (studentData == null) {
+        print('⚠️ Student data is null');
+        return;
+      }
+
+      String studentId;
+      if (studentData is String) {
+        studentId = studentData;
+      } else if (studentData is Map<String, dynamic>) {
+        studentId = studentData['_id'] as String;
+      } else {
+        print('⚠️ Invalid student data format');
+        return;
+      }
+
       print('🔍 Tìm kiếm student với ID: $studentId');
       
       final existingStatIndex = currentStats.indexWhere(

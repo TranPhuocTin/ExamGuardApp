@@ -10,11 +10,11 @@ class SocketService {
 
   SocketService._internal();
 
-  void initSocket(String token) {
+  void initSocket({String? teacherId}) {
     socket = IO.io('https://exam-guard-server.onrender.com', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
-      'auth': {'token': token},
+      'query': {'teacherId': teacherId},
     });
 
     socket.connect();

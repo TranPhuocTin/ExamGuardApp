@@ -22,6 +22,7 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
   late TextEditingController _descriptionController;
   late TextEditingController _startTimeController;
   late TextEditingController _endTimeController;
+  late TextEditingController _durationController;
   late String _selectedStatus;
 
   bool get isUpdating => widget.exam != null;
@@ -33,6 +34,7 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
     _descriptionController = TextEditingController(text: widget.exam?.description ?? '');
     _startTimeController = TextEditingController(text: widget.exam != null ? _formatDateTime(widget.exam!.startTime) : '');
     _endTimeController = TextEditingController(text: widget.exam != null ? _formatDateTime(widget.exam!.endTime) : '');
+    _durationController = TextEditingController(text: widget.exam?.duration.toString() ?? '');
     _selectedStatus = widget.filteredStatus ?? widget.exam?.status ?? 'Scheduled';
     
     if (widget.exam != null) {
@@ -100,6 +102,8 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
                   icon: Icons.access_time,
                   onTap: () => _selectDateTime(context, _endTimeController),
                 ),
+                SizedBox(height: 16),
+                _buildDurationField(),
                 SizedBox(height: 16),
                 _buildStatusDropdown(),
                 SizedBox(height: 32),
@@ -184,6 +188,30 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
       readOnly: true,
       onTap: onTap,
       validator: (value) => value!.isEmpty ? 'Please enter $label' : null,
+    );
+  }
+
+  Widget _buildDurationField() {
+    return TextFormField(
+      controller: _durationController,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        labelText: 'Duration (minutes)',
+        prefixIcon: Icon(Icons.timer),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter exam duration';
+        }
+        final duration = int.tryParse(value);
+        if (duration == null || duration <= 0) {
+          return 'Please enter a valid duration';
+        }
+        return null;
+      },
     );
   }
 
@@ -299,6 +327,7 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
 
     final startTime = DateFormat('yyyy-MM-dd HH:mm').parse(_startTimeController.text);
     final endTime = DateFormat('yyyy-MM-dd HH:mm').parse(_endTimeController.text);
+    final duration = int.parse(_durationController.text);
     final now = DateTime.now();
 
     if (startTime.isBefore(now)) {
@@ -324,6 +353,7 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
       startTime: startTime,
       endTime: endTime,
       status: _selectedStatus,
+      duration: duration,
     );
 
     if (isUpdating) {
@@ -339,6 +369,7 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
     _descriptionController.dispose();
     _startTimeController.dispose();
     _endTimeController.dispose();
+    _durationController.dispose();
     super.dispose();
   }
 }

@@ -11,8 +11,6 @@ class FaceDetectionService {
   final double cheatingAngleThreshold;
   final double _minFaceRatio = 0.05;
   final double _maxFaceRatio = 0.65;
-  final double _minSmileProb = 0.8;
-  final double _minEyeOpenProb = 0.8;
 
   FaceDetectionService({
     this.cheatingAngleThreshold = 25.0,

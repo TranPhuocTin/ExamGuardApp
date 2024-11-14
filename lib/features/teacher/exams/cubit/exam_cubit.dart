@@ -230,6 +230,23 @@ class ExamCubit extends Cubit<ExamState> {
     }
   }
 
+  void handleExamUpdated(Exam updatedExam) {
+    if (state is ExamLoaded) {
+      final currentState = state as ExamLoaded;
+      final updatedExams = currentState.exams.map((exam) {
+        return exam.id == updatedExam.id ? updatedExam : exam;
+      }).toList();
+      
+      emit(ExamLoaded(
+        updatedExams,
+        hasReachedMax: currentState.hasReachedMax,
+        currentPage: currentState.currentPage,
+        selectedStatus: currentState.selectedStatus,
+        searchQuery: currentState.searchQuery,
+      ));
+    }
+  }
+
   @override
   Future<void> close() {
     _debounce?.cancel();

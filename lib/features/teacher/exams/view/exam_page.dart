@@ -6,7 +6,6 @@ import '../../../../utils/transitions/slide_up_route.dart';
 import '../../../common/models/exam.dart';
 import '../cubit/exam_cubit.dart';
 import '../cubit/exam_state.dart';
-import '../data/sample_exams.dart';
 import '../../../common/widgets/exam_card.dart';
 import '../../../../configs/app_colors.dart';
 import 'create_update_exam_view.dart';
