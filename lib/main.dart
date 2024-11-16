@@ -17,6 +17,7 @@ import 'ExamGuardObserver.dart';
 import 'data/cheating_repository.dart';
 import 'data/exam_repository.dart';
 import 'features/splash/screens/splash_screen.dart';
+import 'features/student/exam/cubit/student_exam_cubit.dart';
 import 'features/student/exam_monitoring/cubit/face_monitoring_cubit.dart';
 import 'features/student/homepage/view/student_homepage_view.dart';
 import 'features/teacher/exams/cubit/exam_cubit.dart';

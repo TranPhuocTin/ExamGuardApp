@@ -37,12 +37,14 @@ class _AddQuestionViewState extends State<AddQuestionView> {
   void _initializeControllers() {
     if (widget.question != null) {
       // Editing existing question
-      _questionController = TextEditingController(text: widget.question!.questionText);
+      _questionController =
+          TextEditingController(text: widget.question!.questionText);
       _optionControllers = widget.question!.options
           .map((option) => TextEditingController(text: option))
           .toList();
-      _correctAnswerIndex = widget.question!.options
-          .indexOf(widget.question!.correctAnswer);
+      _correctAnswerIndex = widget.question!.correctAnswer != null
+          ? widget.question!.options.indexOf(widget.question!.correctAnswer!)
+          : 0;
     } else {
       // Creating new question
       _questionController = TextEditingController();
@@ -82,8 +84,8 @@ class _AddQuestionViewState extends State<AddQuestionView> {
     return BlocListener<QuestionCubit, QuestionState>(
       listener: (context, state) {
         if (state is QuestionCreated || state is QuestionUpdated) {
-          String message = state is QuestionCreated 
-              ? 'Question created successfully' 
+          String message = state is QuestionCreated
+              ? 'Question created successfully'
               : 'Question updated successfully';
           print('AddQuestionView: $message');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -93,7 +95,8 @@ class _AddQuestionViewState extends State<AddQuestionView> {
         } else if (state is QuestionError) {
           print('AddQuestionView: Error creating question - ${state.message}');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error creating question: ${state.message}')),
+            SnackBar(
+                content: Text('Error creating question: ${state.message}')),
           );
         }
       },
@@ -213,16 +216,20 @@ class _AddQuestionViewState extends State<AddQuestionView> {
         options: _optionControllers.map((c) => c.text).toList(),
         correctAnswer: _optionControllers[_correctAnswerIndex].text,
         questionType: widget.questionType,
-        questionScore: widget.question?.questionScore ?? 1, // Use existing score or default to 1
+        questionScore: widget.question?.questionScore ??
+            1, // Use existing score or default to 1
       );
       print('AddQuestionView: Created question object');
       print('AddQuestionView: Question details - ${question.toJson()}');
       if (widget.question != null) {
-        context.read<QuestionCubit>().updateQuestion(widget.examId, widget.question!.id!, widget.question!.copyWith(
-          questionText: _questionController.text,
-          options: _optionControllers.map((c) => c.text).toList(),
-          correctAnswer: _optionControllers[_correctAnswerIndex].text,
-        ));
+        context.read<QuestionCubit>().updateQuestion(
+            widget.examId,
+            widget.question!.id!,
+            widget.question!.copyWith(
+              questionText: _questionController.text,
+              options: _optionControllers.map((c) => c.text).toList(),
+              correctAnswer: _optionControllers[_correctAnswerIndex].text,
+            ));
       } else {
         context.read<QuestionCubit>().createQuestion(widget.examId, question);
       }

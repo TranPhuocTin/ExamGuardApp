@@ -1,17 +1,23 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:intl/intl.dart';
-
 part 'question_response.g.dart';
 
 @JsonSerializable()
 class Question {
   @JsonKey(name: '_id')
   final String? id;
+  
+  @JsonKey(fromJson: _convertToString)
   final String questionText;
+  
   final String questionType;
   final int questionScore;
-  final String correctAnswer;
+  
+  @JsonKey(includeIfNull: false)  // Không include trong JSON nếu null
+  final String? correctAnswer;     // Thêm nullable
+  
+  @JsonKey(fromJson: _convertToStringList)
   final List<String> options;
+  
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -20,11 +26,18 @@ class Question {
     required this.questionText,
     required this.questionType,
     required this.questionScore,
-    required this.correctAnswer,
+    this.correctAnswer,    // Bỏ required
     required this.options,
     this.createdAt,
     this.updatedAt,
   });
+
+  // Converter methods
+  static String _convertToString(dynamic value) => value.toString();
+  
+  static List<String> _convertToStringList(List<dynamic> list) {
+    return list.map((e) => e.toString()).toList();
+  }
 
   factory Question.fromJson(Map<String, dynamic> json) => _$QuestionFromJson(json);
   Map<String, dynamic> toJson() => _$QuestionToJson(this);

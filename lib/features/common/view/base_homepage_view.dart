@@ -1,10 +1,16 @@
 import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
 import 'package:exam_guardian/features/login/cubit/auth_state.dart';
-import 'package:exam_guardian/features/student/homepage/view/student_exam_detail_view.dart';
+import 'package:exam_guardian/features/student/exam/view/student_exam_detail_view.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../configs/app_colors.dart';
+import '../../../data/cheating_repository.dart';
+import '../../../data/exam_repository.dart';
+import '../../../utils/share_preference/token_cubit.dart';
+import '../../student/exam/cubit/student_exam_cubit.dart';
+import '../../student/exam_monitoring/cubit/face_monitoring_cubit.dart';
 import '../../teacher/exams/view/teacher_exam_monitoring_view.dart';
 import '../widgets/exam_card.dart';
 import '../../teacher/homepage/cubit/teacher_homepage_cubit.dart';
@@ -207,23 +213,46 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                           context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
-                              title: Text('Confirm Participation'),
-                              content: Text('Are you sure you want to start this exam?'),
+                              title: const Text('Xác nhận tham gia'),
+                              content: const Text('Bạn có chắc chắn muốn tham gia bài thi này?'),
                               actions: [
                                 TextButton(
-                                  child: Text('Cancel'),
-                                  onPressed: () => Navigator.of(context).pop(),
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Hủy'),
                                 ),
-                                TextButton(
-                                  child: Text('Confirm'),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryColor,
+                                  ),
                                   onPressed: () {
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).push(
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
                                       MaterialPageRoute(
-                                        builder: (context) => StudentExamDetailView(exam: exams[index]),
+                                        builder: (context) => MultiBlocProvider(
+                                          providers: [
+                                            BlocProvider<StudentExamCubit>(
+                                              create: (context) => StudentExamCubit(
+                                                examRepository: context.read<ExamRepository>(),
+                                                tokenStorage: context.read<TokenStorage>(),
+                                                examId: exams[index].id!,
+                                              ),
+                                            ),
+                                            BlocProvider<FaceMonitoringCubit>(
+                                              create: (context) => FaceMonitoringCubit(
+                                                examId: exams[index].id!,
+                                                cheatingRepository: context.read<CheatingRepository>(),
+                                                tokenStorage: context.read<TokenStorage>(),
+                                                tokenCubit: context.read<TokenCubit>(),
+                                              ),
+                                            ),
+                                          ],
+                                          child: StudentExamDetailView(exam: exams[index]),
+                                        ),
                                       ),
                                     );
                                   },
+                                  child: const Text('Tham gia'),
                                 ),
                               ],
                             );

@@ -8,12 +8,11 @@ part of 'question_response.dart';
 
 Question _$QuestionFromJson(Map<String, dynamic> json) => Question(
       id: json['_id'] as String?,
-      questionText: json['questionText'] as String,
+      questionText: Question._convertToString(json['questionText']),
       questionType: json['questionType'] as String,
       questionScore: (json['questionScore'] as num).toInt(),
-      correctAnswer: json['correctAnswer'] as String,
-      options:
-          (json['options'] as List<dynamic>).map((e) => e as String).toList(),
+      correctAnswer: json['correctAnswer'] as String?,
+      options: Question._convertToStringList(json['options'] as List),
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
@@ -22,16 +21,26 @@ Question _$QuestionFromJson(Map<String, dynamic> json) => Question(
           : DateTime.parse(json['updatedAt'] as String),
     );
 
-Map<String, dynamic> _$QuestionToJson(Question instance) => <String, dynamic>{
-      '_id': instance.id,
-      'questionText': instance.questionText,
-      'questionType': instance.questionType,
-      'questionScore': instance.questionScore,
-      'correctAnswer': instance.correctAnswer,
-      'options': instance.options,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
-    };
+Map<String, dynamic> _$QuestionToJson(Question instance) {
+  final val = <String, dynamic>{
+    '_id': instance.id,
+    'questionText': instance.questionText,
+    'questionType': instance.questionType,
+    'questionScore': instance.questionScore,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('correctAnswer', instance.correctAnswer);
+  val['options'] = instance.options;
+  val['createdAt'] = instance.createdAt?.toIso8601String();
+  val['updatedAt'] = instance.updatedAt?.toIso8601String();
+  return val;
+}
 
 QuestionResponse _$QuestionResponseFromJson(Map<String, dynamic> json) =>
     QuestionResponse(

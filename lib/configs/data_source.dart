@@ -17,4 +17,5 @@ class ApiUrls {
   static String deleteQuestion(String examId, String questionId) => '/api/question/$examId/$questionId';
   static String reportCheating(String examId) => '/api/cheating/detect-cheating/$examId';
   static String getcheatingStatistics(String examId) => '/api/cheating/list-cheating-statistics/$examId';
+  static String joinExam(String examId) => '/api/exam/join/$examId';
 }

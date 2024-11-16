@@ -3,6 +3,7 @@ import 'package:exam_guardian/features/common/models/exam_response.dart';
 import '../configs/dio_config.dart';
 import '../features/common/models/exam.dart';
 import '../features/common/models/question_response.dart';
+import '../features/student/exam/models/student_exam_response.dart';
 
 class ExamRepository {
   Future<ExamResponse> getExams(String clientId, String token, {String? status, int page = 1}) async {
@@ -111,4 +112,38 @@ class ExamRepository {
       method: 'DELETE'
     );
   }
+
+  Future<StudentExamResponse> joinExam(String clientId, String token, String examId, int page) async {
+    try {
+      final response = await DioClient.performRequest(
+        ApiUrls.joinExam(examId),
+        clientId: clientId,
+        queryParameters: {
+          'page': page,
+          'limit': 10,
+        },
+        token: token,
+        method: 'GET',
+      );
+      
+      print('Response data: ${response.data}');
+      
+      return StudentExamResponse.fromJson(response.data);
+    } catch (e) {
+      print('ExamRepository: Lỗi khi join exam - ${e.toString()}');
+      rethrow;
+    }
+  }
+
+  // Future<void> submitExamAnswers(String clientId, String token, String examId, Map<String, String> answers) async {
+  //   await DioClient.performRequest(
+  //     ApiUrls.submitExam(examId),
+  //     clientId: clientId,
+  //     token: token,
+  //     method: 'POST',
+  //     data: {
+  //       'answers': answers,
+  //     },
+  //   );
+  // }
 }
