@@ -122,6 +122,19 @@ class StudentExamCubit extends Cubit<StudentExamState> with PaginationMixin<Ques
     });
   }
 
+  Future<void> submitAnswer(String questionId, String answer) async {
+    try {
+      final clientId = await _tokenStorage.getClientId();
+      final token = await _tokenStorage.getAccessToken();
+      
+      if (clientId != null && token != null) {
+        await _examRepository.submitAnswer(questionId, answer, clientId, token);
+      }
+    } catch (e) {
+      print('Error submitting answer: $e');
+    }
+  }
+
   @override
   Future<void> close() {
     _timer?.cancel();

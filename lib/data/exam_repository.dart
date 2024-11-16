@@ -135,15 +135,21 @@ class ExamRepository {
     }
   }
 
-  // Future<void> submitExamAnswers(String clientId, String token, String examId, Map<String, String> answers) async {
-  //   await DioClient.performRequest(
-  //     ApiUrls.submitExam(examId),
-  //     clientId: clientId,
-  //     token: token,
-  //     method: 'POST',
-  //     data: {
-  //       'answers': answers,
-  //     },
-  //   );
-  // }
+  Future<void> submitAnswer(String questionId, String answerText, String clientId, String token) async {
+    try {
+      await DioClient.performRequest(
+        'https://exam-guard-server.onrender.com/api/answer/$questionId',
+        clientId: clientId,
+        token: token,
+        method: 'POST',
+        data: {
+          'answerText': answerText,
+        },
+      );
+    } catch (e) {
+      print('ExamRepository: Lỗi khi submit answer - ${e.toString()}');
+      rethrow;
+    }
+  }
+
 }

@@ -12,6 +12,9 @@ import '../../exam_monitoring/view/face_monitoring_view.dart';
 import '../../exam_monitoring/cubit/face_monitoring_cubit.dart';
 import '../cubit/student_exam_cubit.dart';
 import '../cubit/student_exam_state.dart';
+import '../cubit/answer_submission_cubit.dart';
+import '../cubit/answer_submission_state.dart';
+
 class StudentExamDetailView extends StatefulWidget {
   final Exam exam;
 
@@ -104,6 +107,12 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
             cubit.loadExam();
             return cubit;
           },
+        ),
+        BlocProvider<AnswerSubmissionCubit>(
+          create: (context) => AnswerSubmissionCubit(
+            examRepository: context.read<ExamRepository>(),
+            tokenStorage: context.read<TokenStorage>(),
+          ),
         ),
         BlocProvider<FaceMonitoringCubit>(
           create: (context) => FaceMonitoringCubit(
@@ -268,49 +277,60 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
   Widget _buildAnswerOption(String option, Question question) {
     bool isSelected = selectedAnswers[question.id] == option;
 
-    return InkWell(
-      onTap: () {
-        setState(() {
-          if (isSelected) {
-            selectedAnswers.remove(question.id);
-          } else {
-            selectedAnswers[question.id!] = option;
-          }
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected ? AppColors.primaryColor : Colors.grey[300]!,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(8),
-          color: isSelected
-              ? AppColors.primaryColor.withOpacity(0.1)
-              : Colors.white,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isSelected ? Icons.check_circle : Icons.circle_outlined,
-              color: isSelected ? AppColors.primaryColor : Colors.grey[400],
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                option,
-                style: TextStyle(
-                  color: isSelected ? AppColors.primaryColor : Colors.black87,
-                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-                ),
+    return BlocBuilder<AnswerSubmissionCubit, AnswerSubmissionState>(
+      builder: (context, state) {
+        return InkWell(
+          onTap: () async {
+            // Cập nhật UI trước
+            setState(() {
+              if (isSelected) {
+                selectedAnswers.remove(question.id);
+              } else {
+                selectedAnswers[question.id!] = option;
+              }
+            });
+
+            // Submit answer thông qua cubit
+            await context.read<AnswerSubmissionCubit>().submitAnswer(
+              question.id!,
+              option,
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: isSelected ? AppColors.primaryColor : Colors.grey[300]!,
+                width: isSelected ? 2 : 1,
               ),
+              borderRadius: BorderRadius.circular(8),
+              color: isSelected
+                  ? AppColors.primaryColor.withOpacity(0.1)
+                  : Colors.white,
             ),
-          ],
-        ),
-      ),
+            child: Row(
+              children: [
+                Icon(
+                  isSelected ? Icons.check_circle : Icons.circle_outlined,
+                  color: isSelected ? AppColors.primaryColor : Colors.grey[400],
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    option,
+                    style: TextStyle(
+                      color: isSelected ? AppColors.primaryColor : Colors.black87,
+                      fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -337,14 +357,24 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
     );
   }
 
-  void _submitAnswers() {
-    final submissions = selectedAnswers.entries.map((entry) {
-      return {
-        'questionId': entry.key,
-        'selectedAnswer': entry.value,
-      };
-    }).toList();
-
-    // context.read<QuestionCubit>().submitAnswers(widget.exam.id!, submissions);
+  void _submitAnswers() async {
+    try {
+      for (var entry in selectedAnswers.entries) {
+        await context.read<StudentExamCubit>().submitAnswer(
+          entry.key,
+          entry.value,
+        );
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nộp bài thành công')),
+      );
+      Navigator.of(context).pop(); // Return to previous screen
+      
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Có lỗi xảy ra khi nộp bài')),
+      );
+    }
   }
 }
