@@ -23,6 +23,55 @@ import 'features/student/homepage/view/student_homepage_view.dart';
 import 'features/teacher/exams/cubit/exam_cubit.dart';
 import 'features/teacher/exams/cubit/question_cubit.dart';
 import 'features/teacher/homepage/cubit/teacher_homepage_cubit.dart';
+import 'utils/widgets/global_error_handler.dart';
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => TokenCubit(TokenStorage()),
+        ),
+        BlocProvider<AuthCubit>(
+          create: (context) => AuthCubit(),
+        ),
+        BlocProvider<UserCubit>(
+          create: (context) => UserCubit(context.read<UserRepository>()),
+        ),
+        BlocProvider<ExamCubit>(
+          create: (context) => ExamCubit(context.read<ExamRepository>(), context.read<TokenStorage>(), context.read<TokenCubit>()),
+        ),
+        BlocProvider<QuestionCubit>(
+          create: (context) => QuestionCubit(context.read<ExamRepository>(), context.read<TokenStorage>()),
+        ),
+        BlocProvider<BaseHomepageCubit>(
+          create: (context) => BaseHomepageCubit(context.read<ExamRepository>(), context.read<TokenStorage>(), context.read<TokenCubit>()),
+        ),
+        BlocProvider<RealtimeCubit>(
+          create: (context) => RealtimeCubit(context.read<TokenStorage>(), context.read<SocketService>()),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        home: GlobalErrorHandler(
+          child: SplashScreen(),
+        ),
+        routes: {
+          '/login': (context) => LoginView(),
+          '/admin_main_screen': (context) => AdminMainScreen(),
+          '/admin_profile_screen': (context) => AdminProfileScreen(),
+          '/teacher_homepage': (context) => TeacherHomepageView(),
+          '/student_homepage': (context) => StudentHomepageView(),
+        },
+      ),
+    );
+  }
+}
 
 void main() {
   UserRepository userRepository = UserRepository();
@@ -30,74 +79,28 @@ void main() {
   TokenStorage tokenStorage = TokenStorage();
   CheatingRepository cheatingRepository = CheatingRepository();
   SocketService socketService = SocketService();
+  TokenCubit tokenCubit = TokenCubit(tokenStorage);
 
-  runApp(MultiRepositoryProvider(
-    providers: [
-      RepositoryProvider<UserRepository>(
-        create: (context) => userRepository,
-      ),
-      RepositoryProvider<ExamRepository>(
-        create: (context) => examRepository,
-      ),
-      RepositoryProvider<TokenStorage>(
-        create: (context) => tokenStorage,
-      ),
-      RepositoryProvider<CheatingRepository>(
-        create: (context) => cheatingRepository,
-      ),
-      RepositoryProvider<SocketService>(
-        create: (context) => socketService,
-      ),
-    ],
-    child: MultiBlocProvider(
+  runApp(
+    MultiRepositoryProvider(
       providers: [
-        BlocProvider<AuthCubit>(
-          create: (context) => AuthCubit(),
+        RepositoryProvider<UserRepository>(
+          create: (context) => userRepository,
         ),
-        BlocProvider<UserCubit>(
-          create: (context) => UserCubit(userRepository),
+        RepositoryProvider<ExamRepository>(
+          create: (context) => examRepository,
         ),
-        BlocProvider<TokenCubit>(
-          create: (context) => TokenCubit(tokenStorage),
+        RepositoryProvider<TokenStorage>(
+          create: (context) => tokenStorage,
         ),
-        BlocProvider<ExamCubit>(
-          create: (context) => ExamCubit(examRepository, tokenStorage),
+        RepositoryProvider<CheatingRepository>(
+          create: (context) => cheatingRepository,
         ),
-        BlocProvider<QuestionCubit>(
-          create: (context) => QuestionCubit(examRepository, tokenStorage),
-        ),
-        BlocProvider<BaseHomepageCubit>(
-          create: (context) => BaseHomepageCubit(examRepository, tokenStorage),
-        ),
-        BlocProvider<RealtimeCubit>(
-          create: (context) => RealtimeCubit(tokenStorage, socketService),
+        RepositoryProvider<SocketService>(
+          create: (context) => socketService,
         ),
       ],
       child: MyApp(),
     ),
-  ));
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      routes: {
-        '/': (context) => SplashScreen(), // SplashScreen làm màn hình mặc định
-        '/login': (context) => LoginView(), // Màn hình chính
-        '/admin_main_screen': (context) => AdminMainScreen(),
-        '/admin_profile_screen': (context) => AdminProfileScreen(),
-        '/teacher_homepage' : (context) => TeacherHomepageView(),
-        '/student_homepage' : (context) => StudentHomepageView(),
-      },
-    );
-  }
+  );
 }

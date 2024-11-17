@@ -48,4 +48,17 @@ class TokenCubit extends Cubit<TokenState> {
     ));
     print('✅ TokenCubit: Đã xóa tokens thành công');
   }
+
+  void handleTokenError(Object error) {
+    print('🔄 TokenCubit: Handling token error: $error');
+    emit(TokenState(
+          accessToken: null,
+          refreshToken: null,
+          clientId: null,
+      error: error,
+    ));
+    print('✅ TokenCubit: State updated with error');
+  }
+
+
 }

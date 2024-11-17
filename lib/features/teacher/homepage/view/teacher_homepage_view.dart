@@ -7,8 +7,10 @@ import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../data/exam_repository.dart';
 import '../../../../utils/share_preference/shared_preference.dart';
+import '../../../../utils/share_preference/token_cubit.dart';
 import '../../../common/view/base_homepage_view.dart';
 import '../../exams/view/exam_page.dart';
+import 'package:exam_guardian/utils/widgets/global_error_handler.dart';
 
 class TeacherHomepageView extends StatefulWidget {
   @override
@@ -32,26 +34,28 @@ class _TeacherHomepageViewState extends State<TeacherHomepageView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _widgetOptions.elementAt(_selectedIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment),
-            label: 'Exams',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.indigo[800],
-        onTap: _onItemTapped,
+    return GlobalErrorHandler(
+      child: Scaffold(
+        body: _widgetOptions.elementAt(_selectedIndex),
+        bottomNavigationBar: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.assignment),
+              label: 'Exams',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: Colors.indigo[800],
+          onTap: _onItemTapped,
+        ),
       ),
     );
   }
@@ -65,6 +69,7 @@ class TeacherHomePage extends StatelessWidget {
       create: (context) => BaseHomepageCubit(
         context.read<ExamRepository>(),
         context.read<TokenStorage>(),
+        context.read<TokenCubit>(),
       )..loadInProgressExams(),
       child: BaseHomePageWrapper(),
     );

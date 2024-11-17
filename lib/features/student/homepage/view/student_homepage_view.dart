@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../data/exam_repository.dart';
 import '../../../../utils/share_preference/shared_preference.dart';
+import '../../../../utils/share_preference/token_cubit.dart';
 import '../../../common/view/base_homepage_view.dart';
+import 'package:exam_guardian/utils/widgets/global_error_handler.dart';
 
 class StudentHomepageView extends StatefulWidget {
   @override
@@ -27,22 +29,24 @@ class _StudentHomepageViewState extends State<StudentHomepageView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _widgetOptions.elementAt(_selectedIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.indigo[800],
-        onTap: _onItemTapped,
+    return GlobalErrorHandler(
+      child: Scaffold(
+        body: _widgetOptions.elementAt(_selectedIndex),
+        bottomNavigationBar: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: Colors.indigo[800],
+          onTap: _onItemTapped,
+        ),
       ),
     );
   }
@@ -56,6 +60,7 @@ class StudentHomePage extends StatelessWidget {
       create: (context) => BaseHomepageCubit(
         context.read<ExamRepository>(),
         context.read<TokenStorage>(),
+        context.read<TokenCubit>(),
       )..loadInProgressExams(),
       child: BaseHomePageWrapper(),
     );

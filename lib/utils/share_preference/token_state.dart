@@ -7,6 +7,9 @@ class TokenState extends Equatable {
   final String? cliendRole;
   final bool loading;
   final bool isExpired;
+  final Object? error;
+
+  bool get hasError => error != null;
 
   const TokenState({
     this.accessToken,
@@ -14,7 +17,8 @@ class TokenState extends Equatable {
     this.clientId,
     this.cliendRole,
     this.loading = false,
-    this.isExpired = false
+    this.isExpired = false,
+    this.error,
   });
 
   TokenState copyWith({
@@ -23,7 +27,8 @@ class TokenState extends Equatable {
     String? clientId,
     String? clientRole,
     bool? loading,
-    bool? isExpired
+    bool? isExpired,
+    Object? error,
   }) {
     return TokenState(
       accessToken: accessToken ?? this.accessToken,
@@ -31,10 +36,11 @@ class TokenState extends Equatable {
       clientId: clientId ?? this.clientId,
       cliendRole: clientRole ?? this.cliendRole,
       loading: loading ?? this.loading,
-      isExpired: isExpired ?? this.isExpired
+      isExpired: isExpired ?? this.isExpired,
+      error: error ?? this.error,
     );
   }
 
   @override
-  List<Object?> get props => [accessToken, refreshToken, clientId, loading, isExpired];
+  List<Object?> get props => [accessToken, refreshToken, clientId, loading, isExpired, error];
 }

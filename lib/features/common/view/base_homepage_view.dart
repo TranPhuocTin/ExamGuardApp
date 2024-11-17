@@ -70,6 +70,110 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
     return currentScroll >= (maxScroll * 0.9);
   }
 
+  Widget _buildExamList(List<Exam> exams,
+      {bool isLoading = false, bool hasReachedMax = false}) {
+    if (exams.isEmpty && !isLoading) {
+      return SliverFillRemaining(
+        child: Center(
+          child: Text('No exam available'),
+        ),
+      );
+    }
+
+    return SliverPadding(
+      padding: EdgeInsets.all(16.0),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            if (index >= exams.length) {
+              if (isLoading) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              return null;
+            }
+            return Padding(
+              padding: EdgeInsets.only(bottom: 16.0),
+              child: BlocBuilder<AuthCubit, AuthState>(
+                builder: (context, state) {
+                  return ExamCard(
+                    exam: exams[index],
+                    isShowMoreIcon: false,
+                    isShowJoinButton: state.user?.role == 'STUDENT' ? true : false,
+                    onExamTapped: () async {
+                      final role = await TokenStorage().getClientRole();
+                      if (role == 'TEACHER') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TeacherExamMonitoringView(exam: exams[index]),
+                          ),
+                        );
+                      } else if (role == 'STUDENT') {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Xác nhận tham gia'),
+                              content: const Text('Bạn có chắc chắn muốn tham gia bài thi này?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Hủy'),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryColor,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => MultiBlocProvider(
+                                          providers: [
+                                            BlocProvider<StudentExamCubit>(
+                                              create: (context) => StudentExamCubit(
+                                                examRepository: context.read<ExamRepository>(),
+                                                tokenStorage: context.read<TokenStorage>(),
+                                                examId: exams[index].id!,
+                                              ),
+                                            ),
+                                            BlocProvider<FaceMonitoringCubit>(
+                                              create: (context) => FaceMonitoringCubit(
+                                                examId: exams[index].id!,
+                                                cheatingRepository: context.read<CheatingRepository>(),
+                                                tokenStorage: context.read<TokenStorage>(),
+                                                tokenCubit: context.read<TokenCubit>(),
+                                              ),
+                                            ),
+                                          ],
+                                          child: StudentExamDetailView(exam: exams[index]),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text('Tham gia'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    },
+                  );
+                },
+              ),
+            );
+          },
+          childCount: exams.length + (isLoading ? 1 : 0),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,121 +255,30 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                       child: CircularProgressIndicator(),
                     ),
                   );
-                } else if (state is HomepageLoading) {
-                  return _buildExamList(state.currentExams, isLoading: true);
-                } else if (state is HomepageLoaded) {
-                  return _buildExamList(state.exams,
-                      hasReachedMax: state.hasReachedMax);
-                } else if (state is HomepageError) {
+                }
+                
+                if (state is HomepageError) {
                   return SliverFillRemaining(
-                    child: Center(child: Text('Error: ${state.message}')),
+                    child: Center(
+                      child: Text(state.message),
+                    ),
                   );
                 }
-                return SliverToBoxAdapter(child: Container());
+
+                final exams = (state is HomepageLoaded 
+                    ? state.exams 
+                    : state is HomepageLoading 
+                        ? state.currentExams 
+                        : <Exam>[]) as List<Exam>;
+
+                return _buildExamList(
+                  exams,
+                  isLoading: state is HomepageLoading,
+                  hasReachedMax: state is HomepageLoaded ? state.hasReachedMax : false,
+                );
               },
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildExamList(List<Exam> exams,
-      {bool isLoading = false, bool hasReachedMax = false}) {
-    return SliverPadding(
-      padding: EdgeInsets.all(16.0),
-      sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            if (index >= exams.length) {
-              if (isLoading) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              } else if (hasReachedMax) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  child: Center(child: Text('No exam available')),
-                );
-              }
-              return null;
-            }
-            return Padding(
-              padding: EdgeInsets.only(bottom: 16.0),
-              child: BlocBuilder<AuthCubit, AuthState>(
-                builder: (context, state) {
-                  return ExamCard(
-                    exam: exams[index],
-                    isShowMoreIcon: false,
-                    isShowJoinButton: state.user?.role == 'STUDENT' ? true : false,
-                    onExamTapped: () async {
-                      final role = await TokenStorage().getClientRole();
-                      if (role == 'TEACHER') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TeacherExamMonitoringView(exam: exams[index]),
-                          ),
-                        );
-                      } else if (role == 'STUDENT') {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text('Xác nhận tham gia'),
-                              content: const Text('Bạn có chắc chắn muốn tham gia bài thi này?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Hủy'),
-                                ),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primaryColor,
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => MultiBlocProvider(
-                                          providers: [
-                                            BlocProvider<StudentExamCubit>(
-                                              create: (context) => StudentExamCubit(
-                                                examRepository: context.read<ExamRepository>(),
-                                                tokenStorage: context.read<TokenStorage>(),
-                                                examId: exams[index].id!,
-                                              ),
-                                            ),
-                                            BlocProvider<FaceMonitoringCubit>(
-                                              create: (context) => FaceMonitoringCubit(
-                                                examId: exams[index].id!,
-                                                cheatingRepository: context.read<CheatingRepository>(),
-                                                tokenStorage: context.read<TokenStorage>(),
-                                                tokenCubit: context.read<TokenCubit>(),
-                                              ),
-                                            ),
-                                          ],
-                                          child: StudentExamDetailView(exam: exams[index]),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text('Tham gia'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      }
-                    },
-                  );
-                },
-              ),
-            );
-          },
-          childCount: exams.length + (isLoading || hasReachedMax ? 1 : 0),
         ),
       ),
     );

@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:exam_guardian/configs/data_source.dart';
 import 'package:exam_guardian/features/admin/models/user_response.dart';
 
-import '../configs/dio_config.dart';
+import '../configs/dio_client.dart';
 
 class UserRepository {
   Future<UserResponse> getUserList(

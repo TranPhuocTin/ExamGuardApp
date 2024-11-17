@@ -3,9 +3,10 @@
   import 'package:cloudinary_public/cloudinary_public.dart';
   import 'package:flutter_bloc/flutter_bloc.dart';
   import 'package:image_picker/image_picker.dart';
-  import '../../../configs/dio_config.dart';
+  import '../../../configs/dio_client.dart';
 import '../../../data/user_repository.dart';
-  import '../../../utils/share_preference/shared_preference.dart';
+  import '../../../utils/exceptions/token_exceptions.dart';
+import '../../../utils/share_preference/shared_preference.dart';
   import '../models/user_response.dart';
   import 'user_state.dart';
 

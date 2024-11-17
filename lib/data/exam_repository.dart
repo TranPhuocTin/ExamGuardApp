@@ -1,31 +1,30 @@
   import 'package:exam_guardian/configs/data_source.dart';
+import 'package:exam_guardian/data/base_repository.dart';
 import 'package:exam_guardian/features/common/models/exam_response.dart';
-import '../configs/dio_config.dart';
+import '../configs/dio_client.dart';
 import '../features/common/models/exam.dart';
 import '../features/common/models/question_response.dart';
 import '../features/student/exam/models/student_exam_response.dart';
+import '../utils/exceptions/token_exceptions.dart';
 
-class ExamRepository {
+class ExamRepository extends BaseRepository{
   Future<ExamResponse> getExams(String clientId, String token, {String? status, int page = 1}) async {
-    final response = await DioClient.performRequest(
-      ApiUrls.getExamList,
-      clientId: clientId,
-      token: token,
-      queryParameters: {'status': status, 'page': page},
-    );
-
-    if (response.statusCode == 200) {
+    return handleApiRequest(() async {
+      final response = await DioClient.performRequest(
+        ApiUrls.getExamList,
+        clientId: clientId,
+        token: token,
+        queryParameters: {'status': status, 'page': page},
+      );
       return ExamResponse.fromJson(response.data);
-    } else {
-      throw Exception('Failed to load in-progress exams: ${response.statusMessage}');
-    }
+    });
   }
 
   Future<ExamResponse> searchExams(String clientId, String token, String query, {int page = 1}) async {
     final response = await DioClient.performRequest(
-      ApiUrls.getSearchExam, 
-      clientId: clientId, 
-      token: token, 
+      ApiUrls.getSearchExam,
+      clientId: clientId,
+      token: token,
       queryParameters: {'query': query, 'page': page}
     );
     return ExamResponse.fromJson(response.data);
@@ -44,9 +43,9 @@ class ExamRepository {
 
   Future<void> deleteExam(String clientId, String token, String examId) async {
     await DioClient.performRequest(
-      ApiUrls.deleteExam(examId), 
-      clientId: clientId, 
-      token: token, 
+      ApiUrls.deleteExam(examId),
+      clientId: clientId,
+      token: token,
       method: 'DELETE'
     );
   }

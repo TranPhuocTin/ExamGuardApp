@@ -3,17 +3,24 @@ import 'package:exam_guardian/data/exam_repository.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
 import 'dart:async';
 
-import '../../../configs/dio_config.dart';
+import '../../../configs/dio_client.dart';
+import '../../../utils/exceptions/token_exceptions.dart';
+import '../../../utils/share_preference/token_cubit.dart';
 import '../models/exam.dart';
 import 'base_homepage_state.dart';
 
 class BaseHomepageCubit extends Cubit<BaseHomepageState> {
   final ExamRepository _examRepository;
   final TokenStorage _tokenStorage;
+  final TokenCubit _tokenCubit;
   Timer? _debounce;
 
-  BaseHomepageCubit(this._examRepository, this._tokenStorage)
+  BaseHomepageCubit(this._examRepository, this._tokenStorage, this._tokenCubit)
       : super(HomepageInitial());
+
+  void handleTokenError(TokenExpiredException error) {
+    _tokenCubit.handleTokenError(error);
+  }
 
   Future<void> loadInProgressExams({bool forceReload = false}) async {
     if (state is HomepageLoading) return;
@@ -62,10 +69,16 @@ class BaseHomepageCubit extends Cubit<BaseHomepageState> {
         isSearching: isSearching,
         searchQuery: searchQuery,
       ));
-    } on TokenExpiredException {
-      emit(HomepageError('Session expired. Please log in again.'));
     } catch (e) {
-      emit(HomepageError('Failed to load exams: $e'));
+      print('🔄 Caught error in BaseHomepageCubit: $e');
+      if (!isClosed) {
+        if (e is TokenExpiredException) {
+          final tokenError = TokenExpiredException('Session expired');
+          _tokenCubit.handleTokenError(tokenError);
+        } else {
+          emit(HomepageError(e.toString()));
+        }
+      }
     }
   }
 

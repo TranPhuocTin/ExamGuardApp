@@ -3,7 +3,7 @@ import 'package:exam_guardian/configs/data_source.dart';
 import 'package:exam_guardian/features/student/exam_monitoring/models/detect_cheating.dart';
 import 'package:exam_guardian/features/student/exam_monitoring/models/cheating_detection_state.dart';
 
-import '../configs/dio_config.dart';
+import '../configs/dio_client.dart';
 import '../features/teacher/exams/model/cheating_statistics_response.dart';
 
 class CheatingRepository {

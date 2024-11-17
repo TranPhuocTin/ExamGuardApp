@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:exam_guardian/configs/app_config.dart';
 
+import '../utils/exceptions/token_exceptions.dart';
+
 class DioClient {
   static Dio getInstance() {
     return Dio(
@@ -47,9 +49,4 @@ class DioClient {
       throw Exception('Unexpected error: $e');
     }
   }
-}
-
-class TokenExpiredException implements Exception {
-  final String message;
-  TokenExpiredException(this.message);
 }

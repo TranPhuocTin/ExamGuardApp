@@ -1,6 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:exam_guardian/data/exam_repository.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
+import '../../../../utils/exceptions/token_exceptions.dart';
+import '../../../../utils/share_preference/token_cubit.dart';
 import '../../../common/models/exam.dart';
 import 'exam_state.dart';
 import 'dart:async';
@@ -8,10 +10,11 @@ import 'dart:async';
 class ExamCubit extends Cubit<ExamState> {
   final ExamRepository _examRepository;
   final TokenStorage _tokenStorage;
+  final TokenCubit _tokenCubit;
   String _currentSearchQuery = '';
   Timer? _debounce;
 
-  ExamCubit(this._examRepository, this._tokenStorage) : super(ExamInitial());
+  ExamCubit(this._examRepository, this._tokenStorage, this._tokenCubit) : super(ExamInitial());
 
   Future<void> loadExams({bool forceReload = false, String? status}) async {
     if (state is ExamLoading) return;
@@ -50,7 +53,11 @@ class ExamCubit extends Cubit<ExamState> {
         selectedStatus: status ?? 'All',
       ));
     } catch (e) {
-      emit(ExamError(e.toString()));
+      if(e is TokenExpiredException){
+        _tokenCubit.handleTokenError(e);
+      }else{
+        emit(ExamError(e.toString()));
+      }
     }
   }
 
@@ -81,6 +88,9 @@ class ExamCubit extends Cubit<ExamState> {
       ));
       // await loadExams();
     } catch (e) {
+      if (e is TokenExpiredException) {
+        _tokenCubit.handleTokenError(e);
+      }
       emit(ExamSearchState(error: e.toString()));
     }
   }
