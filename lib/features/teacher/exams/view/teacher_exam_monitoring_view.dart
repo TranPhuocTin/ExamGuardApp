@@ -3,12 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../services/socket_service.dart';
 import '../../../realtime/cubit/realtime_cubit.dart';
 import 'package:exam_guardian/features/common/models/exam.dart' as common;
+import '../cubit/cheating_history_cubit.dart';
 import '../cubit/cheating_statistics_cubit.dart';
 import '../../../../utils/share_preference/shared_preference.dart';
 import '../../../../data/cheating_repository.dart';
 import '../cubit/cheating_statistics_state.dart';
 import '../cubit/exam_cubit.dart';
 import '../model/cheating_statistics_response.dart';
+import 'cheating_history_dialog.dart';
 
 class TeacherExamMonitoringView extends StatelessWidget {
   final common.Exam exam;
@@ -153,49 +155,69 @@ class _StatisticsTab extends StatelessWidget {
   }
 
   Widget _buildStatisticsCard(CheatingStatistic stat) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Builder(
+      builder: (BuildContext context) => InkWell(
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (context) => BlocProvider(
+              create: (context) => CheatingHistoryCubit(
+                context.read<CheatingRepository>(),
+                context.read<TokenStorage>(),
+              )..loadHistories(exam.id!, stat.student.id),
+              child: CheatingHistoryDialog(
+                examId: exam.id!,
+                studentId: stat.student.id,
+                studentName: stat.student.name,
+              ),
+            ),
+          );
+        },
+        child: Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        stat.student.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                Row(
+                  children: [
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            stat.student.name,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildStatisticRow(
+                  Icons.face, 
+                  'Face Detection Violations',
+                  stat.faceDetectionCount,
+                ),
+                _buildStatisticRow(
+                  Icons.tab, 
+                  'Tab Switch Violations',
+                  stat.tabSwitchCount,
+                ),
+                _buildStatisticRow(
+                  Icons.screenshot, 
+                  'Screen Capture Violations',
+                  stat.screenCaptureCount,
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            _buildStatisticRow(
-              Icons.face, 
-              'Face Detection Violations',
-              stat.faceDetectionCount,
-            ),
-            _buildStatisticRow(
-              Icons.tab, 
-              'Tab Switch Violations',
-              stat.tabSwitchCount,
-            ),
-            _buildStatisticRow(
-              Icons.screenshot, 
-              'Screen Capture Violations',
-              stat.screenCaptureCount,
-            ),
-          ],
+          ),
         ),
       ),
     );

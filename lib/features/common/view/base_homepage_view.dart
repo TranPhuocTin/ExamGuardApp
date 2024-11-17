@@ -218,9 +218,10 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                     Text(
                       'Welcome back, Teacher!',
                       style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[800]),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     SizedBox(height: 16),
                     TextField(

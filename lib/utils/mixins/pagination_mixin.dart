@@ -36,4 +36,8 @@ mixin PaginationMixin<T> {
     _hasReachedMax = false;
     _isLoading = false;
   }
+
+  void setHasReachedMax(bool value) {
+    _hasReachedMax = value;
+  }
 } 

@@ -11,6 +11,8 @@ import '../../../../utils/share_preference/token_cubit.dart';
 import '../../../common/view/base_homepage_view.dart';
 import '../../exams/view/exam_page.dart';
 import 'package:exam_guardian/utils/widgets/global_error_handler.dart';
+import 'package:exam_guardian/configs/app_colors.dart';
+import '../../../common/widgets/custom_nav_bar.dart';
 
 class TeacherHomepageView extends StatefulWidget {
   @override
@@ -37,24 +39,14 @@ class _TeacherHomepageViewState extends State<TeacherHomepageView> {
     return GlobalErrorHandler(
       child: Scaffold(
         body: _widgetOptions.elementAt(_selectedIndex),
-        bottomNavigationBar: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assignment),
-              label: 'Exams',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          selectedItemColor: Colors.indigo[800],
+        bottomNavigationBar: CustomNavBar(
+          selectedIndex: _selectedIndex,
           onTap: _onItemTapped,
+          items: const [
+            NavBarItem(icon: Icons.home_rounded, label: 'Home'),
+            NavBarItem(icon: Icons.assignment_rounded, label: 'Exams'),
+            NavBarItem(icon: Icons.person_rounded, label: 'Profile'),
+          ],
         ),
       ),
     );

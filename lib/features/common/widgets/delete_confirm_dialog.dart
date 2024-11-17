@@ -86,7 +86,7 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
                 ElevatedButton(
                   onPressed: _handleDelete,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.error,
+                    backgroundColor: AppColors.warning,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
