@@ -27,7 +27,8 @@ CheatingStatisticsMetadata _$CheatingStatisticsMetadataFromJson(
         Map<String, dynamic> json) =>
     CheatingStatisticsMetadata(
       total: (json['total'] as num).toInt(),
-      statistics: (json['cheatingStatistics'] as List<dynamic>)
+      totalPages: (json['totalPages'] as num).toInt(),
+      statistics: (json['statistics'] as List<dynamic>)
           .map((e) => CheatingStatistic.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
@@ -36,7 +37,8 @@ Map<String, dynamic> _$CheatingStatisticsMetadataToJson(
         CheatingStatisticsMetadata instance) =>
     <String, dynamic>{
       'total': instance.total,
-      'cheatingStatistics': instance.statistics,
+      'totalPages': instance.totalPages,
+      'statistics': instance.statistics,
     };
 
 CheatingStatistic _$CheatingStatisticFromJson(Map<String, dynamic> json) =>
@@ -45,6 +47,7 @@ CheatingStatistic _$CheatingStatisticFromJson(Map<String, dynamic> json) =>
       faceDetectionCount: (json['faceDetectionCount'] as num).toInt(),
       tabSwitchCount: (json['tabSwitchCount'] as num).toInt(),
       screenCaptureCount: (json['screenCaptureCount'] as num).toInt(),
+      totalViolations: (json['totalViolations'] as num).toInt(),
       student: Student.fromJson(json['student'] as Map<String, dynamic>),
       exam: Exam.fromJson(json['exam'] as Map<String, dynamic>),
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -57,6 +60,7 @@ Map<String, dynamic> _$CheatingStatisticToJson(CheatingStatistic instance) =>
       'faceDetectionCount': instance.faceDetectionCount,
       'tabSwitchCount': instance.tabSwitchCount,
       'screenCaptureCount': instance.screenCaptureCount,
+      'totalViolations': instance.totalViolations,
       'student': instance.student,
       'exam': instance.exam,
       'createdAt': instance.createdAt.toIso8601String(),

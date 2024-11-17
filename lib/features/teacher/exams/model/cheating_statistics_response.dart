@@ -22,11 +22,13 @@ class CheatingStatisticsResponse {
 @JsonSerializable()
 class CheatingStatisticsMetadata {
   final int total;
-  @JsonKey(name: 'cheatingStatistics')
+  final int totalPages;
+  // @JsonKey(name: 'cheatingStatistics')
   final List<CheatingStatistic> statistics;
 
   CheatingStatisticsMetadata({
     required this.total,
+    required this.totalPages,
     required this.statistics,
   });
 
@@ -42,6 +44,7 @@ class CheatingStatistic {
   final int faceDetectionCount;
   final int tabSwitchCount;
   final int screenCaptureCount;
+  final int totalViolations;
   final Student student;
   final Exam exam;
   final DateTime createdAt;
@@ -52,6 +55,7 @@ class CheatingStatistic {
     required this.faceDetectionCount,
     required this.tabSwitchCount,
     required this.screenCaptureCount,
+    required this.totalViolations,
     required this.student,
     required this.exam,
     required this.createdAt,
@@ -66,6 +70,7 @@ class CheatingStatistic {
     int? faceDetectionCount,
     int? tabSwitchCount,
     int? screenCaptureCount,
+    int? totalViolations,
   }) {
     return CheatingStatistic(
       id: id,
@@ -76,6 +81,7 @@ class CheatingStatistic {
       faceDetectionCount: faceDetectionCount ?? this.faceDetectionCount,
       tabSwitchCount: tabSwitchCount ?? this.tabSwitchCount,
       screenCaptureCount: screenCaptureCount ?? this.screenCaptureCount,
+      totalViolations: totalViolations ?? this.totalViolations,
     );
   }
 }
