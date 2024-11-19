@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:exam_guardian/configs/app_config.dart';
 
 import '../utils/exceptions/token_exceptions.dart';
+import '../utils/exceptions/exam_exceptions.dart';
 
 class DioClient {
   static Dio getInstance() {
@@ -42,7 +43,10 @@ class DioClient {
       } else if (e.response?.statusCode == 401) {
         print('Token expired status code: ${e.response?.statusCode}');
         throw TokenExpiredException('Token expired');
-      } else {
+      } else if(e.response?.statusCode == 403) {
+        throw ExamAlreadyTakenException('You already completed this exam');
+      }
+      else {
         throw Exception('Unknown error: ${e.message}');
       }
     } catch (e) {

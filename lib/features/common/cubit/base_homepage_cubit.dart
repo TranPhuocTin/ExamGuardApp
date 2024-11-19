@@ -23,7 +23,7 @@ class BaseHomepageCubit extends Cubit<BaseHomepageState> {
   }
 
   Future<void> loadInProgressExams({bool forceReload = false}) async {
-    if (state is HomepageLoading) return;
+    if (state is HomepageLoading || isClosed) return;
 
     final currentState = state;
     List<Exam> oldExams = [];
@@ -62,13 +62,15 @@ class BaseHomepageCubit extends Cubit<BaseHomepageState> {
           : [...oldExams, ...examResponse.metadata.exams];
       final hasReachedMax = examResponse.metadata.exams.isEmpty;
 
-      emit(HomepageLoaded(
-        newExams,
-        hasReachedMax: hasReachedMax,
-        currentPage: currentPage + 1,
-        isSearching: isSearching,
-        searchQuery: searchQuery,
-      ));
+      if (!isClosed) {
+        emit(HomepageLoaded(
+          newExams,
+          hasReachedMax: hasReachedMax,
+          currentPage: currentPage + 1,
+          isSearching: isSearching,
+          searchQuery: searchQuery,
+        ));
+      }
     } catch (e) {
       print('🔄 Caught error in BaseHomepageCubit: $e');
       if (!isClosed) {

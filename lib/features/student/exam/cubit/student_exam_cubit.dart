@@ -6,6 +6,7 @@ import '../models/student_exam_response.dart';
 import 'student_exam_state.dart';
 import 'dart:async';
 import '../../../../utils/mixins/pagination_mixin.dart';
+import '../../../../utils/exceptions/exam_exceptions.dart';
 
 class StudentExamCubit extends Cubit<StudentExamState> with PaginationMixin<Question> {
   final ExamRepository _examRepository;
@@ -75,8 +76,13 @@ class StudentExamCubit extends Cubit<StudentExamState> with PaginationMixin<Ques
       if (!isLoadMore) {
         _startTimer(remainingTime);
       }
+    } on ExamAlreadyTakenException {
+      emit(const StudentExamError('You have already completed this exam'));
+      // setLoading(false);
+      throw ExamAlreadyTakenException();
     } catch (e) {
       emit(StudentExamError(e.toString()));
+      setLoading(false);
     }
   }
 

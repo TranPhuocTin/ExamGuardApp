@@ -169,6 +169,7 @@ class _StatisticsTab extends StatelessWidget {
                 examId: exam.id!,
                 studentId: stat.student.id,
                 studentName: stat.student.name,
+                stat: stat,
               ),
             ),
           );

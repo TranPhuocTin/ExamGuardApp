@@ -38,6 +38,8 @@ class _TeacherHomepageViewState extends State<TeacherHomepageView> {
   Widget build(BuildContext context) {
     return GlobalErrorHandler(
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        extendBody: true,
         body: _widgetOptions.elementAt(_selectedIndex),
         bottomNavigationBar: CustomNavBar(
           selectedIndex: _selectedIndex,
@@ -53,7 +55,6 @@ class _TeacherHomepageViewState extends State<TeacherHomepageView> {
   }
 }
 
-// Trang chủ cải tiến
 class TeacherHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

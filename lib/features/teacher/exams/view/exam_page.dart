@@ -66,20 +66,23 @@ class _ExamListPageState extends State<ExamListPage> {
             ),
           ),
           SliverPadding(
-            padding: EdgeInsets.all(16.0),
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 120),
             sliver: _buildExamList(),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            SlideUpRoute(page: CreateUpdateExamView(filteredStatus: _selectedStatus != 'All' ? _selectedStatus : null)),
-          );
-        },
-        child: Icon(Icons.add),
-        backgroundColor: AppColors.primaryColor,
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: 65),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              SlideUpRoute(page: CreateUpdateExamView(filteredStatus: _selectedStatus != 'All' ? _selectedStatus : null)),
+            );
+          },
+          child: Icon(Icons.add),
+          backgroundColor: AppColors.primaryColor,
+        ),
       ),
     );
   }

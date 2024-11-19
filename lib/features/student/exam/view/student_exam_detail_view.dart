@@ -31,12 +31,11 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
   @override
   void initState() {
     super.initState();
+    _examCubit = context.read<StudentExamCubit>();
   }
 
   @override
   void onLoadMore() {
-    if (_examCubit == null) return;
-    
     final state = _examCubit.state;
     if (state is StudentExamLoaded && !state.hasReachedMax && !state.isLoading) {
       _examCubit.loadMoreQuestions();
@@ -96,17 +95,8 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<StudentExamCubit>(
-          create: (context) {
-            final cubit = StudentExamCubit(
-              examRepository: context.read<ExamRepository>(),
-              tokenStorage: context.read<TokenStorage>(),
-              examId: widget.exam.id!,
-            );
-            _examCubit = cubit;
-            cubit.loadExam();
-            return cubit;
-          },
+        BlocProvider<StudentExamCubit>.value(
+          value: context.read<StudentExamCubit>(),
         ),
         BlocProvider<AnswerSubmissionCubit>(
           create: (context) => AnswerSubmissionCubit(

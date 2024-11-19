@@ -34,6 +34,8 @@ class _StudentHomepageViewState extends State<StudentHomepageView> {
   Widget build(BuildContext context) {
     return GlobalErrorHandler(
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        extendBody: true,
         body: _widgetOptions.elementAt(_selectedIndex),
         bottomNavigationBar: CustomNavBar(
           selectedIndex: _selectedIndex,

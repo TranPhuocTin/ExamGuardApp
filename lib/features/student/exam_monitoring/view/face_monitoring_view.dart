@@ -291,18 +291,25 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
 
   Future<void> _disposeResources() async {
     try {
+      // Dừng camera stream trước
       if (_cameraController.value.isStreamingImages) {
         await _cameraController.stopImageStream();
       }
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      if (_isCameraInitialized) {
+      
+      // Thêm delay ngắn để đảm bảo stream đã dừng hoàn toàn
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Kiểm tra xem camera có được khởi tạo không trước khi dispose
+      if (_isCameraInitialized && _cameraController.value.isInitialized) {
         await _cameraController.dispose();
       }
-
+      
+      // Dispose face detection service
       _faceDetectionService.dispose();
     } catch (e) {
-      debugPrint('Error disposing resources: $e');
+      debugPrint('Error disposing camera resources: $e');
+    } finally {
+      _isCameraInitialized = false;
     }
   }
 } 

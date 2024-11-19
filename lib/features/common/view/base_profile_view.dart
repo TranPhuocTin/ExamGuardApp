@@ -61,7 +61,7 @@ abstract class AbstractProfilePage extends StatelessWidget {
                         ),
                       );
                     },
-                  ),  
+                  ),
                   _buildMenuItem(
                     icon: Icons.notifications_none,
                     title: 'Notifications',
@@ -92,26 +92,30 @@ abstract class AbstractProfilePage extends StatelessWidget {
                     onTap: () {},
                   ),
                 ]),
-                _buildSection('Actions', [
-                  _buildMenuItem(
-                    icon: Icons.flag_outlined,
-                    title: 'Report a problem',
-                    onTap: () {},
-                  ),
-                  _buildMenuItem(
-                    icon: Icons.logout,
-                    title: 'Log out',
-                    onTap: () async {
-                      context.read<UserCubit>().resetState();
-                      await context.read<AuthCubit>().logout();
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/login',
-                        (Route<dynamic> route) => false,
-                      );
-                    },
-                  ),
-                ]),
+                _buildSection(
+                  'Actions',
+                  [
+                    _buildMenuItem(
+                      icon: Icons.flag_outlined,
+                      title: 'Report a problem',
+                      onTap: () {},
+                    ),
+                    _buildMenuItem(
+                      icon: Icons.logout,
+                      title: 'Log out',
+                      onTap: () async {
+                        context.read<UserCubit>().resetState();
+                        await context.read<AuthCubit>().logout();
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/login',
+                          (Route<dynamic> route) => false,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 100,)
               ],
             ),
           ),
