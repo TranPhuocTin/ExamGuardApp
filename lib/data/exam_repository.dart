@@ -7,25 +7,24 @@ import '../features/common/models/question_response.dart';
 import '../features/student/exam/models/student_exam_response.dart';
 import '../utils/exceptions/token_exceptions.dart';
 
-class ExamRepository extends BaseRepository{
+class ExamRepository /*extends BaseRepository*/{
   Future<ExamResponse> getExams(String clientId, String token, {String? status, int page = 1}) async {
-    return handleApiRequest(() async {
-      final response = await DioClient.performRequest(
-        ApiUrls.getExamList,
-        clientId: clientId,
-        token: token,
-        queryParameters: {'status': status, 'page': page},
-      );
-      return ExamResponse.fromJson(response.data);
-    });
-  }
-
-  Future<ExamResponse> searchExams(String clientId, String token, String query, {int page = 1}) async {
     final response = await DioClient.performRequest(
-      ApiUrls.getSearchExam,
+      ApiUrls.getExamList,
       clientId: clientId,
       token: token,
-      queryParameters: {'query': query, 'page': page}
+      queryParameters: {'status': status, 'page': page},
+    );
+    return ExamResponse.fromJson(response.data);
+  }
+
+  //20/11 handle for searchExams
+  Future<ExamResponse> searchExams(String clientId, String token, String query, {int page = 1}) async {
+    final response = await DioClient.performRequest(
+        ApiUrls.getSearchExam,
+        clientId: clientId,
+        token: token,
+        queryParameters: {'query': query, 'page': page}
     );
     return ExamResponse.fromJson(response.data);
   }

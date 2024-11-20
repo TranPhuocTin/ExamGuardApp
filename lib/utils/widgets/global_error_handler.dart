@@ -42,7 +42,7 @@ class GlobalErrorHandler extends StatelessWidget {
                     ),
                     child: const Icon(
                       Icons.timer_outlined,
-                      size: 40,
+                      size: 30,
                       color: Colors.white,
                     ),
                   ),

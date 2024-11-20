@@ -17,7 +17,6 @@ import '../../teacher/homepage/cubit/teacher_homepage_cubit.dart';
 import '../cubit/base_homepage_cubit.dart';
 import '../cubit/base_homepage_state.dart';
 import '../models/exam.dart';
-import '../../../utils/widgets/custom_notification.dart';
 
 class BaseHomePageWrapper extends StatefulWidget {
   @override
@@ -116,40 +115,49 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                     isShowJoinButton: state.user?.role == 'STUDENT' ? true : false,
                     onExamTapped: () async {
                       try {
-                        final studentExamCubit = StudentExamCubit(
-                          examRepository: context.read<ExamRepository>(),
-                          tokenStorage: context.read<TokenStorage>(),
-                          examId: exams[index].id!,
-                        );
-
-                        await studentExamCubit.loadExam();
-
-                        if (!mounted) return;
-
-                        final currentContext = _navigatorKey.currentContext;
-                        if (currentContext == null) return;
-
-                        Navigator.push(
-                          currentContext,
-                          MaterialPageRoute(
-                            builder: (context) => MultiBlocProvider(
-                              providers: [
-                                BlocProvider<StudentExamCubit>.value(
-                                  value: studentExamCubit,
-                                ),
-                                BlocProvider<FaceMonitoringCubit>(
-                                  create: (context) => FaceMonitoringCubit(
-                                    examId: exams[index].id!,
-                                    cheatingRepository: context.read<CheatingRepository>(),
-                                    tokenStorage: context.read<TokenStorage>(),
-                                    tokenCubit: context.read<TokenCubit>(),
-                                  ),
-                                ),
-                              ],
-                              child: StudentExamDetailView(exam: exams[index]),
+                        if (state.user?.role == 'TEACHER') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TeacherExamMonitoringView(exam: exams[index]),
                             ),
-                          ),
-                        );
+                          );
+                        } else if (state.user?.role == 'STUDENT') {
+                          final studentExamCubit = StudentExamCubit(
+                            examRepository: context.read<ExamRepository>(),
+                            tokenStorage: context.read<TokenStorage>(),
+                            examId: exams[index].id!,
+                          );
+
+                          await studentExamCubit.loadExam();
+
+                          if (!mounted) return;
+
+                          final currentContext = _navigatorKey.currentContext;
+                          if (currentContext == null) return;
+
+                          Navigator.push(
+                            currentContext,
+                            MaterialPageRoute(
+                              builder: (context) => MultiBlocProvider(
+                                providers: [
+                                  BlocProvider<StudentExamCubit>.value(
+                                    value: studentExamCubit,
+                                  ),
+                                  BlocProvider<FaceMonitoringCubit>(
+                                    create: (context) => FaceMonitoringCubit(
+                                      examId: exams[index].id!,
+                                      cheatingRepository: context.read<CheatingRepository>(),
+                                      tokenStorage: context.read<TokenStorage>(),
+                                      tokenCubit: context.read<TokenCubit>(),
+                                    ),
+                                  ),
+                                ],
+                                child: StudentExamDetailView(exam: exams[index]),
+                              ),
+                            ),
+                          );
+                        }
                       } catch (e) {
                         final currentContext = _navigatorKey.currentContext;
                         if (currentContext != null && mounted) {
@@ -190,7 +198,7 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
           builder: (context) => Scaffold(
-            backgroundColor: Colors.grey[100],
+            backgroundColor: AppColors.backgroundGrey,
             body: RefreshIndicator(
               onRefresh: () async {
                 await context

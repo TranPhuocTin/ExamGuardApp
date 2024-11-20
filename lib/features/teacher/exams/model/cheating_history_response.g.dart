@@ -47,7 +47,6 @@ CheatingHistory _$CheatingHistoryFromJson(Map<String, dynamic> json) =>
       infractionType: json['infractionType'] as String,
       description: json['description'] as String,
       exam: json['exam'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
 
@@ -57,6 +56,5 @@ Map<String, dynamic> _$CheatingHistoryToJson(CheatingHistory instance) =>
       'infractionType': instance.infractionType,
       'description': instance.description,
       'exam': instance.exam,
-      'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
     };

@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
           create: (context) => ExamCubit(context.read<ExamRepository>(), context.read<TokenStorage>(), context.read<TokenCubit>()),
         ),
         BlocProvider<QuestionCubit>(
-          create: (context) => QuestionCubit(context.read<ExamRepository>(), context.read<TokenStorage>()),
+          create: (context) => QuestionCubit(context.read<ExamRepository>(), context.read<TokenStorage>(), context.read<TokenCubit>()),
         ),
         BlocProvider<BaseHomepageCubit>(
           create: (context) => BaseHomepageCubit(context.read<ExamRepository>(), context.read<TokenStorage>(), context.read<TokenCubit>()),
