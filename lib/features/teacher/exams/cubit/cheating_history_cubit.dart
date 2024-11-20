@@ -11,6 +11,7 @@ class CheatingHistoryCubit extends Cubit<CheatingHistoryState> with PaginationMi
   static const int _pageSize = 10;
   String? _currentExamId;
   String? _currentStudentId;
+  String? _currentFilter;
   
   CheatingHistoryCubit(
     this._repository,
@@ -19,20 +20,29 @@ class CheatingHistoryCubit extends Cubit<CheatingHistoryState> with PaginationMi
     initializePagination(initialPage: 1);
   }
 
-  Future<void> loadHistories(String examId, String studentId, {bool refresh = false}) async {
+  Future<void> loadHistories(
+    String examId, 
+    String studentId, {
+    bool refresh = false,
+    String? infractionType,
+  }) async {
     if (refresh) {
       emit(CheatingHistoryLoading());
       resetPagination();
       _currentExamId = examId;
       _currentStudentId = studentId;
+      _currentFilter = infractionType;
     } else if (isLoading || hasReachedMax) {
       return;
     }
 
-    if (_currentExamId != examId || _currentStudentId != studentId) {
+    if (_currentExamId != examId || 
+        _currentStudentId != studentId || 
+        _currentFilter != infractionType) {
       resetPagination();
       _currentExamId = examId;
       _currentStudentId = studentId;
+      _currentFilter = infractionType;
     }
 
     setLoading(true);
@@ -53,6 +63,7 @@ class CheatingHistoryCubit extends Cubit<CheatingHistoryState> with PaginationMi
         studentId,
         page: currentPage,
         limit: _pageSize,
+        infractionType: infractionType,
       );
 
       final histories = response.metadata.histories;
@@ -89,7 +100,27 @@ class CheatingHistoryCubit extends Cubit<CheatingHistoryState> with PaginationMi
     }
   }
 
-  Future<void> refreshHistories(String examId, String studentId) async {
-    await loadHistories(examId, studentId, refresh: true);
+  Future<void> refreshHistories(
+    String examId, 
+    String studentId, {
+    String? infractionType,
+  }) async {
+    await loadHistories(
+      examId, 
+      studentId, 
+      refresh: true,
+      infractionType: infractionType,
+    );
+  }
+
+  void filterHistories(String? infractionType) {
+    if (_currentExamId != null && _currentStudentId != null) {
+      loadHistories(
+        _currentExamId!, 
+        _currentStudentId!,
+        refresh: true,
+        infractionType: infractionType,
+      );
+    }
   }
 }

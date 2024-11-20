@@ -14,22 +14,26 @@ class CheatingHistoryLoading extends CheatingHistoryState {}
 
 class CheatingHistoryLoaded extends CheatingHistoryState {
   final List<CheatingHistory> histories;
+  final String? selectedFilter;
   final bool hasReachedMax;
 
-  const CheatingHistoryLoaded({
+  CheatingHistoryLoaded({
     required this.histories,
+    this.selectedFilter,
     this.hasReachedMax = false,
   });
 
   @override
-  List<Object?> get props => [histories, hasReachedMax];
+  List<Object?> get props => [histories, selectedFilter, hasReachedMax];
 
   CheatingHistoryLoaded copyWith({
     List<CheatingHistory>? histories,
+    String? selectedFilter,
     bool? hasReachedMax,
   }) {
     return CheatingHistoryLoaded(
       histories: histories ?? this.histories,
+      selectedFilter: selectedFilter,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
     );
   }

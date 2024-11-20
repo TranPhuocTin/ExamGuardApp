@@ -116,10 +116,10 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                     onExamTapped: () async {
                       try {
                         if (state.user?.role == 'TEACHER') {
-                          Navigator.push(
-                            context,
+                          Navigator.of(context, rootNavigator: true).push(
                             MaterialPageRoute(
                               builder: (context) => TeacherExamMonitoringView(exam: exams[index]),
+                              fullscreenDialog: true,
                             ),
                           );
                         } else if (state.user?.role == 'STUDENT') {

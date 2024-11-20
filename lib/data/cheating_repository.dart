@@ -58,6 +58,7 @@ class CheatingRepository {
     String studentId, {
     int page = 1,
     int limit = 5,
+    String? infractionType,
   }) async {
     final response = await DioClient.performRequest(
       ApiUrls.getCheatingHistories(examId, studentId),
@@ -66,6 +67,7 @@ class CheatingRepository {
       queryParameters: {
         'page': page,
         'limit': limit,
+        if (infractionType != null) 'infractionType': infractionType,
       },
     );
     

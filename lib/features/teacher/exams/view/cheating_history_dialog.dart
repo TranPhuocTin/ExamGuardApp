@@ -30,6 +30,7 @@ class CheatingHistoryDialog extends StatefulWidget {
 class _CheatingHistoryDialogState extends State<CheatingHistoryDialog> with InfiniteScrollMixin {
   bool _isDialogActive = true;
   late final CheatingHistoryCubit _cheatingHistoryCubit;
+  String? _selectedFilter;
 
   @override
   void initState() {
@@ -57,6 +58,14 @@ class _CheatingHistoryDialogState extends State<CheatingHistoryDialog> with Infi
     }
   }
 
+  void _filterByType(String? type) {
+    if (!mounted) return;
+    setState(() {
+      _selectedFilter = type;
+    });
+    _cheatingHistoryCubit.filterHistories(type);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -79,7 +88,9 @@ class _CheatingHistoryDialogState extends State<CheatingHistoryDialog> with Infi
           children: [
             _buildHeader(),
             _buildStatistics(),
-            Expanded(child: _buildHistoryList()),
+            Expanded(
+              child: _buildHistoryList(),
+            ),
           ],
         ),
       ),
@@ -158,40 +169,73 @@ class _CheatingHistoryDialogState extends State<CheatingHistoryDialog> with Infi
   }
 
   Widget _buildStatistics() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: BlocBuilder<CheatingHistoryCubit, CheatingHistoryState>(
-        builder: (context, state) {
-          if (state is CheatingHistoryLoaded) {
-            final faceViolations = widget.stat.faceDetectionCount;
-            final tabViolations = widget.stat.tabSwitchCount;
-            final screenViolations = widget.stat.screenCaptureCount;
-            
+    final faceViolations = widget.stat.faceDetectionCount;
+    final tabViolations = widget.stat.tabSwitchCount;
+    final screenViolations = widget.stat.screenCaptureCount;
+    final totalViolations = faceViolations + tabViolations + screenViolations;
+    
+    return Container(
+      height: 110,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: BlocBuilder<CheatingHistoryCubit, CheatingHistoryState>(
+          builder: (context, state) {
             return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatCard(
-                  icon: Icons.face,
-                  color: Colors.red,
-                  count: faceViolations,
-                  label: 'Face',
+                SizedBox(
+                  width: 100,
+                  child: _buildStatCard(
+                    icon: Icons.bar_chart,
+                    color: Colors.blue,
+                    count: totalViolations,
+                    label: 'Tất cả',
+                    onTap: () => _filterByType(null),
+                    isSelected: _selectedFilter == null,
+                  ),
                 ),
-                _buildStatCard(
-                  icon: Icons.tab,
-                  color: Colors.orange,
-                  count: tabViolations,
-                  label: 'Tab Switch',
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 100,
+                  child: _buildStatCard(
+                    icon: Icons.face,
+                    color: Colors.red,
+                    count: faceViolations,
+                    label: 'Face',
+                    onTap: () => _filterByType('Face'),
+                    isSelected: _selectedFilter == 'Face',
+                  ),
                 ),
-                _buildStatCard(
-                  icon: Icons.screenshot,
-                  color: Colors.purple,
-                  count: screenViolations,
-                  label: 'Screen',
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 100,
+                  child: _buildStatCard(
+                    icon: Icons.tab,
+                    color: Colors.orange,
+                    count: tabViolations,
+                    label: 'Tab Switch',
+                    onTap: () => _filterByType('Switch_Tab'),
+                    isSelected: _selectedFilter == 'Switch_Tab',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 100,
+                  child: _buildStatCard(
+                    icon: Icons.screenshot,
+                    color: Colors.purple,
+                    count: screenViolations,
+                    label: 'Screen',
+                    onTap: () => _filterByType('Screen Capture'),
+                    isSelected: _selectedFilter == 'Screen Capture',
+                  ),
                 ),
               ],
             );
-          }
-          return const SizedBox.shrink();
-        },
+          },
+        ),
       ),
     );
   }
@@ -328,29 +372,37 @@ class _CheatingHistoryDialogState extends State<CheatingHistoryDialog> with Infi
     required Color color,
     required int count,
     required String label,
+    required Function() onTap,
+    required bool isSelected,
   }) {
-    return Expanded(
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
-        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: isSelected ? color.withOpacity(0.2) : color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
+          border: isSelected ? Border.all(color: color) : null,
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color),
-            const SizedBox(height: 4),
+            Icon(icon, size: 20, color: color),
+            const SizedBox(height: 2),
             Text(
               count.toString(),
               style: TextStyle(
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
             Text(
               label,
-              style: const TextStyle(fontSize: 12),
+              style: TextStyle(
+                fontSize: 11,
+                color: isSelected ? color : Colors.grey[600],
+              ),
             ),
           ],
         ),
