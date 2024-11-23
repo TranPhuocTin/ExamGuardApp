@@ -1,3 +1,4 @@
+import 'package:exam_guardian/utils/exceptions/token_exceptions.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
 import 'package:exam_guardian/utils/share_preference/token_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -51,14 +52,16 @@ class TokenCubit extends Cubit<TokenState> {
 
   void handleTokenError(Object error) {
     print('🔄 TokenCubit: Handling token error: $error');
-    emit(TokenState(
-          accessToken: null,
-          refreshToken: null,
-          clientId: null,
-      error: error,
-    ));
-    print('✅ TokenCubit: State updated with error');
+    if(error is TokenExpiredException){
+      emit(TokenState(
+        accessToken: null,
+        refreshToken: null,
+        clientId: null,
+        error: error,
+      ));
+      print('✅ TokenCubit: State updated with error');
+      return;
+    }
+    print('Unknown exception: $error');
   }
-
-
 }

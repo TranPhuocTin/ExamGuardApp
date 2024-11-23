@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../data/exam_repository.dart';
 import '../../../../utils/share_preference/shared_preference.dart';
+import '../../../../utils/share_preference/token_cubit.dart';
 import '../../../common/models/question_response.dart';
 import '../models/student_exam_response.dart';
 import 'student_exam_state.dart';
@@ -11,15 +12,18 @@ import '../../../../utils/exceptions/exam_exceptions.dart';
 class StudentExamCubit extends Cubit<StudentExamState> with PaginationMixin<Question> {
   final ExamRepository _examRepository;
   final TokenStorage _tokenStorage;
+  final TokenCubit _tokenCubit;
   final String examId;
   Timer? _timer;
 
   StudentExamCubit({
     required ExamRepository examRepository,
     required TokenStorage tokenStorage,
+    required TokenCubit tokenCubit,
     required this.examId,
   })  : _examRepository = examRepository,
         _tokenStorage = tokenStorage,
+        _tokenCubit = tokenCubit,
         super(StudentExamInitial()) {
     initializePagination(initialPage: 1);
   }
@@ -81,6 +85,7 @@ class StudentExamCubit extends Cubit<StudentExamState> with PaginationMixin<Ques
       // setLoading(false);
       throw ExamAlreadyTakenException();
     } catch (e) {
+      _tokenCubit.handleTokenError(e);
       emit(StudentExamError(e.toString()));
       setLoading(false);
     }
@@ -137,6 +142,7 @@ class StudentExamCubit extends Cubit<StudentExamState> with PaginationMixin<Ques
         await _examRepository.submitAnswer(questionId, answer, clientId, token);
       }
     } catch (e) {
+      _tokenCubit.handleTokenError(e);
       print('Error submitting answer: $e');
     }
   }

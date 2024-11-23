@@ -1,4 +1,5 @@
 import 'package:exam_guardian/configs/app_colors.dart';
+import 'package:exam_guardian/utils/share_preference/token_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../services/socket_service.dart';
@@ -29,6 +30,7 @@ class TeacherExamMonitoringView extends StatelessWidget {
           create: (context) => CheatingStatisticsCubit(
             context.read<CheatingRepository>(),
             context.read<TokenStorage>(),
+            context.read<TokenCubit>()
           )..loadStatistics(exam.id!),
         ),
         BlocProvider(
@@ -395,6 +397,7 @@ class _StatisticsTab extends StatelessWidget {
         create: (context) => CheatingHistoryCubit(
           context.read<CheatingRepository>(),
           context.read<TokenStorage>(),
+          context.read<TokenCubit>()
         )..loadHistories(exam.id!, stat.student.id),
         child: CheatingHistoryDialog(
           examId: exam.id!,

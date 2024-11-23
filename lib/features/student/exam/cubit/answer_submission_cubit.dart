@@ -1,17 +1,21 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../data/exam_repository.dart';
 import '../../../../utils/share_preference/shared_preference.dart';
+import '../../../../utils/share_preference/token_cubit.dart';
 import 'answer_submission_state.dart';
 
 class AnswerSubmissionCubit extends Cubit<AnswerSubmissionState> {
   final ExamRepository _examRepository;
   final TokenStorage _tokenStorage;
+  final TokenCubit _tokenCubit;
 
   AnswerSubmissionCubit({
     required ExamRepository examRepository,
     required TokenStorage tokenStorage,
+    required TokenCubit tokenCubit,
   })  : _examRepository = examRepository,
         _tokenStorage = tokenStorage,
+        _tokenCubit = tokenCubit,
         super(AnswerSubmissionInitial());
 
   Future<void> submitAnswer(String questionId, String answer) async {
@@ -49,6 +53,7 @@ class AnswerSubmissionCubit extends Cubit<AnswerSubmissionState> {
     } catch (e) {
       print('❌ Lỗi khi submit answer:');
       print('- Error: $e');
+      _tokenCubit.handleTokenError(e);
       emit(AnswerSubmissionFailure(
         questionId: questionId,
         error: e.toString(),

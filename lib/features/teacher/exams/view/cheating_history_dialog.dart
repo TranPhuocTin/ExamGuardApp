@@ -320,13 +320,13 @@ class _CheatingHistoryDialogState extends State<CheatingHistoryDialog> with Infi
                   color: Colors.grey[500],
                 ),
                 const SizedBox(width: 4),
-                // Text(
-                //   DateFormat('dd/MM/yyyy HH:mm:ss').format(history.createdAt),
-                //   style: TextStyle(
-                //     fontSize: 12,
-                //     color: Colors.grey[600],
-                //   ),
-                // ),
+                Text(
+                  DateFormat('dd/MM/yyyy HH:mm:ss').format(history.createdAt ?? DateTime.now()),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
               ],
             ),
           ],

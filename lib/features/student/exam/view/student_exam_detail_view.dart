@@ -102,6 +102,7 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
           create: (context) => AnswerSubmissionCubit(
             examRepository: context.read<ExamRepository>(),
             tokenStorage: context.read<TokenStorage>(),
+            tokenCubit: context.read<TokenCubit>()
           ),
         ),
         BlocProvider<FaceMonitoringCubit>(

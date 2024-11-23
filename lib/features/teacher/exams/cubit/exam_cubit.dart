@@ -53,11 +53,8 @@ class ExamCubit extends Cubit<ExamState> {
         selectedStatus: status ?? 'All',
       ));
     } catch (e) {
-      if(e is TokenExpiredException){
-        _tokenCubit.handleTokenError(e);
-      }else{
-        emit(ExamError(e.toString()));
-      }
+      _tokenCubit.handleTokenError(e);
+      emit(ExamError(e.toString()));
     }
   }
 
@@ -88,9 +85,7 @@ class ExamCubit extends Cubit<ExamState> {
       ));
       // await loadExams();
     } catch (e) {
-      if (e is TokenExpiredException) {
         _tokenCubit.handleTokenError(e);
-      }
       emit(ExamSearchState(error: e.toString()));
     }
   }
@@ -145,6 +140,7 @@ class ExamCubit extends Cubit<ExamState> {
           searchQuery: currentState.searchQuery,
         ));
       } catch (e) {
+        _tokenCubit.handleTokenError(e);
         emit(ExamError(e.toString()));
       }
     }
@@ -169,6 +165,7 @@ class ExamCubit extends Cubit<ExamState> {
       emit(ExamUpdate(true)); // Emit a new state indicating successful update
       await loadExams(status: outStatus); // Reload exams with the same status
     } catch (e) {
+      _tokenCubit.handleTokenError(e);
       emit(ExamError(e.toString()));
     }
   }
@@ -185,6 +182,7 @@ class ExamCubit extends Cubit<ExamState> {
       await _examRepository.deleteExam(clientId, token, examId);
       await loadExams(status: examStatus);
     } catch (e) {
+      _tokenCubit.handleTokenError(e);
       emit(ExamError(e.toString()));
     }
   }
@@ -202,6 +200,7 @@ class ExamCubit extends Cubit<ExamState> {
       emit(ExamUpdate(true)); // Emit success state
       await loadExams(status: exam.status); // Reload exams list
     } catch (e) {
+      _tokenCubit.handleTokenError(e);
       emit(ExamError(e.toString()));
     }
   }
@@ -236,6 +235,7 @@ class ExamCubit extends Cubit<ExamState> {
         isLoading: false,
       ));
     } catch (e) {
+      _tokenCubit.handleTokenError(e);
       emit(currentState.copyWith(error: e.toString(), isLoading: false));
     }
   }

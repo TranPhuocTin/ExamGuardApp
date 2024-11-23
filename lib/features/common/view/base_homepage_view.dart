@@ -13,7 +13,6 @@ import '../../student/exam/cubit/student_exam_cubit.dart';
 import '../../student/exam_monitoring/cubit/face_monitoring_cubit.dart';
 import '../../teacher/exams/view/teacher_exam_monitoring_view.dart';
 import '../widgets/exam_card.dart';
-import '../../teacher/homepage/cubit/teacher_homepage_cubit.dart';
 import '../cubit/base_homepage_cubit.dart';
 import '../cubit/base_homepage_state.dart';
 import '../models/exam.dart';
@@ -126,6 +125,7 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                           final studentExamCubit = StudentExamCubit(
                             examRepository: context.read<ExamRepository>(),
                             tokenStorage: context.read<TokenStorage>(),
+                            tokenCubit: context.read<TokenCubit>(),
                             examId: exams[index].id!,
                           );
 
@@ -136,27 +136,25 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                           final currentContext = _navigatorKey.currentContext;
                           if (currentContext == null) return;
 
-                          Navigator.push(
-                            currentContext,
-                            MaterialPageRoute(
-                              builder: (context) => MultiBlocProvider(
-                                providers: [
-                                  BlocProvider<StudentExamCubit>.value(
-                                    value: studentExamCubit,
+                          Navigator.of(context, rootNavigator:  true). push(MaterialPageRoute(
+                            builder: (context) => MultiBlocProvider(
+                              providers: [
+                                BlocProvider<StudentExamCubit>.value(
+                                  value: studentExamCubit,
+                                ),
+                                BlocProvider<FaceMonitoringCubit>(
+                                  create: (context) => FaceMonitoringCubit(
+                                    examId: exams[index].id!,
+                                    cheatingRepository: context.read<CheatingRepository>(),
+                                    tokenStorage: context.read<TokenStorage>(),
+                                    tokenCubit: context.read<TokenCubit>(),
                                   ),
-                                  BlocProvider<FaceMonitoringCubit>(
-                                    create: (context) => FaceMonitoringCubit(
-                                      examId: exams[index].id!,
-                                      cheatingRepository: context.read<CheatingRepository>(),
-                                      tokenStorage: context.read<TokenStorage>(),
-                                      tokenCubit: context.read<TokenCubit>(),
-                                    ),
-                                  ),
-                                ],
-                                child: StudentExamDetailView(exam: exams[index]),
-                              ),
+                                ),
+                              ],
+                              child: StudentExamDetailView(exam: exams[index]),
                             ),
-                          );
+                            fullscreenDialog: true
+                          ),);
                         }
                       } catch (e) {
                         final currentContext = _navigatorKey.currentContext;

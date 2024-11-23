@@ -74,12 +74,8 @@ class BaseHomepageCubit extends Cubit<BaseHomepageState> {
     } catch (e) {
       print('🔄 Caught error in BaseHomepageCubit: $e');
       if (!isClosed) {
-        if (e is TokenExpiredException) {
-          final tokenError = TokenExpiredException('Session expired');
-          _tokenCubit.handleTokenError(tokenError);
-        } else {
-          emit(HomepageError(e.toString()));
-        }
+        _tokenCubit.handleTokenError(e);
+        emit(HomepageError(e.toString()));
       }
     }
   }
@@ -112,6 +108,7 @@ class BaseHomepageCubit extends Cubit<BaseHomepageState> {
             searchQuery: query,
           ));
         } catch (e) {
+          _tokenCubit.handleTokenError(e);
           emit(HomepageError('Failed to search exams: $e'));
         }
       }

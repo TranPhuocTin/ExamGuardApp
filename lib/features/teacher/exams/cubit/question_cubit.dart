@@ -47,9 +47,7 @@ class QuestionCubit extends Cubit<QuestionState> {
         examId: examId,
       ));
     } catch (e) {
-      if (e is TokenExpiredException) {
-        _tokenCubit.handleTokenError(e);
-      }
+      _tokenCubit.handleTokenError(e);
       emit(QuestionError(e.toString()));
     }
   }
@@ -87,6 +85,7 @@ class QuestionCubit extends Cubit<QuestionState> {
         ));
       }
     } catch (e) {
+      _tokenCubit.handleTokenError(e);
       emit(QuestionError(e.toString()));
     }
   }
@@ -109,6 +108,7 @@ class QuestionCubit extends Cubit<QuestionState> {
       await loadQuestions(examId: examId);
     } catch (e) {
       print('QuestionCubit: Error creating question - ${e.toString()}');
+      _tokenCubit.handleTokenError(e);
       emit(QuestionError(e.toString()));
     }
   }
@@ -126,6 +126,7 @@ class QuestionCubit extends Cubit<QuestionState> {
       emit(QuestionUpdated());
       await loadQuestions(examId: examId);
     } catch (e) {
+      _tokenCubit.handleTokenError(e);
       emit(QuestionError(e.toString()));
     }
   }
@@ -142,6 +143,7 @@ class QuestionCubit extends Cubit<QuestionState> {
       // emit(QuestionDeleted(questionId));
       await loadQuestions(examId: examId);
     } catch (e) {
+      _tokenCubit.handleTokenError(e);
       emit(QuestionError(e.toString()));
     }
   } 

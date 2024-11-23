@@ -22,7 +22,6 @@ import 'features/student/exam_monitoring/cubit/face_monitoring_cubit.dart';
 import 'features/student/homepage/view/student_homepage_view.dart';
 import 'features/teacher/exams/cubit/exam_cubit.dart';
 import 'features/teacher/exams/cubit/question_cubit.dart';
-import 'features/teacher/homepage/cubit/teacher_homepage_cubit.dart';
 import 'utils/widgets/global_error_handler.dart';
 
 class MyApp extends StatelessWidget {

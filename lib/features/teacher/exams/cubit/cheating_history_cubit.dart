@@ -2,12 +2,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../data/cheating_repository.dart';
 import '../../../../utils/share_preference/shared_preference.dart';
 import '../../../../utils/mixins/pagination_mixin.dart';
+import '../../../../utils/share_preference/token_cubit.dart';
 import '../model/cheating_history_response.dart';
 import 'cheating_history_state.dart';
 
 class CheatingHistoryCubit extends Cubit<CheatingHistoryState> with PaginationMixin<CheatingHistory> {
   final CheatingRepository _repository;
   final TokenStorage _tokenStorage;
+  final TokenCubit _tokenCubit;
   static const int _pageSize = 10;
   String? _currentExamId;
   String? _currentStudentId;
@@ -16,6 +18,7 @@ class CheatingHistoryCubit extends Cubit<CheatingHistoryState> with PaginationMi
   CheatingHistoryCubit(
     this._repository,
     this._tokenStorage,
+      this._tokenCubit
   ) : super(CheatingHistoryInitial()) {
     initializePagination(initialPage: 1);
   }
@@ -94,6 +97,7 @@ class CheatingHistoryCubit extends Cubit<CheatingHistoryState> with PaginationMi
         ));
       }
     } catch (e) {
+      _tokenCubit.handleTokenError(e);
       emit(CheatingHistoryError(e.toString()));
     } finally {
       setLoading(false);

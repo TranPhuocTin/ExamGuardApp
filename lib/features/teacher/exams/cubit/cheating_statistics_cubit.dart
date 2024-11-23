@@ -1,18 +1,21 @@
 import 'package:exam_guardian/data/cheating_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../utils/share_preference/shared_preference.dart';
+import '../../../../utils/share_preference/token_cubit.dart';
 import '../model/cheating_statistics_response.dart';
 import 'cheating_statistics_state.dart';
 
 class CheatingStatisticsCubit extends Cubit<CheatingStatisticsState> {
   final CheatingRepository _repository;
   final TokenStorage _tokenStorage;
+  final TokenCubit _tokenCubit;
   int _currentPage = 1;
   static const int _pageSize = 10;
   
   CheatingStatisticsCubit(
     this._repository,
     this._tokenStorage,
+      this._tokenCubit
   ) : super(CheatingStatisticsInitial());
 
   Future<void> loadStatistics(String examId, {bool refresh = false}) async {
@@ -62,6 +65,7 @@ class CheatingStatisticsCubit extends Cubit<CheatingStatisticsState> {
         ));
       }
     } catch (e) {
+      _tokenCubit.handleTokenError(e);
       emit(CheatingStatisticsError(e.toString()));
     }
   }
