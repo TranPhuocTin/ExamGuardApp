@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../services/socket_service.dart';
 import '../../../realtime/cubit/realtime_cubit.dart';
 import 'package:exam_guardian/features/common/models/exam.dart' as common;
+import '../../../realtime/cubit/realtime_state.dart';
 import '../cubit/cheating_history_cubit.dart';
 import '../cubit/cheating_statistics_cubit.dart';
 import '../../../../utils/share_preference/shared_preference.dart';
@@ -44,12 +45,7 @@ class TeacherExamMonitoringView extends StatelessWidget {
                     .read<CheatingStatisticsCubit>()
                     .handleNewCheatingDetected(data['data']);
                 }
-              } else if (event == 'examUpdated' && data != null) {
-                if (data['exam'] is Map<String, dynamic>) {
-                  final updatedExam = common.Exam.fromJson(data['exam']);
-                  context.read<ExamCubit>().handleExamUpdated(updatedExam);
-                }
-              }
+              } 
             },
           )..initializeSocket(),
         ),

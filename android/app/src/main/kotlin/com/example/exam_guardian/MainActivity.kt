@@ -11,24 +11,20 @@ import android.content.res.Configuration
 import androidx.annotation.NonNull
 
 class MainActivity: FlutterActivity() {
-    private val METHOD_CHANNEL = "com.example.app/pip"
-    private val EVENT_CHANNEL = "com.example.app/pip_events"
     private var eventSink: EventChannel.EventSink? = null
+    private var isInPipMode = false
+    
+    companion object {
+        private const val METHOD_CHANNEL = "com.example.exam_guardian/pip"
+        private const val EVENT_CHANNEL = "com.example.exam_guardian/pip_events"
+    }
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        println("🔄 Configuring Flutter Engine")
         
         // Setup Method Channel
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, METHOD_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
-                "isPipSupported" -> {
-                    println("📱 Checking PiP support")
-                    result.success(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                }
-                "isInPipMode" -> {
-                    result.success(isInPictureInPictureMode)
-                }
                 "enterPipMode" -> {
                     println("🎯 Attempting to enter PiP mode")
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -46,6 +42,13 @@ class MainActivity: FlutterActivity() {
                         result.error("PIP_ERROR", "PiP not supported on this device", null)
                     }
                 }
+                "isPipSupported" -> {
+                    println("📱 Checking PiP support")
+                    result.success(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                }
+                "isInPipMode" -> {
+                    result.success(isInPictureInPictureMode)
+                }
                 else -> result.notImplemented()
             }
         }
@@ -54,10 +57,14 @@ class MainActivity: FlutterActivity() {
         EventChannel(flutterEngine.dartExecutor.binaryMessenger, EVENT_CHANNEL).setStreamHandler(
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
+                    println("🎧 Event sink registered")
                     eventSink = events
+                    // Send initial PiP state
+                    events.success(isInPipMode)
                 }
 
                 override fun onCancel(arguments: Any?) {
+                    println("❌ Event sink cancelled")
                     eventSink = null
                 }
             }
@@ -66,7 +73,8 @@ class MainActivity: FlutterActivity() {
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        println("🖥️ PiP mode ${if(isInPictureInPictureMode) "enabled" else "disabled"}")
+        println("🖥️ PiP mode changed: $isInPictureInPictureMode")
+        isInPipMode = isInPictureInPictureMode
         eventSink?.success(isInPictureInPictureMode)
     }
 

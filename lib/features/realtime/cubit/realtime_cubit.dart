@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../services/socket_service.dart';
 import '../../../utils/share_preference/shared_preference.dart';
+import '../../../services/notification_service.dart';
 
 import '../../teacher/exams/cubit/cheating_statistics_cubit.dart';
 
@@ -32,15 +35,24 @@ class RealtimeError extends RealtimeState {
 class RealtimeCubit extends Cubit<RealtimeState> {
   final TokenStorage _tokenStorage;
   final SocketService _socketService;
+  final NotificationService _notificationService = NotificationService();
   final Function(String, dynamic)? onEventReceived;
   List<String> messages = [];
   bool _isClosed = false;
+  Socket? _socket;
 
   RealtimeCubit(
     this._tokenStorage, 
     this._socketService, 
     {this.onEventReceived}
-  ) : super(RealtimeInitial());
+  ) : super(RealtimeInitial()) {
+    _initializeServices();
+  }
+
+  Future<void> _initializeServices() async {
+    print('🔄 Initializing services...');
+    await _notificationService.initialize();
+  }
 
   Future<void> initializeSocket() async {
     try {
@@ -86,8 +98,11 @@ class RealtimeCubit extends Cubit<RealtimeState> {
       // Thêm listener cho newCheatingDetected event
       _socketService.socket.on('newCheatingDetected', (data) {
         print('🎯 Nhận được newCheatingDetected event');
-        if (!_isClosed && onEventReceived != null) {
-          onEventReceived!('newCheatingDetected', Map<String, dynamic>.from(data));
+        if (!_isClosed) {
+          _handleNewCheatingDetected(Map<String, dynamic>.from(data));
+          if (onEventReceived != null) {
+            onEventReceived!('newCheatingDetected', Map<String, dynamic>.from(data));
+          }
         }
       });
 
@@ -117,31 +132,31 @@ class RealtimeCubit extends Cubit<RealtimeState> {
     }
   }
 
-  void handleSocketEvent(String event, dynamic data, BuildContext context) {
-    print('🎯 handleSocketEvent được gọi');
-    print('- Event: $event');
-    print('- Data: $data');
-    
-    if (event == 'newCheatingDetected' && data != null) {
-      // Cast the entire data object first
-      final Map<String, dynamic> eventData = Map<String, dynamic>.from(data);
-      
-      // Access the nested data field
-      if (eventData.containsKey('data')) {
-        final cheatingData = Map<String, dynamic>.from(eventData['data']);
-        try {
-          context.read<CheatingStatisticsCubit>().handleNewCheatingDetected(cheatingData);
-          print('✅ Đã gửi dữ liệu đến CheatingStatisticsCubit');
-        } catch (e) {
-          print('❌ Lỗi khi gửi dữ liệu đến CheatingStatisticsCubit: $e');
-        }
+  void _handleNewCheatingDetected(Map<String, dynamic> data) {
+    if (data.containsKey('data')) {
+      final cheatingData = Map<String, dynamic>.from(data['data']);
+      try {
+        String studentName = cheatingData['studentName'] ?? 'Học sinh';
+        String examName = cheatingData['examName'] ?? 'Bài kiểm tra';
+        String cheatingType = cheatingData['cheatingType'] ?? 'gian lận';
+        
+        final notificationId = DateTime.now().millisecondsSinceEpoch % 100000;
+        
+        _notificationService.showNotification(
+          id: notificationId,
+          title: 'Phát hiện gian lận',
+          body: '$studentName đã $cheatingType trong $examName',
+          payload: 'newCheatingDetected_${cheatingData['examId']}',
+        );
+      } catch (e) {
+        print('❌ Lỗi khi xử lý thông báo gian lận: $e');
       }
     }
   }
 
   @override
   Future<void> close() {
-    print('🔄 Closing RealtimeCubit...');
+    print(' Closing RealtimeCubit...');
     _isClosed = true;
     _socketService.socket.off('connect');
     _socketService.socket.off('disconnect');
@@ -152,4 +167,7 @@ class RealtimeCubit extends Cubit<RealtimeState> {
     _socketService.disconnect();
     return super.close();
   }
+
+  SocketService get socketService => _socketService;
+
 } 

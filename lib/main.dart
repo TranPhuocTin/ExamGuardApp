@@ -23,12 +23,19 @@ import 'features/student/homepage/view/student_homepage_view.dart';
 import 'features/teacher/exams/cubit/exam_cubit.dart';
 import 'features/teacher/exams/cubit/question_cubit.dart';
 import 'utils/widgets/global_error_handler.dart';
+import 'services/notification_service.dart';
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<RealtimeCubit>(
+          create: (context) => RealtimeCubit(
+            context.read<TokenStorage>(),
+            context.read<SocketService>(),
+          ),
+        ),
         BlocProvider(
           create: (context) => TokenCubit(TokenStorage()),
         ),
@@ -46,9 +53,6 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<BaseHomepageCubit>(
           create: (context) => BaseHomepageCubit(context.read<ExamRepository>(), context.read<TokenStorage>(), context.read<TokenCubit>()),
-        ),
-        BlocProvider<RealtimeCubit>(
-          create: (context) => RealtimeCubit(context.read<TokenStorage>(), context.read<SocketService>()),
         ),
       ],
       child: MaterialApp(
@@ -72,7 +76,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Khởi tạo NotificationService trước
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+  print('🔔 Notification Service đã được khởi tạo');
+
+  // Khởi tạo các repositories và services khác
   UserRepository userRepository = UserRepository();
   ExamRepository examRepository = ExamRepository();
   TokenStorage tokenStorage = TokenStorage();
@@ -97,6 +109,9 @@ void main() {
         ),
         RepositoryProvider<SocketService>(
           create: (context) => socketService,
+        ),
+        RepositoryProvider<NotificationService>(
+          create: (context) => notificationService,
         ),
       ],
       child: MyApp(),

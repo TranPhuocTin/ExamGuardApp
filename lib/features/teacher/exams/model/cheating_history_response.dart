@@ -45,7 +45,7 @@ class CheatingHistory {
   final String description;
   // final String? student;
   final String exam;
-  final DateTime? createdAt;
+  final DateTime? timeDetected;
   final DateTime updatedAt;
 
   CheatingHistory({
@@ -54,7 +54,7 @@ class CheatingHistory {
     required this.description,
     // this.student,
     required this.exam,
-    this.createdAt,
+    this.timeDetected,
     required this.updatedAt,
   });
 

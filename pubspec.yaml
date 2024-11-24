@@ -54,6 +54,8 @@ dependencies:
   camera: ^0.10.5+9
   image: ^4.3.0
   socket_io_client: ^3.0.1
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.10.0
 
 dev_dependencies:
   flutter_test:

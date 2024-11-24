@@ -7,8 +7,6 @@ import '../cubit/face_monitoring_cubit.dart';
 import '../cubit/face_monitoring_state.dart';
 import '../services/face_detection_service.dart';
 import '../models/cheating_detection_state.dart';
-import 'package:exam_guardian/features/student/exam_monitoring/services/pip_service.dart';
-import 'package:flutter/services.dart';
 
 class FaceMonitoringView extends StatefulWidget {
   final String examId;
@@ -27,24 +25,20 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
   late FaceDetectionService _faceDetectionService;
   bool _isCameraInitialized = false;
   
-  // Thêm các biến quản lý PiP mode
-  bool _isPipMode = false;
+  // Thay đổi giá trị mặc định của _isMinimized thành true
+  bool _isMinimized = true;
   double _xPosition = 0.0;
   double _yPosition = 0.0;
   
-  // Kích thước cho normal mode và pip mode
+  // Kích thước cho normal và minimized mode
   static const double _normalWidth = 320.0;
   static const double _normalHeight = 240.0;
-  static const double _pipWidth = 160.0;
-  static const double _pipHeight = 120.0;
-
-  late PipService _pipService;
+  static const double _minimizedWidth = 160.0;
+  static const double _minimizedHeight = 120.0;
 
   @override
   void initState() {
     super.initState();
-    _pipService = PipService();
-    _setupPipModeListener();
     _initializeCamera();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setDefaultPosition();
@@ -104,36 +98,23 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
   void _setDefaultPosition() {
     final screenSize = MediaQuery.of(context).size;
     setState(() {
-      if (_isPipMode) {
-        // PiP mode: góc trên bên phải
-        _xPosition = screenSize.width - _pipWidth - 20;
-        _yPosition = 20.0;
-      } else {
-        // Normal mode: giữa trên cùng
-        _xPosition = (screenSize.width - _normalWidth) / 2;
-        _yPosition = 20.0;
-      }
+      // Chỉ cập nhật vị trí, không thay đổi _isMinimized
+      _xPosition = screenSize.width - (_isMinimized ? _minimizedWidth : _normalWidth) - 16;
+      _yPosition = 16.0;
     });
   }
-
-  Future<void> _setupPipModeListener() async {
-    _pipService.pipModeEvents.listen((isInPipMode) {
-      context.read<FaceMonitoringCubit>().handlePipModeChange(isInPipMode);
-    });
-  }
-
 
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final currentWidth = _isPipMode ? _pipWidth : _normalWidth;
-    final currentHeight = _isPipMode ? _pipHeight : _normalHeight;
+    final currentWidth = _isMinimized ? _minimizedWidth : _normalWidth;
+    final currentHeight = _isMinimized ? _minimizedHeight : _normalHeight;
 
     return BlocBuilder<FaceMonitoringCubit, FaceMonitoringState>(
       builder: (context, state) {
         return Positioned(
-          left: _xPosition,
-          top: _yPosition,
+          left: _xPosition.clamp(0, screenSize.width - currentWidth),
+          top: _yPosition.clamp(0, screenSize.height - currentHeight),
           child: GestureDetector(
             onPanUpdate: (details) {
               setState(() {
@@ -182,7 +163,11 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
 
   Widget _buildControlBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(
+        horizontal: _isMinimized ? 2 : 8,
+        vertical: _isMinimized ? 1 : 4,
+      ),
+      height: _isMinimized ? 16 : 28,
       decoration: BoxDecoration(
         color: Colors.grey[900],
         borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
@@ -191,21 +176,24 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            _isPipMode ? '' : 'Camera Monitor',
+            _isMinimized ? '' : 'Camera Monitor',
             style: const TextStyle(color: Colors.white, fontSize: 12),
           ),
           IconButton(
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+            constraints: BoxConstraints(
+              minWidth: _isMinimized ? 16 : 24,
+              minHeight: _isMinimized ? 16 : 24,
+            ),
             icon: Icon(
-              _isPipMode ? Icons.open_in_full : Icons.close_fullscreen,
+              _isMinimized ? Icons.open_in_full : Icons.close_fullscreen,
               color: Colors.white,
-              size: 16,
+              size: _isMinimized ? 12 : 16,
             ),
             onPressed: () {
-              print('🔄 Toggle view size');
               setState(() {
-                _isPipMode = !_isPipMode;
+                _isMinimized = !_isMinimized;
+                // Cập nhật vị trí sau khi thay đổi trạng thái
                 _setDefaultPosition();
               });
             },
@@ -247,7 +235,7 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: 8,
-        vertical: _isPipMode ? 2 : 4,
+        vertical: _isMinimized ? 2 : 4,
       ),
       decoration: BoxDecoration(
         color: isWarning
@@ -262,7 +250,7 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
           Icon(
             isWarning ? Icons.warning : Icons.check_circle,
             color: Colors.white,
-            size: _isPipMode ? 12 : 14,
+            size: _isMinimized ? 12 : 14,
           ),
           const SizedBox(width: 4),
           Expanded(
@@ -272,7 +260,7 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
                   : 'Đang giám sát...',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: _isPipMode ? 10 : 12,
+                fontSize: _isMinimized ? 10 : 12,
                 fontWeight: FontWeight.w500,
               ),
               maxLines: 1,

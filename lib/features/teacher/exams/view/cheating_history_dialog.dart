@@ -321,7 +321,7 @@ class _CheatingHistoryDialogState extends State<CheatingHistoryDialog> with Infi
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  DateFormat('dd/MM/yyyy HH:mm:ss').format(history.createdAt ?? DateTime.now()),
+                  DateFormat('dd/MM/yyyy HH:mm:ss').format(history.timeDetected ?? DateTime.now()),
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],
