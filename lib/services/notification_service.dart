@@ -4,6 +4,7 @@ import 'package:timezone/timezone.dart' as tz;
 class NotificationService {
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
+  Function(String?)? _onNotificationTap;
 
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -21,9 +22,25 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _notifications.initialize(settings);
+    await _notifications.initialize(
+      settings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        // Xử lý navigation dựa trên payload
+        final payload = response.payload;
+        if (payload?.startsWith('newCheatingDetected_') ?? false) {
+          // Navigate to exam detail
+          final examId = payload!.split('_')[1];
+          // TODO: Implement navigation
+        }
+      },
+    );
+    
     _isInitialized = true;
     print('✅ NotificationService: Khởi tạo thành công');
+  }
+
+  void setOnNotificationTap(Function(String?) callback) {
+    _onNotificationTap = callback;
   }
 
   Future<void> showNotification({
@@ -61,7 +78,7 @@ class NotificationService {
       );
 
       await _notifications.show(id, title, body, details, payload: payload);
-      print('✅ Notification đã được gửi thành công');
+      print('✅ Notification đ�� được gửi thành công');
     } catch (e) {
       print('❌ Lỗi khi gửi notification: $e');
     }

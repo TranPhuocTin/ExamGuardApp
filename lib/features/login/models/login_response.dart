@@ -55,7 +55,7 @@ class User extends Equatable {
   final String gender;
   final String dob;
   final int ssn;
-  final String address;
+  final String? address;
   @JsonKey(name: 'phone_number')
   final String phoneNumber;
   final String status;
@@ -72,7 +72,7 @@ class User extends Equatable {
     required this.gender,
     required this.dob,
     required this.ssn,
-    required this.address,
+    this.address,
     required this.phoneNumber,
     required this.status,
     required this.createdAt,

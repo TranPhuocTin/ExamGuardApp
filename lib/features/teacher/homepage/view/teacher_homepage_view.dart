@@ -6,9 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../data/exam_repository.dart';
+import '../../../../services/notification_service.dart';
+import '../../../../services/socket_service.dart';
 import '../../../../utils/share_preference/shared_preference.dart';
 import '../../../../utils/share_preference/token_cubit.dart';
 import '../../../common/view/base_homepage_view.dart';
+import '../../../realtime/cubit/realtime_cubit.dart';
+import '../../exams/cubit/cheating_statistics_cubit.dart';
 import '../../exams/view/exam_page.dart';
 import 'package:exam_guardian/utils/widgets/global_error_handler.dart';
 import 'package:exam_guardian/configs/app_colors.dart';
@@ -21,6 +25,13 @@ class TeacherHomepageView extends StatefulWidget {
 
 class _TeacherHomepageViewState extends State<TeacherHomepageView> {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Khởi tạo socket khi vào homepage
+    context.read<RealtimeCubit>().initializeSocket();
+  }
 
   static List<Widget> _widgetOptions = <Widget>[
     TeacherHomePage(),
@@ -58,13 +69,25 @@ class _TeacherHomepageViewState extends State<TeacherHomepageView> {
 class TeacherHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => BaseHomepageCubit(
-        context.read<ExamRepository>(),
-        context.read<TokenStorage>(),
-        context.read<TokenCubit>(),
-      )..loadInProgressExams(),
-      child: BaseHomePageWrapper(),
-    );
+    // return BlocProvider(
+    //   create: (context) => BaseHomepageCubit(
+    //     context.read<ExamRepository>(),
+    //     context.read<TokenStorage>(),
+    //     context.read<TokenCubit>(),
+    //   )..loadInProgressExams(),
+    //   child: BaseHomePageWrapper(),
+    // );
+    return MultiBlocProvider(
+        providers: [
+    BlocProvider(
+          create: (context) => BaseHomepageCubit(
+            context.read<ExamRepository>(),
+            context.read<TokenStorage>(),
+            context.read<TokenCubit>(),
+          )..loadInProgressExams(),
+        ),
+        ],
+        child: BaseHomePageWrapper(),
+      );
   }
 }

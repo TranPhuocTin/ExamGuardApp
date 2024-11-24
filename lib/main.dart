@@ -16,6 +16,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'ExamGuardObserver.dart';
 import 'data/cheating_repository.dart';
 import 'data/exam_repository.dart';
+import 'features/notification/cubit/notification_cubit.dart';
 import 'features/splash/screens/splash_screen.dart';
 import 'features/student/exam/cubit/student_exam_cubit.dart';
 import 'features/student/exam_monitoring/cubit/face_monitoring_cubit.dart';
@@ -30,11 +31,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<RealtimeCubit>(
-          create: (context) => RealtimeCubit(
-            context.read<TokenStorage>(),
-            context.read<SocketService>(),
-          ),
+         BlocProvider(
+          create: (context) => NotificationCubit(context.read<NotificationService>()),
         ),
         BlocProvider(
           create: (context) => TokenCubit(TokenStorage()),
@@ -79,33 +77,26 @@ class MyApp extends StatelessWidget {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Khởi tạo NotificationService trước
   final notificationService = NotificationService();
   await notificationService.initialize();
-  print('🔔 Notification Service đã được khởi tạo');
-
-  // Khởi tạo các repositories và services khác
-  UserRepository userRepository = UserRepository();
-  ExamRepository examRepository = ExamRepository();
-  TokenStorage tokenStorage = TokenStorage();
-  CheatingRepository cheatingRepository = CheatingRepository();
-  SocketService socketService = SocketService();
-  TokenCubit tokenCubit = TokenCubit(tokenStorage);
+  
+  final tokenStorage = TokenStorage();
+  final socketService = SocketService();
 
   runApp(
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider<UserRepository>(
-          create: (context) => userRepository,
+          create: (context) => UserRepository(),
         ),
         RepositoryProvider<ExamRepository>(
-          create: (context) => examRepository,
+          create: (context) => ExamRepository(),
         ),
         RepositoryProvider<TokenStorage>(
           create: (context) => tokenStorage,
         ),
         RepositoryProvider<CheatingRepository>(
-          create: (context) => cheatingRepository,
+          create: (context) => CheatingRepository(),
         ),
         RepositoryProvider<SocketService>(
           create: (context) => socketService,
@@ -114,7 +105,18 @@ void main() async {
           create: (context) => notificationService,
         ),
       ],
-      child: MyApp(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<RealtimeCubit>(
+            create: (context) => RealtimeCubit(
+              tokenStorage,
+              socketService,
+              notificationService,
+            )..initializeSocket(),
+          ),
+        ],
+        child: MyApp(),
+      ),
     ),
   );
 }

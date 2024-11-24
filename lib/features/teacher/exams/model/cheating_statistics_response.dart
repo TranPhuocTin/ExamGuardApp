@@ -112,12 +112,12 @@ class Exam {
   @JsonKey(name: '_id')
   final String id;
   final String title;
-  final String description;
+  final String? description;
 
   Exam({
     required this.id,
     required this.title,
-    required this.description,
+    this.description,
   });
 
   factory Exam.fromJson(Map<String, dynamic> json) => _$ExamFromJson(json);

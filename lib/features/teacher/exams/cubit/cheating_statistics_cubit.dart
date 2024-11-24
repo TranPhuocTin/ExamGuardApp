@@ -71,7 +71,15 @@ class CheatingStatisticsCubit extends Cubit<CheatingStatisticsState> {
   }
 
   Future<void> refreshStatistics(String examId) async {
-    await loadStatistics(examId, refresh: true);
+    try {
+      final clientId = await _tokenStorage.getClientId();
+      final token = await _tokenStorage.getAccessToken();
+      if(clientId == null || token == null) throw Exception('Token null in statistics');
+      final response = await _repository.getCheatingStatistics(clientId, token, examId);
+      emit(CheatingStatisticsLoaded(statistics: response.metadata.statistics));
+    } catch (e) {
+      emit(CheatingStatisticsError(e.toString()));
+    }
   }
 
   void filterStatistics(String query) {
@@ -106,11 +114,30 @@ class CheatingStatisticsCubit extends Cubit<CheatingStatisticsState> {
         return;
       }
 
+      // Extract student information
       String studentId;
+      Student? student;
+      
       if (studentData is String) {
         studentId = studentData;
+        // Tạo student cố định cho testing
+        student = Student(
+          id: studentId,
+          username: 'test_student',
+          name: 'Test Student',
+          email: 'test@example.com',
+          avatar: '',
+        );
       } else if (studentData is Map<String, dynamic>) {
         studentId = studentData['_id'] as String;
+        // Create Student object from the data
+        student = Student(
+          id: studentData['_id'] as String,
+          username: studentData['username'] as String,
+          name: studentData['name'] as String,
+          email: studentData['email'] as String,
+          avatar: studentData['avatar'] as String? ?? '',
+        );
       } else {
         print('⚠️ Invalid student data format');
         return;
@@ -121,36 +148,40 @@ class CheatingStatisticsCubit extends Cubit<CheatingStatisticsState> {
       final existingStatIndex = currentStats.indexWhere(
         (stat) => stat.student?.id == studentId
       );
-      print('📍 existingStatIndex: $existingStatIndex');
-
+      
       if (existingStatIndex != -1) {
-        print('✅ Tìm thấy student trong danh sách');
+        // Update existing student statistics
         final existingStat = currentStats[existingStatIndex];
-        final newFaceCount = cheatingData['faceDetectionCount'] as int;
-        final newTabCount = cheatingData['tabSwitchCount'] as int;
-        final newScreenCount = cheatingData['screenCaptureCount'] as int;
-        
-        print('📊 Counts mới: face=$newFaceCount, tab=$newTabCount, screen=$newScreenCount');
-        print('📊 Counts cũ: face=${existingStat.faceDetectionCount}, tab=${existingStat.tabSwitchCount}, screen=${existingStat.screenCaptureCount}');
-
         final updatedStat = existingStat.copyWith(
-          faceDetectionCount: newFaceCount,
-          tabSwitchCount: newTabCount,
-          screenCaptureCount: newScreenCount,
+          faceDetectionCount: cheatingData['faceDetectionCount'] as int,
+          tabSwitchCount: cheatingData['tabSwitchCount'] as int,
+          screenCaptureCount: cheatingData['screenCaptureCount'] as int,
         );
-
         currentStats[existingStatIndex] = updatedStat;
-        print('🔄 Chuẩn bị emit state mới');
-        emit(CheatingStatisticsLoaded(
-          statistics: List<CheatingStatistic>.from(currentStats),
-          hasReachedMax: currentState.hasReachedMax,
-        ));
-        print('✅ Đã emit state mới');
       } else {
-        print('⚠️ Không tìm thấy student trong danh sách');
+        // Create new statistics for the student
+        if (student != null) {
+          final newStat = CheatingStatistic(
+            id: cheatingData['_id'] as String,
+            student: student,
+            exam: Exam(id: cheatingData['exam'] as String, title: ''),
+            faceDetectionCount: cheatingData['faceDetectionCount'] as int,
+            tabSwitchCount: cheatingData['tabSwitchCount'] as int,
+            screenCaptureCount: cheatingData['screenCaptureCount'] as int,
+            totalViolations: (cheatingData['faceDetectionCount'] as int) +
+                (cheatingData['tabSwitchCount'] as int) +
+                (cheatingData['screenCaptureCount'] as int),
+            createdAt: DateTime.parse(cheatingData['createdAt'] as String),
+            updatedAt: DateTime.parse(cheatingData['updatedAt'] as String),
+          );
+          currentStats.add(newStat);
+        }
       }
-    } else {
-      print('⚠️ State hiện tại không phải là CheatingStatisticsLoaded');
+
+      emit(CheatingStatisticsLoaded(
+        statistics: currentStats,
+        hasReachedMax: currentState.hasReachedMax,
+      ));
     }
   }
 }

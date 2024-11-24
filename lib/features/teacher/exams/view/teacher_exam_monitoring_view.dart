@@ -2,6 +2,7 @@ import 'package:exam_guardian/configs/app_colors.dart';
 import 'package:exam_guardian/utils/share_preference/token_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../services/notification_service.dart';
 import '../../../../services/socket_service.dart';
 import '../../../realtime/cubit/realtime_cubit.dart';
 import 'package:exam_guardian/features/common/models/exam.dart' as common;
@@ -29,35 +30,38 @@ class TeacherExamMonitoringView extends StatelessWidget {
       providers: [
         BlocProvider(
           create: (context) => CheatingStatisticsCubit(
-            context.read<CheatingRepository>(),
-            context.read<TokenStorage>(),
-            context.read<TokenCubit>()
-          )..loadStatistics(exam.id!),
-        ),
-        BlocProvider(
-          create: (context) => RealtimeCubit(
-            context.read<TokenStorage>(),
-            context.read<SocketService>(),
-            onEventReceived: (event, data) {
-              if (event == 'newCheatingDetected' && data != null) {
-                if (data['data'] is Map<String, dynamic>) {
-                  context
-                    .read<CheatingStatisticsCubit>()
-                    .handleNewCheatingDetected(data['data']);
-                }
-              } 
-            },
-          )..initializeSocket(),
+              context.read<CheatingRepository>(),
+              context.read<TokenStorage>(),
+              context.read<TokenCubit>())
+            ..loadStatistics(exam.id!),
         ),
       ],
-      child: Scaffold(
-        extendBody: false,
-        resizeToAvoidBottomInset: true,
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight),
-          child: _buildCustomAppBar(context),
+      child: BlocListener<RealtimeCubit, RealtimeState>(
+        listener: (context, state) {
+          if (state is RealtimeMessageReceived &&
+              state.event == 'newCheatingDetected' &&
+              state.data != null) {
+            print('📥 Received data structure: ${state.data}');
+            final data = state.data['data'] as Map<String, dynamic>;
+            final examId = data['exam'];
+            print('🔍 ExamId from socket: $examId');
+            print('🎯 Current exam.id: ${exam.id}');
+            if (examId == exam.id) {
+              context
+                  .read<CheatingStatisticsCubit>()
+                  .handleNewCheatingDetected(data);
+            }
+          }
+        },
+        child: Scaffold(
+          extendBody: false,
+          resizeToAvoidBottomInset: true,
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: _buildCustomAppBar(context),
+          ),
+          body: _StatisticsTab(exam: exam),
         ),
-        body: _StatisticsTab(exam: exam),
       ),
     );
   }
@@ -90,7 +94,7 @@ class TeacherExamMonitoringView extends StatelessWidget {
                     constraints: const BoxConstraints(),
                   ),
                   const SizedBox(width: 16),
-                  
+
                   // Title
                   Expanded(
                     child: Column(
@@ -118,10 +122,11 @@ class TeacherExamMonitoringView extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   // Connection Status
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: _getStatusColor(state).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -217,12 +222,15 @@ class _StatisticsTab extends StatelessWidget {
     } else if (state is CheatingStatisticsLoaded) {
       return RefreshIndicator(
         onRefresh: () async {
-          await context.read<CheatingStatisticsCubit>().refreshStatistics(exam.id!);
+          await context
+              .read<CheatingStatisticsCubit>()
+              .refreshStatistics(exam.id!);
         },
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: state.statistics.length,
-          itemBuilder: (context, index) => _buildStudentCard(context, state.statistics[index]),
+          itemBuilder: (context, index) =>
+              _buildStudentCard(context, state.statistics[index]),
         ),
       );
     }
@@ -230,7 +238,8 @@ class _StatisticsTab extends StatelessWidget {
   }
 
   Widget _buildStudentCard(BuildContext context, CheatingStatistic stat) {
-    final totalViolations = stat.faceDetectionCount + stat.tabSwitchCount + stat.screenCaptureCount;
+    final totalViolations =
+        stat.faceDetectionCount + stat.tabSwitchCount + stat.screenCaptureCount;
     final hasViolations = totalViolations > 0;
 
     return Card(
@@ -244,7 +253,9 @@ class _StatisticsTab extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: hasViolations ? Colors.red.withOpacity(0.3) : Colors.green.withOpacity(0.3),
+              color: hasViolations
+                  ? Colors.red.withOpacity(0.3)
+                  : Colors.green.withOpacity(0.3),
               width: 1,
             ),
           ),
@@ -287,13 +298,17 @@ class _StatisticsTab extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: hasViolations ? Colors.red.withOpacity(0.05) : Colors.green.withOpacity(0.05),
+        color: hasViolations
+            ? Colors.red.withOpacity(0.05)
+            : Colors.green.withOpacity(0.05),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: hasViolations ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+            backgroundColor: hasViolations
+                ? Colors.red.withOpacity(0.1)
+                : Colors.green.withOpacity(0.1),
             child: Icon(
               Icons.person,
               color: hasViolations ? Colors.red : Colors.green,
@@ -317,7 +332,9 @@ class _StatisticsTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: hasViolations ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+              color: hasViolations
+                  ? Colors.red.withOpacity(0.1)
+                  : Colors.green.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -352,7 +369,9 @@ class _StatisticsTab extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: hasViolation ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+            color: hasViolation
+                ? Colors.red.withOpacity(0.1)
+                : Colors.green.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
@@ -371,7 +390,9 @@ class _StatisticsTab extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: hasViolation ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+            color: hasViolation
+                ? Colors.red.withOpacity(0.1)
+                : Colors.green.withOpacity(0.1),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
@@ -391,10 +412,10 @@ class _StatisticsTab extends StatelessWidget {
       context: context,
       builder: (context) => BlocProvider(
         create: (context) => CheatingHistoryCubit(
-          context.read<CheatingRepository>(),
-          context.read<TokenStorage>(),
-          context.read<TokenCubit>()
-        )..loadHistories(exam.id!, stat.student.id),
+            context.read<CheatingRepository>(),
+            context.read<TokenStorage>(),
+            context.read<TokenCubit>())
+          ..loadHistories(exam.id!, stat.student.id),
         child: CheatingHistoryDialog(
           examId: exam.id!,
           studentId: stat.student.id,
@@ -404,4 +425,4 @@ class _StatisticsTab extends StatelessWidget {
       ),
     );
   }
-} 
+}
