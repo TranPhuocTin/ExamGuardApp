@@ -9,6 +9,7 @@ import 'package:exam_guardian/features/realtime/cubit/realtime_cubit.dart';
 import 'package:exam_guardian/features/teacher/exams/view/create_update_exam_view.dart';
 import 'package:exam_guardian/features/teacher/homepage/view/teacher_homepage_view.dart';
 import 'package:exam_guardian/services/socket_service.dart';
+import 'package:exam_guardian/utils/navigation_service.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
 import 'package:exam_guardian/utils/share_preference/token_cubit.dart';
 import 'package:flutter/material.dart';
@@ -31,9 +32,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-         BlocProvider(
-          create: (context) => NotificationCubit(context.read<NotificationService>()),
-        ),
         BlocProvider(
           create: (context) => TokenCubit(TokenStorage()),
         ),
@@ -69,6 +67,7 @@ class MyApp extends StatelessWidget {
           '/teacher_homepage': (context) => TeacherHomepageView(),
           '/student_homepage': (context) => StudentHomepageView(),
         },
+        navigatorKey: navigatorKey,
       ),
     );
   }
@@ -78,8 +77,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final notificationService = NotificationService();
-  await notificationService.initialize();
-  
   final tokenStorage = TokenStorage();
   final socketService = SocketService();
 
@@ -107,6 +104,16 @@ void main() async {
       ],
       child: MultiBlocProvider(
         providers: [
+          BlocProvider<TokenCubit>(
+            create: (context) => TokenCubit(tokenStorage),
+          ),
+          BlocProvider<NotificationCubit>(
+            lazy: false,
+            create: (context) => NotificationCubit(
+              context.read<NotificationService>(),
+              context,
+            ),
+          ),
           BlocProvider<RealtimeCubit>(
             create: (context) => RealtimeCubit(
               tokenStorage,

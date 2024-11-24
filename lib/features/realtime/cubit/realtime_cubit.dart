@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:exam_guardian/features/realtime/cubit/realtime_state.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import '../../../utils/share_preference/shared_preference.dart';
 import '../../../services/notification_service.dart';
 
 import '../../teacher/exams/cubit/cheating_statistics_cubit.dart';
+import '../../teacher/exams/model/cheating_statistics_response.dart';
 
 // Define states
 class RealtimeState {
@@ -100,31 +102,50 @@ class RealtimeCubit extends Cubit<RealtimeState> {
       // Thêm listener cho newCheatingDetected event
       _socketService.socket.on('newCheatingDetected', (data) {
         print('🎯 Nhận được newCheatingDetected event');
-          final cheatingData = Map<String, dynamic>.from(data['data']);
-          
-          // Hiển thị notification
-          // _handleNewCheatingDetected(data);
-          
+        if (!_isClosed) {
           // Emit state mới để trigger BlocListener
           emit(RealtimeMessageReceived(
             event: 'newCheatingDetected',
-            data: data,
-            messages: List.from(messages)
+            data: data as Map<String, dynamic>,  // Đảm bảo data là Map
+            messages: List.from(messages),
           ));
-        if (!_isClosed) {
-          final cheatingData = Map<String, dynamic>.from(data['data']);
-          String studentName = cheatingData['studentName'] ?? 'Học sinh';
-          String examName = cheatingData['examName'] ?? 'Bài kiểm tra';
-          String cheatingType = cheatingData['cheatingType'] ?? 'gian lận';
+
+          // Xử lý notification
+          final cheatingData = data['data'] as Map<String, dynamic>;
+          final studentData = cheatingData['student'] as Map<String, dynamic>;
+          final examData = cheatingData['exam'] as Map<String, dynamic>;
+          
+          final cheatingStatistic = CheatingStatistic(
+            id: cheatingData['_id'] as String,
+            student: Student(
+              id: studentData['_id'] as String,
+              username: studentData['username'] as String,
+              name: studentData['name'] as String,
+              email: studentData['email'] as String,
+              avatar: studentData['avatar'] as String? ?? '',
+            ),
+            exam: Exam(
+              id: examData['_id'] as String,
+              title: examData['title'] as String,
+            ),
+            faceDetectionCount: cheatingData['faceDetectionCount'] as int,
+            tabSwitchCount: cheatingData['tabSwitchCount'] as int,
+            screenCaptureCount: cheatingData['screenCaptureCount'] as int,
+            totalViolations: (cheatingData['faceDetectionCount'] as int) +
+                (cheatingData['tabSwitchCount'] as int) +
+                (cheatingData['screenCaptureCount'] as int),
+            createdAt: DateTime.parse(cheatingData['createdAt'] as String),
+            updatedAt: DateTime.parse(cheatingData['updatedAt'] as String),
+          );
 
           showNotification(
-            title: 'Phát hiện gian lận',
-            body: '$studentName đã $cheatingType trong $examName',
-            payload: 'newCheatingDetected_${cheatingData['examId']}',
+            title: 'Cheating detected!',
+            body: '${cheatingStatistic.student.name} was detected cheating in ${cheatingStatistic.exam.title}',
+            payload: jsonEncode(cheatingStatistic.toJson()),
           );
 
           if (onEventReceived != null) {
-            onEventReceived!('newCheatingDetected', Map<String, dynamic>.from(data));
+            onEventReceived!('newCheatingDetected', data as Map<String, dynamic>);
           }
         }
       });
@@ -204,6 +225,7 @@ class RealtimeCubit extends Cubit<RealtimeState> {
       body: body,
       payload: payload,
     );
+    print('🔔 Show notification: $title - $body - $payload');
   }
 
   // Thêm setter cho onEventReceived

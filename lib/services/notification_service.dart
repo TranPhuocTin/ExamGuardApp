@@ -2,45 +2,50 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
+  static final NotificationService _instance = NotificationService._internal();
+  factory NotificationService() => _instance;
+  
+  NotificationService._internal();
+
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
   Function(String?)? _onNotificationTap;
 
   Future<void> initialize() async {
-    if (_isInitialized) return;
+    if (_isInitialized) {
+      print('🔄 NotificationService already initialized');
+      return;
+    }
     
-    print('🔔 NotificationService: Bắt đầu khởi tạo...');
+    print('🔔 NotificationService: Initializing...');
     
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    print('📱 Android settings đã được cấu hình');
-    
     const iosSettings = DarwinInitializationSettings();
-    print('📱 iOS settings đã được cấu hình');
-
     const settings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
 
-    await _notifications.initialize(
+    final initialized = await _notifications.initialize(
       settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Xử lý navigation dựa trên payload
-        final payload = response.payload;
-        if (payload?.startsWith('newCheatingDetected_') ?? false) {
-          // Navigate to exam detail
-          final examId = payload!.split('_')[1];
-          // TODO: Implement navigation
+        print('📱 Notification tapped with payload: ${response.payload}');
+        if (_onNotificationTap != null) {
+          _onNotificationTap!(response.payload);
+        }else{
+          print('1111');
         }
       },
     );
-    
-    _isInitialized = true;
-    print('✅ NotificationService: Khởi tạo thành công');
+
+    _isInitialized = initialized ?? false;
+    print('✅ NotificationService initialized: $_isInitialized');
   }
 
   void setOnNotificationTap(Function(String?) callback) {
+    print('🔔 Setting notification tap callback');
     _onNotificationTap = callback;
+    print('🔔 Callback registered: ${_onNotificationTap != null}');
   }
 
   Future<void> showNotification({
@@ -78,7 +83,7 @@ class NotificationService {
       );
 
       await _notifications.show(id, title, body, details, payload: payload);
-      print('✅ Notification đ�� được gửi thành công');
+      print('✅ Notification đ được gửi thành công');
     } catch (e) {
       print('❌ Lỗi khi gửi notification: $e');
     }

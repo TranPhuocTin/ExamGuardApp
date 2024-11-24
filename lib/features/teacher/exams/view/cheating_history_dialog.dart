@@ -121,7 +121,7 @@ class _CheatingHistoryDialogState extends State<CheatingHistoryDialog> with Infi
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Chi tiết vi phạm',
+                      'Violation Details',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -142,10 +142,14 @@ class _CheatingHistoryDialogState extends State<CheatingHistoryDialog> with Infi
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          widget.studentName,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppColors.textSecondary,
+                        Expanded(
+                          child: Text(
+                            widget.studentName,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -191,7 +195,7 @@ class _CheatingHistoryDialogState extends State<CheatingHistoryDialog> with Infi
                     icon: Icons.bar_chart,
                     color: Colors.blue,
                     count: totalViolations,
-                    label: 'Tất cả',
+                    label: 'All',
                     onTap: () => _filterByType(null),
                     isSelected: _selectedFilter == null,
                   ),

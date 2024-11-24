@@ -43,13 +43,14 @@ class TeacherExamMonitoringView extends StatelessWidget {
               state.data != null) {
             print('📥 Received data structure: ${state.data}');
             final data = state.data['data'] as Map<String, dynamic>;
-            final examId = data['exam'];
+            final examData = data['exam'] as Map<String, dynamic>;
+            final examId = examData['_id'] as String;
             print('🔍 ExamId from socket: $examId');
             print('🎯 Current exam.id: ${exam.id}');
             if (examId == exam.id) {
               context
                   .read<CheatingStatisticsCubit>()
-                  .handleNewCheatingDetected(data);
+                  .handleNewCheatingDetected(state.data);
             }
           }
         },
@@ -182,10 +183,18 @@ class TeacherExamMonitoringView extends StatelessWidget {
   }
 }
 
-class _StatisticsTab extends StatelessWidget {
+class _StatisticsTab extends StatefulWidget {
   final common.Exam exam;
 
   const _StatisticsTab({required this.exam});
+
+  @override
+  State<_StatisticsTab> createState() => _StatisticsTabState();
+}
+
+class _StatisticsTabState extends State<_StatisticsTab> {
+  // Thêm map để lưu trạng thái expanded của mỗi student
+  final Map<String, bool> _expandedStates = {};
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +233,7 @@ class _StatisticsTab extends StatelessWidget {
         onRefresh: () async {
           await context
               .read<CheatingStatisticsCubit>()
-              .refreshStatistics(exam.id!);
+              .refreshStatistics(widget.exam.id!);
         },
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -246,45 +255,57 @@ class _StatisticsTab extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () => _showHistoryDialog(context, stat),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: hasViolations
-                  ? Colors.red.withOpacity(0.3)
-                  : Colors.green.withOpacity(0.3),
-              width: 1,
-            ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: hasViolations
+                ? Colors.red.withOpacity(0.3)
+                : Colors.green.withOpacity(0.3),
+            width: 1,
           ),
-          child: Column(
+        ),
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            dividerColor: Colors.transparent,
+          ),
+          child: ExpansionTile(
+            onExpansionChanged: (expanded) {
+              setState(() {
+                // Cập nhật trạng thái expanded
+                _expandedStates[stat.student.id] = expanded;
+              });
+            },
+            tilePadding: EdgeInsets.zero,
+            childrenPadding: EdgeInsets.zero,
+            title: _buildStudentHeader(stat, hasViolations, _expandedStates[stat.student.id] ?? false),
             children: [
-              _buildStudentHeader(stat, hasViolations),
               const Divider(height: 1),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _buildViolationIndicator(
-                      'Face Detection',
-                      stat.faceDetectionCount,
-                      Icons.face,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildViolationIndicator(
-                      'Tab Switch',
-                      stat.tabSwitchCount,
-                      Icons.tab,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildViolationIndicator(
-                      'Screen Capture',
-                      stat.screenCaptureCount,
-                      Icons.screenshot,
-                    ),
-                  ],
+              InkWell(
+                onTap: () => _showHistoryDialog(context, stat),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildViolationIndicator(
+                        'Face Detection',
+                        stat.faceDetectionCount,
+                        Icons.face,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildViolationIndicator(
+                        'Tab Switch',
+                        stat.tabSwitchCount,
+                        Icons.tab,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildViolationIndicator(
+                        'Screen Capture',
+                        stat.screenCaptureCount,
+                        Icons.screenshot,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -294,7 +315,7 @@ class _StatisticsTab extends StatelessWidget {
     );
   }
 
-  Widget _buildStudentHeader(CheatingStatistic stat, bool hasViolations) {
+  Widget _buildStudentHeader(CheatingStatistic stat, bool hasViolations, bool isExpanded) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -316,46 +337,20 @@ class _StatisticsTab extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  stat.student.name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            child: Text(
+              stat.student.name,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: isExpanded ? 2 : 1,
+              overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: hasViolations
-                  ? Colors.red.withOpacity(0.1)
-                  : Colors.green.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  hasViolations ? Icons.warning : Icons.check_circle,
-                  size: 16,
-                  color: hasViolations ? Colors.red : Colors.green,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  hasViolations ? 'Violations Detected' : 'No Violations',
-                  style: TextStyle(
-                    color: hasViolations ? Colors.red : Colors.green,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+          Icon(
+            hasViolations ? Icons.warning : Icons.check_circle,
+            size: 20,
+            color: hasViolations ? Colors.red : Colors.green,
           ),
         ],
       ),
@@ -415,9 +410,9 @@ class _StatisticsTab extends StatelessWidget {
             context.read<CheatingRepository>(),
             context.read<TokenStorage>(),
             context.read<TokenCubit>())
-          ..loadHistories(exam.id!, stat.student.id),
+          ..loadHistories(widget.exam.id!, stat.student.id),
         child: CheatingHistoryDialog(
-          examId: exam.id!,
+          examId: widget.exam.id!,
           studentId: stat.student.id,
           studentName: stat.student.name,
           stat: stat,

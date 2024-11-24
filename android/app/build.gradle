@@ -58,6 +58,10 @@ android {
             buildConfigField "boolean", "ENABLE_LOGS", "true"
         }
     }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 flutter {

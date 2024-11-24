@@ -47,7 +47,9 @@ class CheatingStatistic {
   final int totalViolations;
   final Student student;
   final Exam exam;
+  @JsonKey(name: 'createdAt')
   final DateTime createdAt;
+  @JsonKey(name: 'updatedAt')
   final DateTime updatedAt;
 
   CheatingStatistic({
@@ -93,6 +95,7 @@ class Student {
   final String username;
   final String name;
   final String email;
+  @JsonKey(defaultValue: '')  // Default value khi null
   final String avatar;
 
   Student({
@@ -100,7 +103,7 @@ class Student {
     required this.username,
     required this.name,
     required this.email,
-    required this.avatar,
+    this.avatar = '',
   });
 
   factory Student.fromJson(Map<String, dynamic> json) => _$StudentFromJson(json);
@@ -112,7 +115,7 @@ class Exam {
   @JsonKey(name: '_id')
   final String id;
   final String title;
-  final String? description;
+  final String? description;  // Nullable field
 
   Exam({
     required this.id,

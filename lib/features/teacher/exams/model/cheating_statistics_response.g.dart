@@ -72,7 +72,7 @@ Student _$StudentFromJson(Map<String, dynamic> json) => Student(
       username: json['username'] as String,
       name: json['name'] as String,
       email: json['email'] as String,
-      avatar: json['avatar'] as String,
+      avatar: json['avatar'] as String? ?? '',
     );
 
 Map<String, dynamic> _$StudentToJson(Student instance) => <String, dynamic>{
@@ -86,7 +86,7 @@ Map<String, dynamic> _$StudentToJson(Student instance) => <String, dynamic>{
 Exam _$ExamFromJson(Map<String, dynamic> json) => Exam(
       id: json['_id'] as String,
       title: json['title'] as String,
-      description: json['description'] as String,
+      description: json['description'] as String?,
     );
 
 Map<String, dynamic> _$ExamToJson(Exam instance) => <String, dynamic>{
