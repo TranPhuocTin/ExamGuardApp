@@ -14,6 +14,7 @@ import '../cubit/student_exam_cubit.dart';
 import '../cubit/student_exam_state.dart';
 import '../cubit/answer_submission_cubit.dart';
 import '../cubit/answer_submission_state.dart';
+import '../cubit/exam_submission_cubit.dart';
 
 class StudentExamDetailView extends StatefulWidget {
   final Exam exam;
@@ -113,6 +114,13 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
             tokenCubit: context.read<TokenCubit>(),
           ),
         ),
+        BlocProvider<ExamSubmissionCubit>(
+          create: (context) => ExamSubmissionCubit(
+            examRepository: context.read<ExamRepository>(),
+            tokenStorage: context.read<TokenStorage>(),
+            tokenCubit: context.read<TokenCubit>(),
+          ),
+        ),
       ],
       child: Scaffold(
         body: Stack(
@@ -178,10 +186,31 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
                                 return _buildQuestionCard(questions[index], index);
                               } else if (!state.hasReachedMax) {
                                 return Center(child: CircularProgressIndicator());
+                              } else if (index == questions.length) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 20, bottom: 40),
+                                  child: ElevatedButton(
+                                    onPressed: _submitExam,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryColor,
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Submit',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                );
                               }
                               return null;
                             },
-                            childCount: questions.length + (state.hasReachedMax ? 0 : 1),
+                            childCount: questions.length + 1,
                           ),
                         );
                       }
@@ -325,43 +354,14 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
     );
   }
 
-  Widget _buildSubmitButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: ElevatedButton(
-        onPressed: _submitAnswers,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryColor,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        child: const Text(
-          'Submit Answers',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _submitAnswers() async {
-    try {
-      for (var entry in selectedAnswers.entries) {
-        await context.read<StudentExamCubit>().submitAnswer(
-          entry.key,
-          entry.value,
-        );
-      }
+  void _submitExam() async {
+    try {     
+      await context.read<ExamSubmissionCubit>().submitExam(widget.exam.id!);
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Nộp bài thành công')),
       );
-      Navigator.of(context).pop(); // Return to previous screen
-      
+      Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Có lỗi xảy ra khi nộp bài')),

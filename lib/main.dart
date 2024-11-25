@@ -19,6 +19,7 @@ import 'data/cheating_repository.dart';
 import 'data/exam_repository.dart';
 import 'features/notification/cubit/notification_cubit.dart';
 import 'features/splash/screens/splash_screen.dart';
+import 'features/student/exam/cubit/exam_submission_cubit.dart';
 import 'features/student/exam/cubit/student_exam_cubit.dart';
 import 'features/student/exam_monitoring/cubit/face_monitoring_cubit.dart';
 import 'features/student/homepage/view/student_homepage_view.dart';
@@ -51,6 +52,13 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<BaseHomepageCubit>(
           create: (context) => BaseHomepageCubit(context.read<ExamRepository>(), context.read<TokenStorage>(), context.read<TokenCubit>()),
+        ),
+        BlocProvider<ExamSubmissionCubit>(
+          create: (context) => ExamSubmissionCubit(
+            examRepository: context.read<ExamRepository>(),
+            tokenStorage: context.read<TokenStorage>(),
+            tokenCubit: context.read<TokenCubit>(),
+          ),
         ),
       ],
       child: MaterialApp(

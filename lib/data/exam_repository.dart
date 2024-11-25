@@ -150,4 +150,12 @@ class ExamRepository /*extends BaseRepository*/{
     }
   }
 
+  Future<void> submitExam(String clientId, String token, String examId) async {
+    await DioClient.performRequest(
+      ApiUrls.submitExam(examId),
+      clientId: clientId,
+      token: token,
+      method: 'POST',
+    );
+  }
 }

@@ -19,4 +19,5 @@ class ApiUrls {
   static String getcheatingStatistics(String examId) => '/api/cheating/list-cheating-statistics/$examId';
   static String joinExam(String examId) => '/api/exam/join/$examId';
   static String getCheatingHistories(String examId, String studentId) => '/api/cheating/list-cheating-histories-by-student/$examId/$studentId';
+  static String submitExam(String examId) => '/api/exam/submit/$examId';
 }
