@@ -11,6 +11,8 @@ import '../../../../services/socket_service.dart';
 import '../../../../utils/share_preference/shared_preference.dart';
 import '../../../../utils/share_preference/token_cubit.dart';
 import '../../../common/view/base_homepage_view.dart';
+import '../../../notification/cubit/notification_cubit.dart';
+import '../../../notification/cubit/notification_state.dart';
 import '../../../realtime/cubit/realtime_cubit.dart';
 import '../../exams/cubit/cheating_statistics_cubit.dart';
 import '../../exams/view/exam_page.dart';
@@ -47,19 +49,24 @@ class _TeacherHomepageViewState extends State<TeacherHomepageView> {
 
   @override
   Widget build(BuildContext context) {
-    return GlobalErrorHandler(
-      child: Scaffold(
-        resizeToAvoidBottomInset: true,
-        extendBody: true,
-        body: _widgetOptions.elementAt(_selectedIndex),
-        bottomNavigationBar: CustomNavBar(
-          selectedIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: const [
-            NavBarItem(icon: Icons.home_rounded, label: 'Home'),
-            NavBarItem(icon: Icons.assignment_rounded, label: 'Exams'),
-            NavBarItem(icon: Icons.person_rounded, label: 'Profile'),
-          ],
+    return BlocListener<NotificationCubit, NotificationState>(
+      listener: (context, state) {
+        // Xử lý notification tại đây
+      },
+      child: GlobalErrorHandler(
+        child: Scaffold(
+          resizeToAvoidBottomInset: true,
+          extendBody: true,
+          body: _widgetOptions.elementAt(_selectedIndex),
+          bottomNavigationBar: CustomNavBar(
+            selectedIndex: _selectedIndex,
+            onTap: _onItemTapped,
+            items: const [
+              NavBarItem(icon: Icons.home_rounded, label: 'Home'),
+              NavBarItem(icon: Icons.assignment_rounded, label: 'Exams'),
+              NavBarItem(icon: Icons.person_rounded, label: 'Profile'),
+            ],
+          ),
         ),
       ),
     );

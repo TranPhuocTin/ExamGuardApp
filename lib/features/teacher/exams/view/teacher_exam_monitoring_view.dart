@@ -16,13 +16,30 @@ import '../cubit/exam_cubit.dart';
 import '../model/cheating_statistics_response.dart';
 import 'cheating_history_dialog.dart';
 
-class TeacherExamMonitoringView extends StatelessWidget {
+class TeacherExamMonitoringView extends StatefulWidget {
+  static const routeName = '/teacher_exam_monitoring';
   final common.Exam exam;
+  final VoidCallback? onNavigationComplete;
 
   const TeacherExamMonitoringView({
     Key? key,
     required this.exam,
+    this.onNavigationComplete,
   }) : super(key: key);
+
+  @override
+  State<TeacherExamMonitoringView> createState() => _TeacherExamMonitoringViewState();
+}
+
+class _TeacherExamMonitoringViewState extends State<TeacherExamMonitoringView> {
+  @override
+  void initState() {
+    super.initState();
+    // Call the callback after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onNavigationComplete?.call();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +50,7 @@ class TeacherExamMonitoringView extends StatelessWidget {
               context.read<CheatingRepository>(),
               context.read<TokenStorage>(),
               context.read<TokenCubit>())
-            ..loadStatistics(exam.id!),
+            ..loadStatistics(widget.exam.id!),
         ),
       ],
       child: BlocListener<RealtimeCubit, RealtimeState>(
@@ -46,8 +63,8 @@ class TeacherExamMonitoringView extends StatelessWidget {
             final examData = data['exam'] as Map<String, dynamic>;
             final examId = examData['_id'] as String;
             print('🔍 ExamId from socket: $examId');
-            print('🎯 Current exam.id: ${exam.id}');
-            if (examId == exam.id) {
+            print('🎯 Current exam.id: ${widget.exam.id}');
+            if (examId == widget.exam.id) {
               context
                   .read<CheatingStatisticsCubit>()
                   .handleNewCheatingDetected(state.data);
@@ -61,7 +78,7 @@ class TeacherExamMonitoringView extends StatelessWidget {
             preferredSize: const Size.fromHeight(kToolbarHeight),
             child: _buildCustomAppBar(context),
           ),
-          body: _StatisticsTab(exam: exam),
+          body: _StatisticsTab(exam: widget.exam),
         ),
       ),
     );
@@ -103,7 +120,7 @@ class TeacherExamMonitoringView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          exam.title,
+                          widget.exam.title,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

@@ -27,6 +27,8 @@ import 'features/teacher/exams/cubit/question_cubit.dart';
 import 'utils/widgets/global_error_handler.dart';
 import 'services/notification_service.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -111,7 +113,7 @@ void main() async {
             lazy: false,
             create: (context) => NotificationCubit(
               context.read<NotificationService>(),
-              context,
+              navigatorKey,
             ),
           ),
           BlocProvider<RealtimeCubit>(
