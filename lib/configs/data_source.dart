@@ -21,4 +21,5 @@ class ApiUrls {
   static String getCheatingHistories(String examId, String studentId) => '/api/cheating/list-cheating-histories-by-student/$examId/$studentId';
   static String submitExam(String examId) => '/api/exam/submit/$examId';
   static String getGrade(String examId) => '/api/grade/view-grade/$examId';
+  static String getExamGrades(String examId) => '/api/grade/list-by-exam/$examId';
 }

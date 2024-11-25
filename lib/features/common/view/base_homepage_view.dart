@@ -1,9 +1,11 @@
+import 'package:exam_guardian/configs/app_animations.dart';
 import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
 import 'package:exam_guardian/features/login/cubit/auth_state.dart';
 import 'package:exam_guardian/features/student/exam/view/student_exam_detail_view.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../../configs/app_colors.dart';
 import '../../../data/cheating_repository.dart';
@@ -102,7 +104,13 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
               if (isLoading) {
                 return Padding(
                   padding: EdgeInsets.symmetric(vertical: 16.0),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: Center(
+                    child: Lottie.asset(
+                      AppAnimations.loading,
+                      width: 100,
+                      height: 100,
+                    ),
+                  ),
                 );
               }
               return null;
@@ -222,7 +230,7 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                 slivers: [
                   SliverAppBar(
                     floating: true,
-                    backgroundColor: Colors.grey[100],
+                    backgroundColor: AppColors.backgroundGrey,
                     elevation: 0,
                     title:
                         Image.asset('assets/icons/exam_guard_logo.png', height: 40),
@@ -286,11 +294,20 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                       if (state is HomepageInitial) {
                         return SliverFillRemaining(
                           child: Center(
-                            child: CircularProgressIndicator(),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Lottie.asset(
+                                  AppAnimations.loading,
+                                  width: 200,
+                                  height: 200,
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }
-                      
+
                       if (state is HomepageError) {
                         return SliverFillRemaining(
                           child: Center(
@@ -299,10 +316,10 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                         );
                       }
 
-                      final exams = (state is HomepageLoaded 
-                          ? state.exams 
-                          : state is HomepageLoading 
-                              ? state.currentExams 
+                      final exams = (state is HomepageLoaded
+                          ? state.exams
+                          : state is HomepageLoading
+                              ? state.currentExams
                               : <Exam>[]) as List<Exam>;
 
                       return _buildExamList(

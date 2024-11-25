@@ -16,6 +16,7 @@ class ExamCard extends StatelessWidget {
   final Exam exam;
   final VoidCallback? onExamUpdated;
   final VoidCallback? onExamTapped;
+  final VoidCallback? onViewGrades;
 
   const ExamCard({
     Key? key,
@@ -24,6 +25,7 @@ class ExamCard extends StatelessWidget {
     required this.isShowJoinButton,
     this.onExamUpdated,
     this.onExamTapped,
+    this.onViewGrades,
   }) : super(key: key);
 
   @override
@@ -296,6 +298,13 @@ class ExamCard extends StatelessWidget {
                 title: 'Delete',
                 color: Colors.red,
                 onTap: () => _handleDelete(context),
+              ),
+              _buildOptionItem(
+                context,
+                icon: Icons.grade,
+                title: 'View Grades',
+                color: AppColors.primaryColor,
+                onTap: () => onViewGrades?.call(),
               ),
             ],
           ),

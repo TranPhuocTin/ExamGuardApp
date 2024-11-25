@@ -30,11 +30,23 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    final defaultStartTime = now.add(Duration(minutes: 3));
+    final defaultEndTime = defaultStartTime.add(Duration(hours: 1));
+
     _titleController = TextEditingController(text: widget.exam?.title ?? '');
     _descriptionController = TextEditingController(text: widget.exam?.description ?? '');
-    _startTimeController = TextEditingController(text: widget.exam != null ? _formatDateTime(widget.exam!.startTime) : '');
-    _endTimeController = TextEditingController(text: widget.exam != null ? _formatDateTime(widget.exam!.endTime) : '');
-    _durationController = TextEditingController(text: widget.exam?.duration.toString() ?? '');
+    _startTimeController = TextEditingController(
+      text: widget.exam != null 
+        ? _formatDateTime(widget.exam!.startTime) 
+        : _formatDateTime(defaultStartTime)
+    );
+    _endTimeController = TextEditingController(
+      text: widget.exam != null 
+        ? _formatDateTime(widget.exam!.endTime) 
+        : _formatDateTime(defaultEndTime)
+    );
+    _durationController = TextEditingController(text: widget.exam?.duration.toString() ?? '60');
     _selectedStatus = widget.filteredStatus ?? widget.exam?.status ?? 'Scheduled';
     
     if (widget.exam != null) {
@@ -197,10 +209,21 @@ class _CreateUpdateExamViewState extends State<CreateUpdateExamView> {
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
         labelText: 'Duration (minutes)',
-        prefixIcon: Icon(Icons.timer),
+        prefixIcon: Icon(Icons.timer, color: AppColors.primaryColor),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Colors.grey.shade300),
         ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: AppColors.primaryColor, width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.white,
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {

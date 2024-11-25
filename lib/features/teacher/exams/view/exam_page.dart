@@ -2,14 +2,21 @@ import 'package:exam_guardian/features/teacher/exams/view/search_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
+import '../../../../configs/app_animations.dart';
+import '../../../../data/exam_repository.dart';
+import '../../../../utils/share_preference/shared_preference.dart';
+import '../../../../utils/share_preference/token_cubit.dart';
 import '../../../../utils/transitions/slide_up_route.dart';
 import '../../../common/models/exam.dart';
 import '../cubit/exam_cubit.dart';
 import '../cubit/exam_state.dart';
 import '../../../common/widgets/exam_card.dart';
 import '../../../../configs/app_colors.dart';
+import '../cubit/grade_list_cubit.dart';
 import 'create_update_exam_view.dart';
 import 'exam_detail_view.dart';
+import '../view/grade_list_view.dart';
 
 class ExamListPage extends StatefulWidget {
   @override
@@ -255,7 +262,7 @@ class _ExamListPageState extends State<ExamListPage> {
       builder: (context, state) {
         if (state is ExamInitial || (state is ExamLoading && state.isFirstFetch)) {
           return SliverFillRemaining(
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: Lottie.asset(AppAnimations.loading)),
           );
         } else if (state is ExamLoaded || (state is ExamLoading && !state.isFirstFetch)) {
           List<Exam> exams = [];
@@ -272,16 +279,50 @@ class _ExamListPageState extends State<ExamListPage> {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 if (index < exams.length) {
+                  final exam = exams[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
-                    child: ExamCard(exam: exams[index], isShowMoreIcon: true, isShowJoinButton: false,onExamTapped: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => ExamDetailView(exam: exams[index])));
-                    },),
+                    child: ExamCard(
+                      exam: exam,
+                      // isShowMoreIcon: exam.status != 'In Progress',
+                      isShowMoreIcon: true,
+                      isShowJoinButton: false,
+                      onExamTapped: () {
+                        if (exam.status == 'In Progress') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Không thể chỉnh sửa bài thi đang diễn ra'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ExamDetailView(exam: exam)
+                          )
+                        );
+                      },
+                      onViewGrades: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => BlocProvider(
+                              create: (context) => GradeListCubit(
+                                examRepository: context.read<ExamRepository>(),
+                                tokenStorage: context.read<TokenStorage>(),
+                                tokenCubit: context.read<TokenCubit>(),
+                              ),
+                              child: GradeListView(examId: exam.id ?? ''),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   );
                 } else if (isLoading) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 32.0),
-                    child: Center(child: CircularProgressIndicator()),
+                    child: Center(child: Lottie.asset(AppAnimations.loading)),
                   );
                 } else {
                   return SizedBox.shrink();
