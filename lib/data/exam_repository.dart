@@ -3,6 +3,7 @@ import 'package:exam_guardian/data/base_repository.dart';
 import 'package:exam_guardian/features/common/models/exam_response.dart';
 import '../configs/dio_client.dart';
 import '../features/common/models/exam.dart';
+import '../features/common/models/grade_response.dart';
 import '../features/common/models/question_response.dart';
 import '../features/student/exam/models/student_exam_response.dart';
 import '../utils/exceptions/token_exceptions.dart';
@@ -157,5 +158,10 @@ class ExamRepository /*extends BaseRepository*/{
       token: token,
       method: 'POST',
     );
+  }
+
+  Future<GradeResponse> getGrade(String clientId, String token, String examId) async {
+    final response = await DioClient.performRequest(ApiUrls.getGrade(examId), clientId: clientId, token: token, method: 'GET');
+    return GradeResponse.fromJson(response.data);
   }
 }

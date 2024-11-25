@@ -20,6 +20,7 @@ import 'data/exam_repository.dart';
 import 'features/notification/cubit/notification_cubit.dart';
 import 'features/splash/screens/splash_screen.dart';
 import 'features/student/exam/cubit/exam_submission_cubit.dart';
+import 'features/student/exam/cubit/grade_cubit.dart';
 import 'features/student/exam/cubit/student_exam_cubit.dart';
 import 'features/student/exam_monitoring/cubit/face_monitoring_cubit.dart';
 import 'features/student/homepage/view/student_homepage_view.dart';
@@ -55,6 +56,13 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<ExamSubmissionCubit>(
           create: (context) => ExamSubmissionCubit(
+            examRepository: context.read<ExamRepository>(),
+            tokenStorage: context.read<TokenStorage>(),
+            tokenCubit: context.read<TokenCubit>(),
+          ),
+        ),
+        BlocProvider< GradeCubit>(
+          create: (context) => GradeCubit(
             examRepository: context.read<ExamRepository>(),
             tokenStorage: context.read<TokenStorage>(),
             tokenCubit: context.read<TokenCubit>(),

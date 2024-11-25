@@ -9,7 +9,10 @@ import '../../../configs/app_colors.dart';
 import '../../../data/cheating_repository.dart';
 import '../../../data/exam_repository.dart';
 import '../../../utils/share_preference/token_cubit.dart';
+import '../../student/exam/cubit/grade_cubit.dart';
+import '../../student/exam/cubit/grade_state.dart';
 import '../../student/exam/cubit/student_exam_cubit.dart';
+import '../../student/exam/widgets/grade_dialog.dart';
 import '../../student/exam_monitoring/cubit/face_monitoring_cubit.dart';
 import '../../teacher/exams/view/teacher_exam_monitoring_view.dart';
 import '../widgets/exam_card.dart';
@@ -167,6 +170,17 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                                 title: const Text('Thông báo'),
                                 content: Text(e.toString()),
                                 actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      context.read<GradeCubit>().getGrade(exams[index].id!);
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) => const GradeDialog(),
+                                      );
+                                    },
+                                    child: const Text('Xem điểm'),
+                                  ),
                                   TextButton(
                                     onPressed: () => Navigator.of(context).pop(),
                                     child: const Text('Đóng'),
