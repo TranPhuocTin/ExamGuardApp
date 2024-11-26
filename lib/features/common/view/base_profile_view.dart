@@ -105,7 +105,7 @@ abstract class AbstractProfilePage extends StatelessWidget {
                       title: 'Log out',
                       onTap: () async {
                         context.read<UserCubit>().resetState();
-                        await context.read<AuthCubit>().logout();
+                        await context.read<AuthCubit>().logout(context);
                         Navigator.pushNamedAndRemoveUntil(
                           context,
                           '/login',
@@ -189,6 +189,7 @@ abstract class AbstractProfilePage extends StatelessWidget {
   Widget _buildProfileHeader(BuildContext context, AuthState state) {
     return Container(
       width: double.infinity,
+      margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,

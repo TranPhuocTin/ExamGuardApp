@@ -59,6 +59,10 @@ class RealtimeCubit extends Cubit<RealtimeState> {
   }
 
   Future<void> initializeSocket() async {
+    if (_isClosed) {
+      _isClosed = false;  // Reset flag
+    }
+    
     try {
       final clientId = await _tokenStorage.getClientId();
       if (clientId == null) {
@@ -197,19 +201,19 @@ class RealtimeCubit extends Cubit<RealtimeState> {
   //   }
   // }
 
-  @override
-  Future<void> close() {
-    print(' Closing RealtimeCubit...');
-    _isClosed = true;
-    _socketService.socket.off('connect');
-    _socketService.socket.off('disconnect');
-    _socketService.socket.off('student_join');
-    _socketService.socket.off('cheating_detected');
-    _socketService.socket.off('student_leave');
-    _socketService.socket.off('error');
-    _socketService.disconnect();
-    return super.close();
-  }
+  // @override
+  // Future<void> close() {
+  //   print(' Closing RealtimeCubit...');
+  //   _isClosed = true;
+  //   _socketService.socket.off('connect');
+  //   _socketService.socket.off('disconnect');
+  //   _socketService.socket.off('student_join');
+  //   _socketService.socket.off('cheating_detected');
+  //   _socketService.socket.off('student_leave');
+  //   _socketService.socket.off('error');
+  //   _socketService.disconnect();
+  //   return super.close();
+  // }
 
   SocketService get socketService => _socketService;
 
@@ -236,6 +240,20 @@ class RealtimeCubit extends Cubit<RealtimeState> {
   // Hủy callback
   void clearEventCallback() {
     onEventReceived = null;
+  }
+
+  void cleanupSocket() {
+    print('🧹 Cleaning up socket connection...');
+    _isClosed = true;
+    if (_socketService.socket != null) {
+      _socketService.socket.off('connect');
+      _socketService.socket.off('disconnect'); 
+      _socketService.socket.off('newCheatingDetected');
+      _socketService.socket.off('error');
+      _socketService.disconnect();
+    }
+    _isClosed = false;  // Reset flag để cho phép kết nối mới
+    emit(RealtimeInitial());
   }
 
 } 

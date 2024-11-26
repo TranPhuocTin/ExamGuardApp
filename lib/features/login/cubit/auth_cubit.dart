@@ -4,6 +4,9 @@ import 'package:exam_guardian/data/auth_repository.dart';
 import 'package:exam_guardian/features/login/models/login_response.dart';
 import '../../../utils/share_preference/shared_preference.dart';
 import 'auth_state.dart';
+import 'package:exam_guardian/features/realtime/cubit/realtime_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/material.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository = AuthRepository();
@@ -60,14 +63,18 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> logout() async {
-    try{
+  Future<void> logout(BuildContext context) async {
+    try {
+      context.read<RealtimeCubit>().cleanupSocket();
+      
       await _authRepository.logout();
-      emit(
-        AuthState(isLoading: false, isLoggedIn: false, isObscure: true, user: null),
-      );
-    }catch(e){
-      Exception(e);
+      
+      emit(AuthState(isLoading: false, isLoggedIn: false, isObscure: true));
+    } catch (e) {
+      emit(state.copyWith(
+        errorMessage: e.toString(),
+        shouldShowError: true,
+      ));
     }
   }
 
