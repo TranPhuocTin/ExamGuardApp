@@ -23,4 +23,6 @@ class ApiUrls {
   static String getGrade(String examId) => '/api/grade/view-grade/$examId';
   static String getExamGrades(String examId) => '/api/grade/list-by-exam/$examId';
   static String getStudentAnswer(String examId, String studentId) => '/api/answer/$examId/list-by-student/$studentId';
+  static String forgotPassword = '/api/auth/forgot-password';
+  static String resetPassword = '/api/auth/reset-password';
 }

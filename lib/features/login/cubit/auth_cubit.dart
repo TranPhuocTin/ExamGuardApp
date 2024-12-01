@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:exam_guardian/data/auth_repository.dart';
 import 'package:exam_guardian/features/login/models/login_response.dart';
+import '../../../utils/exceptions/api_exceptions.dart';
 import '../../../utils/share_preference/shared_preference.dart';
 import 'auth_state.dart';
 import 'package:exam_guardian/features/realtime/cubit/realtime_cubit.dart';
@@ -31,23 +32,17 @@ class AuthCubit extends Cubit<AuthState> {
         tokens: loginResponse.metadata.tokens,
         shouldShowError: false,
       ));
-      print('user: ${loginResponse.metadata.user}');
     } catch (error) {
       String errorMessage = 'An error occurred. Please try again.';
-      if (error is DioException) {
-        if (error.response?.statusCode == 401) {
-          errorMessage = 'Username or password is incorrect. Please try again.';
-        } else {
-          errorMessage = 'Failed to login. Please check your credentials.';
-        }
+      if (error is ApiException) {
+        errorMessage = error.message;
       }
-      print(error);
-      // emit(state.copyWith(
-      //   isLoading: false,
-      //   errorMessage: errorMessage,
-      //   isLoggedIn: false,
-      //   shouldShowError: true,
-      // ));
+      emit(state.copyWith(
+        isLoading: false,
+        errorMessage: errorMessage,
+        isLoggedIn: false,
+        shouldShowError: true,
+      ));
     }
   }
 
@@ -65,10 +60,14 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> logout(BuildContext context) async {
     try {
-      //Hiện tại phương thức close đang làm rốt loạn state của ứng dụng
-      // await context.read<RealtimeCubit>().close();
       context.read<RealtimeCubit>().cleanupSocket();
       await _authRepository.logout();
+      
+      // Clear navigation stack và trở về login screen
+      Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+        '/login',
+        (route) => false,
+      );
       
       emit(AuthState(isLoading: false, isLoggedIn: false, isObscure: true));
     } catch (e) {

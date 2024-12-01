@@ -115,7 +115,9 @@ class LoginView extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/forgot_password_view');
+                      },
                       child: Text(
                         'Forgot Password?',
                         style: TextStyles.withColor(

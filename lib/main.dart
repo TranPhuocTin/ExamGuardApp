@@ -1,3 +1,4 @@
+import 'package:exam_guardian/data/auth_repository.dart';
 import 'package:exam_guardian/data/user_repository.dart';
 import 'package:exam_guardian/features/admin/cubit/user_cubit.dart';
 import 'package:exam_guardian/features/admin/view/admin_profile_view.dart';
@@ -18,6 +19,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'ExamGuardObserver.dart';
 import 'data/cheating_repository.dart';
 import 'data/exam_repository.dart';
+import 'features/login/bloc/reset_password_cubit.dart';
+import 'features/login/view/forgot_password_view.dart';
+import 'features/login/view/verify_code_view.dart';
 import 'features/notification/cubit/notification_cubit.dart';
 import 'features/splash/screens/splash_screen.dart';
 import 'features/student/exam/cubit/exam_submission_cubit.dart';
@@ -56,6 +60,11 @@ class MyApp extends StatelessWidget {
         BlocProvider<BaseHomepageCubit>(
           create: (context) => BaseHomepageCubit(context.read<ExamRepository>(), context.read<TokenStorage>(), context.read<TokenCubit>()),
         ),
+        BlocProvider<ResetPasswordCubit>(
+          create: (context) => ResetPasswordCubit(
+            authRepository: context.read<AuthRepository>(),
+          ),
+        ),
         BlocProvider<ExamSubmissionCubit>(
           create: (context) => ExamSubmissionCubit(
             examRepository: context.read<ExamRepository>(),
@@ -93,6 +102,7 @@ class MyApp extends StatelessWidget {
           '/admin_profile_screen': (context) => AdminProfileScreen(),
           '/teacher_homepage': (context) => TeacherHomepageView(),
           '/student_homepage': (context) => StudentHomepageView(),
+          '/forgot_password_view': (context) => ForgotPasswordView(),
         },
         navigatorKey: navigatorKey,
       ),
@@ -121,6 +131,9 @@ void main() async {
         ),
         RepositoryProvider<CheatingRepository>(
           create: (context) => CheatingRepository(),
+        ),
+        RepositoryProvider<AuthRepository>(
+          create: (context) => AuthRepository(),
         ),
         RepositoryProvider<SocketService>(
           create: (context) => socketService,
