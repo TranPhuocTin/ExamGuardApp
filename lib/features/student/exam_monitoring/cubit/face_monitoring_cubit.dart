@@ -129,18 +129,6 @@ class FaceMonitoringCubit extends Cubit<FaceMonitoringState> {
     ));
   }
 
-  void handlePipModeChange(bool isInPipMode) async {
-    if (isInPipMode) {
-      print('⚠️ Phát hiện học sinh sử dụng PiP Mode - Có thể đang gian lận');
-      final detectionState = CheatingDetectionState(
-        behavior: CheatingBehavior.pipMode,
-        message: 'Phát hiện sử dụng chế độ PiP Mode',
-        timestamp: DateTime.now(),
-      );
-      updateCheatingState(detectionState);
-    }
-  }
-
   @override
   Future<void> close() {
     _cheatingTimer?.cancel();

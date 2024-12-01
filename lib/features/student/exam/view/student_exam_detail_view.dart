@@ -8,6 +8,7 @@ import '../../../../utils/share_preference/shared_preference.dart';
 import '../../../../utils/share_preference/token_cubit.dart';
 import '../../../common/models/exam.dart';
 import '../../../common/models/question_response.dart';
+import '../../exam_monitoring/models/cheating_detection_state.dart';
 import '../../exam_monitoring/view/face_monitoring_view.dart';
 import '../../exam_monitoring/cubit/face_monitoring_cubit.dart';
 import '../cubit/student_exam_cubit.dart';
@@ -25,7 +26,7 @@ class StudentExamDetailView extends StatefulWidget {
   State<StudentExamDetailView> createState() => _StudentExamDetailViewState();
 }
 
-class _StudentExamDetailViewState extends State<StudentExamDetailView> with InfiniteScrollMixin {
+class _StudentExamDetailViewState extends State<StudentExamDetailView> with InfiniteScrollMixin, WidgetsBindingObserver {
   final Map<String, String> selectedAnswers = {};
   late final StudentExamCubit _examCubit;
 
@@ -33,6 +34,14 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
   void initState() {
     super.initState();
     _examCubit = context.read<StudentExamCubit>();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _examCubit.close();
+    super.dispose();
   }
 
   @override
@@ -41,12 +50,6 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
     if (state is StudentExamLoaded && !state.hasReachedMax && !state.isLoading) {
       _examCubit.loadMoreQuestions();
     }
-  }
-
-  @override
-  void dispose() {
-    _examCubit.close();
-    super.dispose();
   }
 
   Widget _buildTimer() {

@@ -7,5 +7,6 @@ enum CheatingBehavior {
   eyesClosed,
   spoofing,
   bannedObjects,
+  pipMode,
   error,
 } 

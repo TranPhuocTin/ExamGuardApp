@@ -5,14 +5,13 @@ import 'package:exam_guardian/features/student/exam/view/student_exam_detail_vie
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lottie/lottie.dart';
+// import 'package:shimmer/shimmer.dart';
 
 import '../../../configs/app_colors.dart';
 import '../../../data/cheating_repository.dart';
 import '../../../data/exam_repository.dart';
 import '../../../utils/share_preference/token_cubit.dart';
 import '../../student/exam/cubit/grade_cubit.dart';
-import '../../student/exam/cubit/grade_state.dart';
 import '../../student/exam/cubit/student_exam_cubit.dart';
 import '../../student/exam/widgets/grade_dialog.dart';
 import '../../student/exam_monitoring/cubit/face_monitoring_cubit.dart';
@@ -21,6 +20,7 @@ import '../widgets/exam_card.dart';
 import '../cubit/base_homepage_cubit.dart';
 import '../cubit/base_homepage_state.dart';
 import '../models/exam.dart';
+import '../widgets/exam_card_shimmer.dart';
 
 class BaseHomePageWrapper extends StatefulWidget {
   @override
@@ -102,15 +102,9 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
           (context, index) {
             if (index >= exams.length) {
               if (isLoading) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  child: Center(
-                    child: Lottie.asset(
-                      AppAnimations.loading,
-                      width: 100,
-                      height: 100,
-                    ),
-                  ),
+                return const Padding(
+                  padding: EdgeInsets.only(bottom: 16.0),
+                  child: ExamCardShimmer(),
                 );
               }
               return null;
@@ -292,17 +286,12 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                   BlocBuilder<BaseHomepageCubit, BaseHomepageState>(
                     builder: (context, state) {
                       if (state is HomepageInitial) {
-                        return SliverFillRemaining(
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Lottie.asset(
-                                  AppAnimations.loading,
-                                  width: 200,
-                                  height: 200,
-                                ),
-                              ],
+                        return SliverPadding(
+                          padding: EdgeInsets.fromLTRB(16, 16, 16, 100),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) => const ExamCardShimmer(),
+                              childCount: 3,
                             ),
                           ),
                         );

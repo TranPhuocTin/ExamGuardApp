@@ -6,6 +6,7 @@ enum CheatingBehavior {
   lookingRight,
   spoofing,
   pipMode,
+  switchTab,
   error
 }
 

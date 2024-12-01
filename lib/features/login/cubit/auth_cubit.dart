@@ -42,12 +42,12 @@ class AuthCubit extends Cubit<AuthState> {
         }
       }
       print(error);
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: errorMessage,
-        isLoggedIn: false,
-        shouldShowError: true,
-      ));
+      // emit(state.copyWith(
+      //   isLoading: false,
+      //   errorMessage: errorMessage,
+      //   isLoggedIn: false,
+      //   shouldShowError: true,
+      // ));
     }
   }
 
@@ -65,8 +65,9 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> logout(BuildContext context) async {
     try {
+      //Hiện tại phương thức close đang làm rốt loạn state của ứng dụng
+      // await context.read<RealtimeCubit>().close();
       context.read<RealtimeCubit>().cleanupSocket();
-      
       await _authRepository.logout();
       
       emit(AuthState(isLoading: false, isLoggedIn: false, isObscure: true));

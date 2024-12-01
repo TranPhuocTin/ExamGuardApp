@@ -2,6 +2,7 @@ import 'package:exam_guardian/configs/app_colors.dart';
 import 'package:exam_guardian/utils/share_preference/token_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../data/exam_repository.dart';
 import '../../../../services/notification_service.dart';
 import '../../../../services/socket_service.dart';
 import '../../../realtime/cubit/realtime_cubit.dart';
@@ -13,8 +14,10 @@ import '../../../../utils/share_preference/shared_preference.dart';
 import '../../../../data/cheating_repository.dart';
 import '../cubit/cheating_statistics_state.dart';
 import '../cubit/exam_cubit.dart';
+import '../cubit/grade_list_cubit.dart';
 import '../model/cheating_statistics_response.dart';
 import 'cheating_history_dialog.dart';
+import 'grade_list_view.dart';
 
 class TeacherExamMonitoringView extends StatefulWidget {
   static const routeName = '/teacher_exam_monitoring';
@@ -28,7 +31,8 @@ class TeacherExamMonitoringView extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<TeacherExamMonitoringView> createState() => _TeacherExamMonitoringViewState();
+  State<TeacherExamMonitoringView> createState() =>
+      _TeacherExamMonitoringViewState();
 }
 
 class _TeacherExamMonitoringViewState extends State<TeacherExamMonitoringView> {
@@ -141,32 +145,56 @@ class _TeacherExamMonitoringViewState extends State<TeacherExamMonitoringView> {
                     ),
                   ),
 
-                  // Connection Status
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(state).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _getStatusIcon(state),
-                          size: 14,
-                          color: _getStatusColor(state),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _getStatusMessage(state),
-                          style: TextStyle(
-                            color: _getStatusColor(state),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                  // Replace Connection Status with Score Button
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => BlocProvider(
+                              create: (context) => GradeListCubit(
+                                examRepository: context.read<ExamRepository>(),
+                                tokenStorage: context.read<TokenStorage>(),
+                                tokenCubit: context.read<TokenCubit>(),
+                              ),
+                              child:
+                                  GradeListView(examId: widget.exam.id ?? ''),
+                            ),
                           ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
                         ),
-                      ],
+                        decoration: BoxDecoration(
+                          color:
+                              Theme.of(context).primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.score_rounded,
+                              size: 16,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'View Scores',
+                              style: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -176,27 +204,6 @@ class _TeacherExamMonitoringViewState extends State<TeacherExamMonitoringView> {
         );
       },
     );
-  }
-
-  Color _getStatusColor(RealtimeState state) {
-    if (state is RealtimeConnected) return Colors.green;
-    if (state is RealtimeDisconnected) return Colors.red;
-    if (state is RealtimeError) return Colors.orange;
-    return Colors.grey;
-  }
-
-  IconData _getStatusIcon(RealtimeState state) {
-    if (state is RealtimeConnected) return Icons.check_circle;
-    if (state is RealtimeDisconnected) return Icons.error_outline;
-    if (state is RealtimeError) return Icons.warning;
-    return Icons.hourglass_empty;
-  }
-
-  String _getStatusMessage(RealtimeState state) {
-    if (state is RealtimeConnected) return 'Connected';
-    if (state is RealtimeDisconnected) return 'Disconnected';
-    if (state is RealtimeError) return 'Error: ${state.message}';
-    return 'Initializing...';
   }
 }
 
@@ -226,9 +233,10 @@ class _StatisticsTabState extends State<_StatisticsTab> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Theme.of(context).primaryColor.withOpacity(0.05),
-                      Colors.white,
+                      Color(0xFFF8FAFF), // Xanh dương rất nhạt
+                      Colors.white, // Trắng
                     ],
+                    stops: const [0.0, 0.9],
                   ),
                 ),
                 child: _buildContent(context, state),
@@ -295,7 +303,8 @@ class _StatisticsTabState extends State<_StatisticsTab> {
             },
             tilePadding: EdgeInsets.zero,
             childrenPadding: EdgeInsets.zero,
-            title: _buildStudentHeader(stat, hasViolations, _expandedStates[stat.student.id] ?? false),
+            title: _buildStudentHeader(
+                stat, hasViolations, _expandedStates[stat.student.id] ?? false),
             children: [
               const Divider(height: 1),
               InkWell(
@@ -332,7 +341,8 @@ class _StatisticsTabState extends State<_StatisticsTab> {
     );
   }
 
-  Widget _buildStudentHeader(CheatingStatistic stat, bool hasViolations, bool isExpanded) {
+  Widget _buildStudentHeader(
+      CheatingStatistic stat, bool hasViolations, bool isExpanded) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -361,7 +371,8 @@ class _StatisticsTabState extends State<_StatisticsTab> {
                 fontWeight: FontWeight.bold,
               ),
               maxLines: isExpanded ? 2 : 1,
-              overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+              overflow:
+                  isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
             ),
           ),
           Icon(

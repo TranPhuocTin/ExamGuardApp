@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/exam_cubit.dart';
 import '../cubit/exam_state.dart';
 import '../../../common/widgets/exam_card.dart';
+import '../../../common/widgets/exam_card_shimmer.dart';
 import '../../../../configs/app_colors.dart';
 import 'exam_detail_view.dart';
 
@@ -130,7 +131,16 @@ class _SearchViewState extends State<SearchView> {
   }
 
   Widget _buildLoadingIndicator() {
-    return Center(child: CircularProgressIndicator());
+    return ListView.builder(
+      padding: EdgeInsets.all(16),
+      itemCount: 3,
+      itemBuilder: (context, index) {
+        return const Padding(
+          padding: EdgeInsets.only(bottom: 16.0),
+          child: ExamCardShimmer(),
+        );
+      },
+    );
   }
 
   Widget _buildErrorMessage(String error) {

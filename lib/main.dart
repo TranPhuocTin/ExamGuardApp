@@ -7,6 +7,7 @@ import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
 import 'package:exam_guardian/features/login/view/login_view.dart';
 import 'package:exam_guardian/features/realtime/cubit/realtime_cubit.dart';
 import 'package:exam_guardian/features/teacher/exams/view/create_update_exam_view.dart';
+import 'package:exam_guardian/features/teacher/exams/view/pip_test_view.dart';
 import 'package:exam_guardian/features/teacher/homepage/view/teacher_homepage_view.dart';
 import 'package:exam_guardian/services/socket_service.dart';
 import 'package:exam_guardian/utils/navigation_service.dart';

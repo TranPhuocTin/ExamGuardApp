@@ -1,87 +1,143 @@
 package com.example.exam_guardian
 
-import io.flutter.embedding.android.FlutterActivity
-import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.plugin.common.EventChannel
-import io.flutter.plugin.common.MethodChannel
 import android.app.PictureInPictureParams
-import android.os.Build
-import android.util.Rational
 import android.content.res.Configuration
+import android.os.Build
 import androidx.annotation.NonNull
+import cl.puntito.simple_pip_mode.PipCallbackHelperActivityWrapper
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
+import android.graphics.Rect
+import android.util.Log
+import android.content.pm.PackageManager
+import android.app.ActivityManager
 
-class MainActivity: FlutterActivity() {
-    private var eventSink: EventChannel.EventSink? = null
-    private var isInPipMode = false
+class MainActivity: PipCallbackHelperActivityWrapper() {
+    private val CHANNEL = "simple_pip_mode"
+    private lateinit var channel: MethodChannel
+    private var lastPipState = false
+    private var normalHeight: Int = 0
     
     companion object {
-        private const val METHOD_CHANNEL = "com.example.exam_guardian/pip"
-        private const val EVENT_CHANNEL = "com.example.exam_guardian/pip_events"
+        private const val TAG = "PiPMode"
+        private const val PIP_HEIGHT_RATIO_THRESHOLD = 0.72
+        private const val PIP_CHECK_DELAY = 200L
     }
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
-        // Setup Method Channel
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, METHOD_CHANNEL).setMethodCallHandler { call, result ->
+        // Store initial height
+        window.decorView.post {
+            normalHeight = window.decorView.height
+            Log.d(TAG, "Initial window height: $normalHeight")
+        }
+        
+        channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+        channel.setMethodCallHandler { call, result ->
             when (call.method) {
-                "enterPipMode" -> {
-                    println("🎯 Attempting to enter PiP mode")
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        try {
-                            val pipBuilder = PictureInPictureParams.Builder()
-                            pipBuilder.setAspectRatio(Rational(16, 9))
-                            enterPictureInPictureMode(pipBuilder.build())
-                            println("✅ Entered PiP mode successfully")
-                            result.success(true)
-                        } catch (e: Exception) {
-                            println("❌ Error entering PiP mode: ${e.message}")
-                            result.error("PIP_ERROR", e.message, null)
-                        }
-                    } else {
-                        result.error("PIP_ERROR", "PiP not supported on this device", null)
+                "isInPictureInPictureMode" -> {
+                    try {
+                        val isInPip = checkPipMode()
+                        Log.d(TAG, "Method channel check PiP mode: $isInPip")
+                        result.success(isInPip)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error in method channel: ${e.message}")
+                        result.error("PIP_ERROR", e.message, null)
                     }
-                }
-                "isPipSupported" -> {
-                    println("📱 Checking PiP support")
-                    result.success(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                }
-                "isInPipMode" -> {
-                    result.success(isInPictureInPictureMode)
                 }
                 else -> result.notImplemented()
             }
         }
+    }
 
-        // Setup Event Channel
-        EventChannel(flutterEngine.dartExecutor.binaryMessenger, EVENT_CHANNEL).setStreamHandler(
-            object : EventChannel.StreamHandler {
-                override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
-                    println("🎧 Event sink registered")
-                    eventSink = events
-                    // Send initial PiP state
-                    events.success(isInPipMode)
+    private fun checkPipMode(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val decorView = window.decorView
+            val rect = Rect()
+            decorView.getWindowVisibleDisplayFrame(rect)
+            
+            val currentHeight = rect.height().toFloat()
+            val heightRatio = currentHeight / normalHeight
+            
+            Log.d(TAG, """
+                Window analysis:
+                - Normal height: $normalHeight
+                - Current height: $currentHeight
+                - Height ratio: $heightRatio
+                - Is in PiP (system): $isInPictureInPictureMode
+                - Window focus: ${hasWindowFocus()}
+                - Previous PiP state: $lastPipState
+            """.trimIndent())
+            
+            val isInPip = when {
+                isInPictureInPictureMode -> {
+                    Log.d(TAG, "System reports PiP mode")
+                    true
                 }
-
-                override fun onCancel(arguments: Any?) {
-                    println("❌ Event sink cancelled")
-                    eventSink = null
+                heightRatio <= PIP_HEIGHT_RATIO_THRESHOLD && !hasWindowFocus() -> {
+                    Log.d(TAG, "Height reduction and focus loss indicate PiP mode")
+                    true
                 }
+                lastPipState && currentHeight < normalHeight -> {
+                    Log.d(TAG, "Maintaining PiP state due to reduced height")
+                    true
+                }
+                else -> false
             }
-        )
+            
+            if (isInPip != lastPipState) {
+                lastPipState = isInPip
+                Log.d(TAG, "PiP state changed to: $isInPip")
+                channel.invokeMethod("onPipModeChanged", isInPip)
+            }
+            
+            return isInPip
+        }
+        return false
     }
 
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        println("🖥️ PiP mode changed: $isInPictureInPictureMode")
-        isInPipMode = isInPictureInPictureMode
-        eventSink?.success(isInPictureInPictureMode)
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        Log.d(TAG, "onPictureInPictureModeChanged: $isInPictureInPictureMode")
+        checkPipMode()
     }
 
-    override fun onStop() {
-        super.onStop()
-        if (isInPictureInPictureMode) {
-            eventSink?.success(true)
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        Log.d(TAG, "Configuration changed")
+        // Update normal height if we're not in PiP mode
+        if (!isInPictureInPictureMode) {
+            normalHeight = window.decorView.height
+            Log.d(TAG, "Updated normal height: $normalHeight")
+        }
+        checkPipMode()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        Log.d(TAG, "Window focus changed: $hasFocus")
+        if (!hasFocus) {
+            android.os.Handler().postDelayed({
+                checkPipMode()
+            }, PIP_CHECK_DELAY)
+        }
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        Log.d(TAG, "User leave hint received")
+        android.os.Handler().postDelayed({
+            checkPipMode()
+        }, 300)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "Activity resumed")
+        if (!isInPictureInPictureMode) {
+            normalHeight = window.decorView.height
+            Log.d(TAG, "Updated normal height on resume: $normalHeight")
         }
     }
 }

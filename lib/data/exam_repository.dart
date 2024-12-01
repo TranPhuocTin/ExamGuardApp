@@ -7,6 +7,7 @@ import '../features/common/models/grade_response.dart';
 import '../features/common/models/question_response.dart';
 import '../features/student/exam/models/student_exam_response.dart';
 import '../features/teacher/exams/model/grade_list_response.dart';
+import '../features/teacher/exams/model/student_answer_response.dart';
 import '../utils/exceptions/token_exceptions.dart';
 
 class ExamRepository /*extends BaseRepository*/{
@@ -180,5 +181,10 @@ class ExamRepository /*extends BaseRepository*/{
       queryParameters: {'page': page},
     );
     return GradeListResponse.fromJson(response.data);
+  }
+
+  Future<StudentAnswerResponse> getStudentAnswer(String clientId, String token, String examId, String studentId) async {
+    final response = await DioClient.performRequest(ApiUrls.getStudentAnswer(examId, studentId), clientId: clientId, token: token, method: 'GET');
+    return StudentAnswerResponse.fromJson(response.data);
   }
 }

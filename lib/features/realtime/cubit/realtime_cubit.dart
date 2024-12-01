@@ -180,7 +180,8 @@ class RealtimeCubit extends Cubit<RealtimeState> {
   }
 
   // void _handleNewCheatingDetected(Map<String, dynamic> data) {
-  //   if (data.containsKey('data')) {
+  //   if (data.containsKey('data')) {    _isClosed = false;  // Reset flag để cho phép kết nối mới
+  //     emit(RealtimeInitial());
   //     final cheatingData = Map<String, dynamic>.from(data['data']);
   //     try {
   //       String studentName = cheatingData['studentName'] ?? 'Học sinh';
@@ -244,16 +245,28 @@ class RealtimeCubit extends Cubit<RealtimeState> {
 
   void cleanupSocket() {
     print('🧹 Cleaning up socket connection...');
-    _isClosed = true;
-    if (_socketService.socket != null) {
       _socketService.socket.off('connect');
-      _socketService.socket.off('disconnect'); 
+      _socketService.socket.off('disconnect');
       _socketService.socket.off('newCheatingDetected');
       _socketService.socket.off('error');
       _socketService.disconnect();
-    }
+    emit(RealtimeInitial());
+  }
+
+  @override
+  Future<void> close() {
+    print(' Closing RealtimeCubit...');
+    _isClosed = true;
+    _socketService.socket.off('connect');
+    _socketService.socket.off('disconnect');
+    _socketService.socket.off('student_join');
+    _socketService.socket.off('cheating_detected');
+    _socketService.socket.off('student_leave');
+    _socketService.socket.off('error');
+    _socketService.disconnect();
     _isClosed = false;  // Reset flag để cho phép kết nối mới
     emit(RealtimeInitial());
+    return super.close();
   }
 
 } 

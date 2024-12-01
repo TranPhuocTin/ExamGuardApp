@@ -78,13 +78,12 @@ class CheatingRepository {
     switch (behavior) {
       case CheatingBehavior.lookingLeft:
       case CheatingBehavior.lookingRight:
-        return InfractionType.face;
-      case CheatingBehavior.multipleFaces:
-        return InfractionType.face;
       case CheatingBehavior.noFaceDetected:
-        return InfractionType.face;
+      case CheatingBehavior.multipleFaces:
       case CheatingBehavior.spoofing:
         return InfractionType.face;
+      case CheatingBehavior.pipMode:
+        return InfractionType.switchTab;
       default:
         return InfractionType.face;
     }

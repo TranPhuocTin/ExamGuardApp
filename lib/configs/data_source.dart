@@ -22,4 +22,5 @@ class ApiUrls {
   static String submitExam(String examId) => '/api/exam/submit/$examId';
   static String getGrade(String examId) => '/api/grade/view-grade/$examId';
   static String getExamGrades(String examId) => '/api/grade/list-by-exam/$examId';
+  static String getStudentAnswer(String examId, String studentId) => '/api/answer/$examId/list-by-student/$studentId';
 }

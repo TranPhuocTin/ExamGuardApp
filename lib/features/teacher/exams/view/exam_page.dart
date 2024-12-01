@@ -17,6 +17,7 @@ import '../cubit/grade_list_cubit.dart';
 import 'create_update_exam_view.dart';
 import 'exam_detail_view.dart';
 import '../view/grade_list_view.dart';
+import '../../../common/widgets/exam_card_shimmer.dart';
 
 class ExamListPage extends StatefulWidget {
   @override
@@ -261,8 +262,14 @@ class _ExamListPageState extends State<ExamListPage> {
     return BlocBuilder<ExamCubit, ExamState>(
       builder: (context, state) {
         if (state is ExamInitial || (state is ExamLoading && state.isFirstFetch)) {
-          return SliverFillRemaining(
-            child: Center(child: Lottie.asset(AppAnimations.loading)),
+          return SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ExamCardShimmer(),
+              ),
+              childCount: 3,
+            ),
           );
         } else if (state is ExamLoaded || (state is ExamLoading && !state.isFirstFetch)) {
           List<Exam> exams = [];
@@ -320,9 +327,9 @@ class _ExamListPageState extends State<ExamListPage> {
                     ),
                   );
                 } else if (isLoading) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 32.0),
-                    child: Center(child: Lottie.asset(AppAnimations.loading)),
+                  return const Padding(
+                    padding: EdgeInsets.only(bottom: 16.0),
+                    child: ExamCardShimmer(),
                   );
                 } else {
                   return SizedBox.shrink();
