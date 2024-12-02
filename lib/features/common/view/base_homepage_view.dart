@@ -21,6 +21,7 @@ import '../cubit/base_homepage_cubit.dart';
 import '../cubit/base_homepage_state.dart';
 import '../models/exam.dart';
 import '../widgets/exam_card_shimmer.dart';
+import '../widgets/avatar_widget.dart';
 
 class BaseHomePageWrapper extends StatefulWidget {
   @override
@@ -116,13 +117,15 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                   return ExamCard(
                     exam: exams[index],
                     isShowMoreIcon: false,
-                    isShowJoinButton: state.user?.role == 'STUDENT' ? true : false,
+                    isShowJoinButton:
+                        state.user?.role == 'STUDENT' ? true : false,
                     onExamTapped: () async {
                       try {
                         if (state.user?.role == 'TEACHER') {
                           Navigator.of(context, rootNavigator: true).push(
                             MaterialPageRoute(
-                              builder: (context) => TeacherExamMonitoringView(exam: exams[index]),
+                              builder: (context) =>
+                                  TeacherExamMonitoringView(exam: exams[index]),
                               fullscreenDialog: true,
                             ),
                           );
@@ -141,25 +144,31 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                           final currentContext = _navigatorKey.currentContext;
                           if (currentContext == null) return;
 
-                          Navigator.of(context, rootNavigator:  true). push(MaterialPageRoute(
-                            builder: (context) => MultiBlocProvider(
-                              providers: [
-                                BlocProvider<StudentExamCubit>.value(
-                                  value: studentExamCubit,
-                                ),
-                                BlocProvider<FaceMonitoringCubit>(
-                                  create: (context) => FaceMonitoringCubit(
-                                    examId: exams[index].id!,
-                                    cheatingRepository: context.read<CheatingRepository>(),
-                                    tokenStorage: context.read<TokenStorage>(),
-                                    tokenCubit: context.read<TokenCubit>(),
-                                  ),
-                                ),
-                              ],
-                              child: StudentExamDetailView(exam: exams[index]),
-                            ),
-                            fullscreenDialog: true
-                          ),);
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute(
+                                builder: (context) => MultiBlocProvider(
+                                      providers: [
+                                        BlocProvider<StudentExamCubit>.value(
+                                          value: studentExamCubit,
+                                        ),
+                                        BlocProvider<FaceMonitoringCubit>(
+                                          create: (context) =>
+                                              FaceMonitoringCubit(
+                                            examId: exams[index].id!,
+                                            cheatingRepository: context
+                                                .read<CheatingRepository>(),
+                                            tokenStorage:
+                                                context.read<TokenStorage>(),
+                                            tokenCubit:
+                                                context.read<TokenCubit>(),
+                                          ),
+                                        ),
+                                      ],
+                                      child: StudentExamDetailView(
+                                          exam: exams[index]),
+                                    ),
+                                fullscreenDialog: true),
+                          );
                         }
                       } catch (e) {
                         final currentContext = _navigatorKey.currentContext;
@@ -175,16 +184,20 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                                   TextButton(
                                     onPressed: () {
                                       Navigator.of(context).pop();
-                                      context.read<GradeCubit>().getGrade(exams[index].id!);
+                                      context
+                                          .read<GradeCubit>()
+                                          .getGrade(exams[index].id!);
                                       showDialog(
                                         context: context,
-                                        builder: (BuildContext context) => const GradeDialog(),
+                                        builder: (BuildContext context) =>
+                                            const GradeDialog(),
                                       );
                                     },
                                     child: const Text('Xem điểm'),
                                   ),
                                   TextButton(
-                                    onPressed: () => Navigator.of(context).pop(),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
                                     child: const Text('Đóng'),
                                   ),
                                 ],
@@ -224,62 +237,164 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                 slivers: [
                   SliverAppBar(
                     floating: true,
-                    backgroundColor: AppColors.backgroundGrey,
-                    elevation: 0,
-                    title:
-                        Image.asset('assets/icons/exam_guard_logo.png', height: 40),
-                    actions: [
-                      IconButton(
-                        icon: Icon(Icons.notifications_none, color: Colors.grey[800]),
-                        onPressed: () {
-                          // Hiển thị thông báo
-                        },
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: CircleAvatar(
-                          backgroundImage:
-                              AssetImage('assets/images/teacher_avatar.png'),
+                    pinned: true,
+                    expandedHeight: 220,
+                    backgroundColor: Colors.white,
+                    elevation: 2,
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppColors.primaryColor,
+                              AppColors.secondaryColor,
+                            ],
+                          ),
+                        ),
+                        child: SafeArea(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Image.asset(
+                                      'assets/icons/exam_guard_logo.png',
+                                      height: 35,
+                                      color: Colors.white,
+                                    ),
+                                    BlocBuilder<AuthCubit, AuthState>(
+                                      builder: (context, state) {
+                                        return Row(
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.notifications_none,
+                                                color: Colors.white,
+                                              ),
+                                              onPressed: () {
+                                                // Handle notifications
+                                              },
+                                            ),
+                                            const SizedBox(width: 8),
+                                            GestureDetector(
+                                              onTap: () {
+                                                // Handle profile tap
+                                              },
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                    color: Colors.white.withOpacity(0.5),
+                                                    width: 2,
+                                                  ),
+                                                ),
+                                                child: AvatarWidget(
+                                                  avatarUrl: state.user?.avatar,
+                                                  radius: 18,
+                                                  border: Border.all(
+                                                    color: Colors.white.withOpacity(0.5),
+                                                    width: 2,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(16, 24, 16, 20),
+                                  child: BlocBuilder<AuthCubit, AuthState>(
+                                    builder: (context, state) {
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Welcome back,',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color:
+                                                  Colors.white.withOpacity(0.9),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            state.user?.role == 'TEACHER'
+                                                ? state.user?.name ?? ""
+                                                : state.user?.name ?? "",
+                                            style: const TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 16),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Welcome back, Teacher!',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+                      collapseMode: CollapseMode.pin,
+                    ),
+                    bottom: PreferredSize(
+                      preferredSize: const Size.fromHeight(60),
+                      child: Container(
+                        height: 60,
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            topRight: Radius.circular(20),
+                          ),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: 'Search active exams...',
+                            hintStyle: TextStyle(color: Colors.grey[400]),
+                            prefixIcon:
+                                const Icon(Icons.search, color: Colors.grey),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.clear, color: Colors.grey),
+                              onPressed: () {
+                                _searchController.clear();
+                                context.read<BaseHomepageCubit>().resetSearch();
+                              },
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
                             ),
                           ),
-                          SizedBox(height: 16),
-                          TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              hintText: 'Search active exams...',
-                              prefixIcon: Icon(Icons.search),
-                              suffixIcon: IconButton(
-                                icon: Icon(Icons.clear),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  context.read<BaseHomepageCubit>().resetSearch();
-                                },
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -314,7 +429,9 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                       return _buildExamList(
                         exams,
                         isLoading: state is HomepageLoading,
-                        hasReachedMax: state is HomepageLoaded ? state.hasReachedMax : false,
+                        hasReachedMax: state is HomepageLoaded
+                            ? state.hasReachedMax
+                            : false,
                       );
                     },
                   ),

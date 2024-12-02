@@ -269,43 +269,75 @@ class ExamCard extends StatelessWidget {
   void _showOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(30),
+            ),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              _buildOptionItem(
-                context,
-                icon: Icons.edit,
-                title: 'Edit',
-                color: AppColors.primaryColor,
-                onTap: () => _handleEdit(context),
+            children: [
+              const SizedBox(height: 16),
+              // Action Cards
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    // Edit Action
+                    _buildActionCard(
+                      onTap: () => _handleEdit(context),
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primaryColor.withOpacity(0.8),
+                          AppColors.primaryColor,
+                        ],
+                      ),
+                      icon: Icons.edit_rounded,
+                      title: 'Edit Exam',
+                      subtitle: 'Modify exam details and settings',
+                    ),
+                    const SizedBox(height: 12),
+
+                    // View Grades Action
+                    _buildActionCard(
+                      onTap: () => onViewGrades?.call(),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.orange[400]!,
+                          Colors.orange[600]!,
+                        ],
+                      ),
+                      icon: Icons.analytics_rounded,
+                      title: 'View Grades',
+                      subtitle: 'Check student performance',
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Delete Action
+                    _buildActionCard(
+                      onTap: () => _handleDelete(context),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.red[400]!,
+                          Colors.red[600]!,
+                        ],
+                      ),
+                      icon: Icons.delete_rounded,
+                      title: 'Delete Exam',
+                      subtitle: 'Remove this exam permanently',
+                      isDestructive: true,
+                    ),
+                  ],
+                ),
               ),
-              _buildOptionItem(
-                context,
-                icon: Icons.visibility,
-                title: 'View',
-                color: AppColors.primaryColor,
-                onTap: () => _handleView(context),
-              ),
-              _buildOptionItem(
-                context,
-                icon: Icons.delete,
-                title: 'Delete',
-                color: Colors.red,
-                onTap: () => _handleDelete(context),
-              ),
-              _buildOptionItem(
-                context,
-                icon: Icons.grade,
-                title: 'View Grades',
-                color: AppColors.primaryColor,
-                onTap: () => onViewGrades?.call(),
-              ),
+              
+              // Close Button
+        
             ],
           ),
         );
@@ -313,23 +345,91 @@ class ExamCard extends StatelessWidget {
     );
   }
 
-  Widget _buildOptionItem(
-    BuildContext context, {
+  Widget _buildActionCard({
+    required VoidCallback onTap,
+    required Gradient gradient,
     required IconData icon,
     required String title,
-    required Color color,
-    required VoidCallback onTap,
+    required String subtitle,
+    bool isDestructive = false,
   }) {
-    return ListTile(
-      leading: Icon(icon, color: color),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w500,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: isDestructive 
+                  ? Colors.red.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Icon Section
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              
+              // Text Section
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Arrow Icon
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      onTap: onTap,
     );
   }
 
@@ -345,17 +445,6 @@ class ExamCard extends StatelessWidget {
       onExamUpdated!();
     }
   }
-
-  void _handleView(BuildContext context) {
-    Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ExamDetailView(exam: exam),
-      ),
-    );
-  }
-
   void _handleDelete(BuildContext context) {
     Navigator.pop(context);
     showDialog(

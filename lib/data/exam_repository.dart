@@ -6,6 +6,7 @@ import '../features/common/models/exam.dart';
 import '../features/common/models/grade_response.dart';
 import '../features/common/models/question_response.dart';
 import '../features/student/exam/models/student_exam_response.dart';
+import '../features/student/grade/models/completed_grade_response.dart';
 import '../features/teacher/exams/model/grade_list_response.dart';
 import '../features/teacher/exams/model/student_answer_response.dart';
 import '../utils/exceptions/token_exceptions.dart';
@@ -186,5 +187,22 @@ class ExamRepository /*extends BaseRepository*/{
   Future<StudentAnswerResponse> getStudentAnswer(String clientId, String token, String examId, String studentId) async {
     final response = await DioClient.performRequest(ApiUrls.getStudentAnswer(examId, studentId), clientId: clientId, token: token, method: 'GET');
     return StudentAnswerResponse.fromJson(response.data);
+  }
+
+  Future<CompletedGradeResponse> viewCompletedGrades(
+    String clientId, 
+    String token,
+    {int page = 1}
+  ) async {
+    final response = await DioClient.performRequest(
+      ApiUrls.viewCompletedGrades,
+      clientId: clientId,
+      token: token,
+      method: 'GET',
+      queryParameters: {'page': page},
+    );
+    print('Response data: ${response.data}');
+
+    return CompletedGradeResponse.fromJson(response.data);
   }
 }

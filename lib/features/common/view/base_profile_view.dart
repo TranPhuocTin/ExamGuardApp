@@ -5,6 +5,7 @@ import '../../login/cubit/auth_state.dart';
 import '../../login/cubit/auth_cubit.dart';
 import '../../admin/cubit/user_cubit.dart';
 import 'package:intl/intl.dart';
+import '../widgets/avatar_widget.dart';
 
 abstract class AbstractProfilePage extends StatelessWidget {
   const AbstractProfilePage({Key? key}) : super(key: key);
@@ -115,7 +116,9 @@ abstract class AbstractProfilePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 100,)
+                SizedBox(
+                  height: 100,
+                )
               ],
             ),
           ),
@@ -213,10 +216,13 @@ abstract class AbstractProfilePage extends StatelessWidget {
                 width: 2,
               ),
             ),
-            child: CircleAvatar(
+            child: AvatarWidget(
+              avatarUrl: state.user?.avatar,
               radius: 50,
-              backgroundImage: NetworkImage(state.user?.avatar ??
-                  'https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/175421/Originals/avatar-la-gi-2.jpg'),
+              border: Border.all(
+                color: AppColors.primaryColor.withOpacity(0.3),
+                width: 2,
+              ),
             ),
           ),
           const SizedBox(height: 20),

@@ -292,13 +292,13 @@ class _ExamListPageState extends State<ExamListPage> {
                     child: ExamCard(
                       exam: exam,
                       // isShowMoreIcon: exam.status != 'In Progress',
-                      isShowMoreIcon: true,
+                      isShowMoreIcon: exam.status != 'In Progress',
                       isShowJoinButton: false,
                       onExamTapped: () {
                         if (exam.status == 'In Progress') {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Không thể chỉnh sửa bài thi đang diễn ra'),
+                              content: Text('Cannot edit exam if it is in progress'),
                               backgroundColor: Colors.red,
                             ),
                           );

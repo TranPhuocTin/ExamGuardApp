@@ -1,5 +1,6 @@
 import 'package:exam_guardian/features/common/cubit/base_homepage_cubit.dart';
 import 'package:exam_guardian/features/student/profile/view/student_profile_page.dart';
+import 'package:exam_guardian/features/student/grade/view/completed_grade_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../data/exam_repository.dart';
@@ -10,6 +11,7 @@ import 'package:exam_guardian/utils/widgets/global_error_handler.dart';
 import 'package:exam_guardian/configs//app_colors.dart';
 
 import '../../../common/widgets/custom_nav_bar.dart';
+import '../../grade/bloc/completed_grade_cubit.dart';
 
 class StudentHomepageView extends StatefulWidget {
   @override
@@ -21,6 +23,14 @@ class _StudentHomepageViewState extends State<StudentHomepageView> {
 
   static List<Widget> _widgetOptions = <Widget>[
     StudentHomePage(),
+    BlocProvider(
+      create: (context) => CompletedGradeCubit(
+        examRepository: context.read<ExamRepository>(),
+        tokenStorage: context.read<TokenStorage>(),
+        tokenCubit: context.read<TokenCubit>(),
+      ),
+      child: const CompletedGradeView(),
+    ),
     StudentProfile()
   ];
 
@@ -42,6 +52,7 @@ class _StudentHomepageViewState extends State<StudentHomepageView> {
           onTap: _onItemTapped,
           items: const [
             NavBarItem(icon: Icons.home_rounded, label: 'Home'),
+            NavBarItem(icon: Icons.assignment_rounded, label: 'Grades'),
             NavBarItem(icon: Icons.person_rounded, label: 'Profile'),
           ],
         ),

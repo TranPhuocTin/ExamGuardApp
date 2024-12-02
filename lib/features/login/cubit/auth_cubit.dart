@@ -60,16 +60,18 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> logout(BuildContext context) async {
     try {
-      context.read<RealtimeCubit>().cleanupSocket();
+      // Clear state first
+      emit(AuthState(isLoading: false, isLoggedIn: false, isObscure: true));
+      
+      // Clean up socket and logout
+      context.read<RealtimeCubit>().close();
       await _authRepository.logout();
       
-      // Clear navigation stack và trở về login screen
-      Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+      // Navigate after state is cleared and logout is complete
+      await Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
         '/login',
         (route) => false,
       );
-      
-      emit(AuthState(isLoading: false, isLoggedIn: false, isObscure: true));
     } catch (e) {
       emit(state.copyWith(
         errorMessage: e.toString(),

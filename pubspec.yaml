@@ -89,6 +89,7 @@ flutter:
   assets:
     - assets/icons/splash_icon.png
     - assets/icons/exam_guard_logo.png
+    - assets/icons/exam_guard_icon.png
     - assets/images/teacher_avatar.png
     - assets/images/avatar_2.jpg
     - assets/icons/id-card.png
