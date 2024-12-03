@@ -44,7 +44,8 @@ class CheatingStatistic {
   final int faceDetectionCount;
   final int tabSwitchCount;
   final int screenCaptureCount;
-  final int totalViolations;
+  @JsonKey(ignore: true)
+  late final int totalViolations;
   final Student student;
   final Exam exam;
   @JsonKey(name: 'createdAt')
@@ -57,12 +58,14 @@ class CheatingStatistic {
     required this.faceDetectionCount,
     required this.tabSwitchCount,
     required this.screenCaptureCount,
-    required this.totalViolations,
+    int? totalViolations,
     required this.student,
     required this.exam,
     required this.createdAt,
     required this.updatedAt,
-  });
+  }) {
+    this.totalViolations = totalViolations ?? (faceDetectionCount + tabSwitchCount + screenCaptureCount);
+  }
 
   factory CheatingStatistic.fromJson(Map<String, dynamic> json) =>
       _$CheatingStatisticFromJson(json);
@@ -72,7 +75,6 @@ class CheatingStatistic {
     int? faceDetectionCount,
     int? tabSwitchCount,
     int? screenCaptureCount,
-    int? totalViolations,
   }) {
     return CheatingStatistic(
       id: id,
@@ -83,7 +85,6 @@ class CheatingStatistic {
       faceDetectionCount: faceDetectionCount ?? this.faceDetectionCount,
       tabSwitchCount: tabSwitchCount ?? this.tabSwitchCount,
       screenCaptureCount: screenCaptureCount ?? this.screenCaptureCount,
-      totalViolations: totalViolations ?? this.totalViolations,
     );
   }
 }
@@ -95,7 +96,7 @@ class Student {
   final String username;
   final String name;
   final String email;
-  @JsonKey(defaultValue: '')  // Default value khi null
+  @JsonKey(defaultValue: '') // Default value khi null
   final String avatar;
 
   Student({
@@ -106,7 +107,8 @@ class Student {
     this.avatar = '',
   });
 
-  factory Student.fromJson(Map<String, dynamic> json) => _$StudentFromJson(json);
+  factory Student.fromJson(Map<String, dynamic> json) =>
+      _$StudentFromJson(json);
   Map<String, dynamic> toJson() => _$StudentToJson(this);
 }
 
@@ -115,7 +117,7 @@ class Exam {
   @JsonKey(name: '_id')
   final String id;
   final String title;
-  final String? description;  // Nullable field
+  final String? description; // Nullable field
 
   Exam({
     required this.id,

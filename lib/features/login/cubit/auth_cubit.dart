@@ -8,6 +8,7 @@ import 'auth_state.dart';
 import 'package:exam_guardian/features/realtime/cubit/realtime_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+import '../../../utils/navigation_service.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository = AuthRepository();
@@ -60,18 +61,22 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> logout(BuildContext context) async {
     try {
-      // Clear state first
-      emit(AuthState(isLoading: false, isLoggedIn: false, isObscure: true));
-      
-      // Clean up socket and logout
-      context.read<RealtimeCubit>().close();
+      // Clean up socket and logout first
+      final realtimeCubit = context.read<RealtimeCubit>();
+      await realtimeCubit.close();
       await _authRepository.logout();
       
-      // Navigate after state is cleared and logout is complete
-      await Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
-        '/login',
-        (route) => false,
-      );
+      // Clear state after cleanup
+      emit(AuthState(isLoading: false, isLoggedIn: false, isObscure: true));
+      
+      // Navigate after everything is cleaned up
+      if (navigatorKey.currentContext != null) {
+        await Navigator.pushNamedAndRemoveUntil(
+          navigatorKey.currentContext!,
+          '/login',
+          (route) => false,
+        );
+      }
     } catch (e) {
       emit(state.copyWith(
         errorMessage: e.toString(),

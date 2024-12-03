@@ -159,7 +159,7 @@ void main() async {
               tokenStorage,
               socketService,
               notificationService,
-            )..initializeSocket(),
+            ),
           ),
         ],
         child: MyApp(),
