@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/face_monitoring_cubit.dart';
 import '../cubit/face_monitoring_state.dart';
-import '../services/face_detection_service.dart';
+import '../../../../services/face_detection_service.dart';
 import '../models/cheating_detection_state.dart';
 
 class FaceMonitoringView extends StatefulWidget {

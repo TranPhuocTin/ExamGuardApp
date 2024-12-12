@@ -2,6 +2,7 @@ import 'package:exam_guardian/configs/app_animations.dart';
 import 'package:exam_guardian/features/login/cubit/auth_cubit.dart';
 import 'package:exam_guardian/features/login/cubit/auth_state.dart';
 import 'package:exam_guardian/features/student/exam/view/student_exam_detail_view.dart';
+import 'package:exam_guardian/screen_info_app.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -279,7 +280,12 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                                                 color: Colors.white,
                                               ),
                                               onPressed: () {
-                                                // Handle notifications
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ScreenInfoApp(),
+                                                  ),
+                                                );
                                               },
                                             ),
                                             const SizedBox(width: 8),
@@ -291,7 +297,8 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                                                 decoration: BoxDecoration(
                                                   shape: BoxShape.circle,
                                                   border: Border.all(
-                                                    color: Colors.white.withOpacity(0.5),
+                                                    color: Colors.white
+                                                        .withOpacity(0.5),
                                                     width: 2,
                                                   ),
                                                 ),
@@ -299,7 +306,8 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                                                   avatarUrl: state.user?.avatar,
                                                   radius: 18,
                                                   border: Border.all(
-                                                    color: Colors.white.withOpacity(0.5),
+                                                    color: Colors.white
+                                                        .withOpacity(0.5),
                                                     width: 2,
                                                   ),
                                                 ),
@@ -361,7 +369,7 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                       preferredSize: const Size.fromHeight(60),
                       child: Container(
                         height: 60,
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        padding: const EdgeInsets.fromLTRB(5, 5, 5  , 5),
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.only(
@@ -376,13 +384,13 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                             hintStyle: TextStyle(color: Colors.grey[400]),
                             prefixIcon:
                                 const Icon(Icons.search, color: Colors.grey),
-                            suffixIcon: IconButton(
-                              icon: const Icon(Icons.clear, color: Colors.grey),
-                              onPressed: () {
-                                _searchController.clear();
-                                context.read<BaseHomepageCubit>().resetSearch();
-                              },
-                            ),
+                            // suffixIcon: IconButton(
+                            //   icon: const Icon(Icons.clear, color: Colors.grey),
+                            //   onPressed: () {
+                            //     _searchController.clear();
+                            //     context.read<BaseHomepageCubit>().resetSearch();
+                            //   },
+                            // ),
                             filled: true,
                             fillColor: Colors.grey[100],
                             border: OutlineInputBorder(

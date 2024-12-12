@@ -7,7 +7,9 @@ enum CheatingBehavior {
   spoofing,
   pipMode,
   switchTab,
-  error
+  error,
+  appBackground,
+  appMinimized
 }
 
 class CheatingDetectionState {

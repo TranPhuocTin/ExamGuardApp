@@ -42,15 +42,19 @@ abstract class AbstractProfilePage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
+
                           builder: (context) => Scaffold(
+                             backgroundColor: Colors.white,
                             appBar: AppBar(
                               title: const Text('View Profile'),
                               backgroundColor: Colors.white,
+                              // foregroundColor: Colors.white,
                               elevation: 0,
                               iconTheme:
                                   const IconThemeData(color: Colors.black),
                             ),
                             body: SingleChildScrollView(
+
                               child: Column(
                                 children: [
                                   _buildProfileHeader(context, state),
@@ -293,7 +297,7 @@ abstract class AbstractProfilePage extends StatelessWidget {
               Expanded(
                 child: _buildInfoTile(
                   icon: Icons.calendar_today_outlined,
-                  label: 'Member Since',
+                  label: 'Member',
                   value: state.user?.createdAt != null
                       ? DateFormat('MMM yyyy')
                           .format(DateTime.parse(state.user!.createdAt))

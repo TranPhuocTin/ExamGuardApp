@@ -10,6 +10,8 @@ import 'package:exam_guardian/features/realtime/cubit/realtime_cubit.dart';
 import 'package:exam_guardian/features/teacher/exams/view/create_update_exam_view.dart';
 import 'package:exam_guardian/features/teacher/exams/view/pip_test_view.dart';
 import 'package:exam_guardian/features/teacher/homepage/view/teacher_homepage_view.dart';
+import 'package:exam_guardian/screen_info_app.dart';
+import 'package:exam_guardian/services/app_lifecycle_service.dart';
 import 'package:exam_guardian/services/socket_service.dart';
 import 'package:exam_guardian/utils/navigation_service.dart';
 import 'package:exam_guardian/utils/share_preference/shared_preference.dart';
@@ -27,6 +29,7 @@ import 'features/splash/screens/splash_screen.dart';
 import 'features/student/exam/cubit/exam_submission_cubit.dart';
 import 'features/student/exam/cubit/grade_cubit.dart';
 import 'features/student/exam/cubit/student_exam_cubit.dart';
+import 'features/student/exam_monitoring/cubit/app_monitoring_cubit.dart';
 import 'features/student/exam_monitoring/cubit/face_monitoring_cubit.dart';
 import 'features/student/homepage/view/student_homepage_view.dart';
 import 'features/teacher/exams/cubit/exam_cubit.dart';
@@ -86,6 +89,15 @@ class MyApp extends StatelessWidget {
             tokenCubit: context.read<TokenCubit>(),
           ),
         ),
+        // BlocProvider<AppMonitoringCubit>(
+        //   create: (context) => AppMonitoringCubit(
+        //     examId: '674dc5ec874f97e70b0f1a2c',
+        //     appLifecycleService: AppLifecycleService(),
+        //     cheatingRepository: CheatingRepository(),
+        //     tokenStorage: TokenStorage(),
+        //     tokenCubit: context.read<TokenCubit>(),
+        //   ),
+        // ),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
@@ -162,7 +174,7 @@ void main() async {
             ),
           ),
         ],
-        child: MyApp(),
+        child: MyApp()
       ),
     ),
   );

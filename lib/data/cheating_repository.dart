@@ -7,17 +7,13 @@ import '../features/teacher/exams/model/cheating_statistics_response.dart';
 import '../features/teacher/exams/model/cheating_history_response.dart';
 
 class CheatingRepository {
-  Future<void> submitDetectCheating(
-    String clientId, 
-    String token, 
-    String examId,
-    CheatingDetectionState detectionState
-  ) async {
+  Future<void> submitDetectCheating(String clientId, String token,
+      String examId, CheatingDetectionState detectionState) async {
     final detectCheating = DetectCheating(
       infractionType: _mapBehaviorToInfractionType(detectionState.behavior),
       description: detectionState.message,
     );
-    
+
     final data = {
       ...detectCheating.toJson(),
     };
@@ -31,7 +27,7 @@ class CheatingRepository {
     );
   }
 
- Future<CheatingStatisticsResponse> getCheatingStatistics(
+  Future<CheatingStatisticsResponse> getCheatingStatistics(
     String clientId,
     String token,
     String examId, {
@@ -47,7 +43,7 @@ class CheatingRepository {
         'limit': limit,
       },
     );
-    
+
     return CheatingStatisticsResponse.fromJson(response.data);
   }
 
@@ -70,7 +66,7 @@ class CheatingRepository {
         if (infractionType != null) 'infractionType': infractionType,
       },
     );
-    
+
     return CheatingHistoryResponse.fromJson(response.data);
   }
 

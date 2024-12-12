@@ -6,7 +6,7 @@ part 'detect_cheating.g.dart';
 enum InfractionType {
   @JsonValue('Face')
   face,
-  @JsonValue('Switch_Tab')
+  @JsonValue('Switch Tab')
   switchTab,
   @JsonValue('Screen Capture')
   screenCapture,

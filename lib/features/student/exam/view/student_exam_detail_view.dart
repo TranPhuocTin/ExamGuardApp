@@ -11,11 +11,13 @@ import '../../../common/models/question_response.dart';
 import '../../exam_monitoring/models/cheating_detection_state.dart';
 import '../../exam_monitoring/view/face_monitoring_view.dart';
 import '../../exam_monitoring/cubit/face_monitoring_cubit.dart';
+import '../../exam_monitoring/cubit/app_monitoring_cubit.dart';
 import '../cubit/student_exam_cubit.dart';
 import '../cubit/student_exam_state.dart';
 import '../cubit/answer_submission_cubit.dart';
 import '../cubit/answer_submission_state.dart';
 import '../cubit/exam_submission_cubit.dart';
+import '../../../../services/app_lifecycle_service.dart';
 
 class StudentExamDetailView extends StatefulWidget {
   final Exam exam;
@@ -26,9 +28,11 @@ class StudentExamDetailView extends StatefulWidget {
   State<StudentExamDetailView> createState() => _StudentExamDetailViewState();
 }
 
-class _StudentExamDetailViewState extends State<StudentExamDetailView> with InfiniteScrollMixin, WidgetsBindingObserver {
+class _StudentExamDetailViewState extends State<StudentExamDetailView>
+    with InfiniteScrollMixin, WidgetsBindingObserver {
   final Map<String, String> selectedAnswers = {};
   late final StudentExamCubit _examCubit;
+  late final AppMonitoringCubit _appMonitoringCubit;
 
   @override
   void initState() {
@@ -41,24 +45,206 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _examCubit.close();
+    _appMonitoringCubit.close();
     super.dispose();
   }
 
   @override
   void onLoadMore() {
     final state = _examCubit.state;
-    if (state is StudentExamLoaded && !state.hasReachedMax && !state.isLoading) {
+    if (state is StudentExamLoaded &&
+        !state.hasReachedMax &&
+        !state.isLoading) {
       _examCubit.loadMoreQuestions();
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<StudentExamCubit>.value(
+          value: context.read<StudentExamCubit>(),
+        ),
+        BlocProvider<AnswerSubmissionCubit>(
+          create: (context) => AnswerSubmissionCubit(
+              examRepository: context.read<ExamRepository>(),
+              tokenStorage: context.read<TokenStorage>(),
+              tokenCubit: context.read<TokenCubit>()),
+        ),
+        BlocProvider<FaceMonitoringCubit>(
+          create: (context) => FaceMonitoringCubit(
+            examId: widget.exam.id!,
+            cheatingRepository: context.read<CheatingRepository>(),
+            tokenStorage: context.read<TokenStorage>(),
+            tokenCubit: context.read<TokenCubit>(),
+          ),
+        ),
+        BlocProvider<AppMonitoringCubit>(
+          create: (context) {
+            _appMonitoringCubit = AppMonitoringCubit(
+              examId: widget.exam.id!,
+              appLifecycleService: AppLifecycleService(),
+              cheatingRepository: context.read<CheatingRepository>(),
+              tokenStorage: context.read<TokenStorage>(),
+              tokenCubit: context.read<TokenCubit>(),
+            )..startMonitoring();
+            return _appMonitoringCubit;
+          },
+        ),
+        BlocProvider<ExamSubmissionCubit>(
+          create: (context) => ExamSubmissionCubit(
+            examRepository: context.read<ExamRepository>(),
+            tokenStorage: context.read<TokenStorage>(),
+            tokenCubit: context.read<TokenCubit>(),
+          ),
+        ),
+      ],
+      child: BlocListener<AppMonitoringCubit, AppMonitoringState>(
+        listener: (context, state) {
+          if (state.error != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error!),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+
+          if (state.currentBehavior != CheatingBehavior.normal) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Warning: ${state.cheatingLogs.last.message}'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        },
+        child: Scaffold(
+          body: Stack(
+            children: [
+              CustomScrollView(
+                controller: scrollController,
+                slivers: [
+                  // Custom SliverAppBar
+                  SliverAppBar(
+                    pinned: true,
+                    floating: true,
+                    snap: true,
+                    elevation: 0,
+                    backgroundColor: Colors.white,
+                    expandedHeight: 60.0,
+                    flexibleSpace: FlexibleSpaceBar(
+                      title: Text(
+                        widget.exam.title,
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      centerTitle: true,
+                    ),
+                    leading: IconButton(
+                      icon: Icon(Icons.arrow_back, color: Colors.black87),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    actions: [
+                      BlocBuilder<StudentExamCubit, StudentExamState>(
+                        builder: (context, state) {
+                          if (state is StudentExamLoaded) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: _buildTimer(),
+                            );
+                          }
+                          return SizedBox();
+                        },
+                      ),
+                    ],
+                  ),
+
+                  // Questions List
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16.0),
+                    sliver: BlocBuilder<StudentExamCubit, StudentExamState>(
+                      builder: (context, state) {
+                        if (state is StudentExamLoading) {
+                          return SliverToBoxAdapter(
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+
+                        if (state is StudentExamLoaded) {
+                          final questions = state.questions;
+                          return SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                if (index < questions.length) {
+                                  return _buildQuestionCard(
+                                      questions[index], index);
+                                } else if (!state.hasReachedMax) {
+                                  return Center(
+                                      child: CircularProgressIndicator());
+                                } else if (index == questions.length) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                        top: 20, bottom: 40),
+                                    child: ElevatedButton(
+                                      onPressed: _submitExam,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primaryColor,
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 16),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Submit',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return null;
+                              },
+                              childCount: questions.length + 1,
+                            ),
+                          );
+                        }
+
+                        return SliverToBoxAdapter(
+                          child: Center(child: Text('No questions available')),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              // Face Monitoring View
+              FaceMonitoringView(examId: widget.exam.id!),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildTimer() {
     return BlocBuilder<StudentExamCubit, StudentExamState>(
       builder: (context, state) {
         if (state is StudentExamLoaded) {
-          final minutes = state.remainingTime.minutes.toString().padLeft(2, '0');
-          final seconds = state.remainingTime.seconds.toString().padLeft(2, '0');
-          
+          final minutes =
+              state.remainingTime.minutes.toString().padLeft(2, '0');
+          final seconds =
+              state.remainingTime.seconds.toString().padLeft(2, '0');
+
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
@@ -92,146 +278,6 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
         }
         return SizedBox.shrink();
       },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<StudentExamCubit>.value(
-          value: context.read<StudentExamCubit>(),
-        ),
-        BlocProvider<AnswerSubmissionCubit>(
-          create: (context) => AnswerSubmissionCubit(
-            examRepository: context.read<ExamRepository>(),
-            tokenStorage: context.read<TokenStorage>(),
-            tokenCubit: context.read<TokenCubit>()
-          ),
-        ),
-        BlocProvider<FaceMonitoringCubit>(
-          create: (context) => FaceMonitoringCubit(
-            examId: widget.exam.id!,
-            cheatingRepository: context.read<CheatingRepository>(),
-            tokenStorage: context.read<TokenStorage>(),
-            tokenCubit: context.read<TokenCubit>(),
-          ),
-        ),
-        BlocProvider<ExamSubmissionCubit>(
-          create: (context) => ExamSubmissionCubit(
-            examRepository: context.read<ExamRepository>(),
-            tokenStorage: context.read<TokenStorage>(),
-            tokenCubit: context.read<TokenCubit>(),
-          ),
-        ),
-      ],
-      child: Scaffold(
-        body: Stack(
-          children: [
-            CustomScrollView(
-              controller: scrollController,
-              slivers: [
-                // Custom SliverAppBar
-                SliverAppBar(
-                  pinned: true,
-                  floating: true,
-                  snap: true,
-                  elevation: 0,
-                  backgroundColor: Colors.white,
-                  expandedHeight: 60.0,
-                  flexibleSpace: FlexibleSpaceBar(
-                    title: Text(
-                      widget.exam.title,
-                      style: TextStyle(
-                        color: Colors.black87,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    centerTitle: true,
-                  ),
-                  leading: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.black87),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  actions: [
-                    BlocBuilder<StudentExamCubit, StudentExamState>(
-                      builder: (context, state) {
-                        if (state is StudentExamLoaded) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: _buildTimer(),
-                          );
-                        }
-                        return SizedBox();
-                      },
-                    ),
-                  ],
-                ),
-
-                // Questions List
-                SliverPadding(
-                  padding: const EdgeInsets.all(16.0),
-                  sliver: BlocBuilder<StudentExamCubit, StudentExamState>(
-                    builder: (context, state) {
-                      if (state is StudentExamLoading) {
-                        return SliverToBoxAdapter(
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-
-                      if (state is StudentExamLoaded) {
-                        final questions = state.questions;
-                        return SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              if (index < questions.length) {
-                                return _buildQuestionCard(questions[index], index);
-                              } else if (!state.hasReachedMax) {
-                                return Center(child: CircularProgressIndicator());
-                              } else if (index == questions.length) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 20, bottom: 40),
-                                  child: ElevatedButton(
-                                    onPressed: _submitExam,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primaryColor,
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Submit',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }
-                              return null;
-                            },
-                            childCount: questions.length + 1,
-                          ),
-                        );
-                      }
-
-                      return SliverToBoxAdapter(
-                        child: Center(child: Text('No questions available')),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            
-            // Face Monitoring View
-            FaceMonitoringView(examId: widget.exam.id!),
-          ],
-        ),
-      ),
     );
   }
 
@@ -315,9 +361,9 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
 
             // Submit answer thông qua cubit
             await context.read<AnswerSubmissionCubit>().submitAnswer(
-              question.id!,
-              option,
-            );
+                  question.id!,
+                  option,
+                );
           },
           child: Container(
             margin: const EdgeInsets.only(bottom: 8),
@@ -344,8 +390,10 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
                   child: Text(
                     option,
                     style: TextStyle(
-                      color: isSelected ? AppColors.primaryColor : Colors.black87,
-                      fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                      color:
+                          isSelected ? AppColors.primaryColor : Colors.black87,
+                      fontWeight:
+                          isSelected ? FontWeight.w500 : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -358,9 +406,9 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView> with Infi
   }
 
   void _submitExam() async {
-    try {     
+    try {
       await context.read<ExamSubmissionCubit>().submitExam(widget.exam.id!);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Nộp bài thành công')),
       );
