@@ -37,6 +37,7 @@ import 'features/teacher/exams/cubit/grade_list_cubit.dart';
 import 'features/teacher/exams/cubit/question_cubit.dart';
 import 'utils/widgets/global_error_handler.dart';
 import 'services/notification_service.dart';
+import 'data/noti_repository.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -152,6 +153,9 @@ void main() async {
         ),
         RepositoryProvider<NotificationService>(
           create: (context) => notificationService,
+        ),
+        RepositoryProvider<NotiRepository>(
+          create: (context) => NotiRepository(),
         ),
       ],
       child: MultiBlocProvider(

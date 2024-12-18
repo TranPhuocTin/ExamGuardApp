@@ -4,13 +4,14 @@ import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../features/student/exam_monitoring/models/cheating_detection_state.dart';
 import 'dart:io';
-
+import 'monitoring_log_service.dart';
 
 class FaceDetectionService {
   final FaceDetector _faceDetector;
   final double cheatingAngleThreshold;
   final double _minFaceRatio = 0.05;
   final double _maxFaceRatio = 0.65;
+  final MonitoringLogService _logService = MonitoringLogService();
 
   FaceDetectionService({
     this.cheatingAngleThreshold = 25.0,
@@ -33,9 +34,13 @@ class FaceDetectionService {
       CameraImage image, CameraDescription camera) async {
     final inputImage = await _prepareInputImage(image, camera);
     if (inputImage == null) {
+      _logService.logFaceDetection(
+        message: 'Error processing camera image',
+        details: 'Failed to prepare input image',
+      );
       return CheatingDetectionState(
         behavior: CheatingBehavior.error,
-        message: 'Lỗi xử lý hình ảnh',
+        message: 'Error processing camera image',
         timestamp: DateTime.now(),
       );
     }
@@ -43,17 +48,19 @@ class FaceDetectionService {
     final faces = await _faceDetector.processImage(inputImage);
 
     if (faces.isEmpty) {
+      _logService.logFaceNotFound();
       return CheatingDetectionState(
         behavior: CheatingBehavior.noFaceDetected,
-        message: 'Không phát hiện khuôn mặt trong khung hình',
+        message: 'No face detected in frame',
         timestamp: DateTime.now(),
       );
     }
 
     if (faces.length > 1) {
+      _logService.logMultipleFaces();
       return CheatingDetectionState(
         behavior: CheatingBehavior.multipleFaces,
-        message: 'Phát hiện nhiều khuôn mặt trong khung hình',
+        message: 'Multiple faces detected in frame',
         timestamp: DateTime.now(),
       );
     }
@@ -63,15 +70,17 @@ class FaceDetectionService {
 
     if (headEulerAngleY != null) {
       if (headEulerAngleY < -cheatingAngleThreshold) {
+        _logService.logFacePosition('Looking left');
         return CheatingDetectionState(
-          behavior: CheatingBehavior.lookingLeft,
-          message: 'Phát hiện quay đầu sang trái',
+          behavior: CheatingBehavior.lookingRight,
+          message: 'Head turned to the right',
           timestamp: DateTime.now(),
         );
       } else if (headEulerAngleY > cheatingAngleThreshold) {
+        _logService.logFacePosition('Looking right');
         return CheatingDetectionState(
-          behavior: CheatingBehavior.lookingRight,
-          message: 'Phát hiện quay đầu sang phải',
+          behavior: CheatingBehavior.lookingLeft,
+          message: 'Head turned to the left',
           timestamp: DateTime.now(),
         );
       }
@@ -82,16 +91,21 @@ class FaceDetectionService {
     final faceRatio = faceSize / screenSize;
 
     if (faceRatio < _minFaceRatio || faceRatio > _maxFaceRatio) {
+      _logService.logFaceDetection(
+        message: 'Invalid face distance',
+        details: 'Face too ${faceRatio < _minFaceRatio ? "far" : "close"} from camera',
+      );
       return CheatingDetectionState(
         behavior: CheatingBehavior.spoofing,
-        message: 'Vui lòng điều chỉnh khoảng cách với camera',
+        message: 'Please adjust your distance from the camera',
         timestamp: DateTime.now(),
       );
     }
 
+    _logService.logFaceDetected();
     return CheatingDetectionState(
       behavior: CheatingBehavior.normal,
-      message: 'Bình thường',
+      message: 'Normal',
       timestamp: DateTime.now(),
     );
   }
@@ -142,7 +156,10 @@ class FaceDetectionService {
     try {
       _faceDetector.close();
     } catch (e) {
-      debugPrint('Error disposing face detector: $e');
+      _logService.logFaceDetection(
+        message: 'Error disposing face detector',
+        details: e.toString(),
+      );
     }
   }
 }

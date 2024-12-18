@@ -23,6 +23,9 @@ import '../cubit/base_homepage_state.dart';
 import '../models/exam.dart';
 import '../widgets/exam_card_shimmer.dart';
 import '../widgets/avatar_widget.dart';
+import '../notifications/view/notifications_view.dart';
+import '../notifications/cubit/notification_cubit.dart';
+import '../../../data/noti_repository.dart';
 
 class BaseHomePageWrapper extends StatefulWidget {
   @override
@@ -283,7 +286,15 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                                                 Navigator.of(context).push(
                                                   MaterialPageRoute(
                                                     builder: (context) =>
-                                                        ScreenInfoApp(),
+                                                        BlocProvider(
+                                                          create: (context) =>
+                                                              NotificationListCubit(
+                                                                RepositoryProvider.of<NotiRepository>(context),
+                                                                RepositoryProvider.of<TokenStorage>(context),
+                                                                BlocProvider.of<TokenCubit>(context),
+                                                              )..fetchNotifications(),
+                                                          child: const NotificationsView(),
+                                                        ),
                                                   ),
                                                 );
                                               },

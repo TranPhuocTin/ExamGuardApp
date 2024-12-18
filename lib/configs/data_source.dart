@@ -26,4 +26,36 @@ class ApiUrls {
   static String forgotPassword = '/api/auth/forgot-password';
   static String resetPassword = '/api/auth/reset-password';
   static const String viewCompletedGrades = '/api/grade/view-completed';
+  static const String getNotifications = '/api/notification/list';
 }
+
+// class ApiUrls {
+//   static String login = 'user-service/api/auth/login';
+//   static String getTeacherOrStudentList = 'user-service/api/user/list';
+//   static String findUserById(String userId) => 'user-service/v1/api/user/$userId';
+//   static String searchUser = 'user-service/api/user/search';
+//   static String deleteUser(String userId) => 'user-service/api/user/$userId';
+//   static String updateUser(String userId) => 'user-service/api/user/$userId';
+//   static String logout = 'user-service/api/auth/logout';
+//   static const String getExamList = 'exam-service/api/exam/list';
+//   static const String getSearchExam = 'exam-service/api/exam/search';
+//   static String updateExam(String examId) => 'exam-service/api/exam/$examId';
+//   static String deleteExam(String examId) => 'exam-service/api/exam/$examId';
+//   static String createExam = 'exam-service/api/exam/create';
+//   static String getQuestionList(String examId) => 'exam-service/api/question/$examId/list';
+//   static String createQuestion(String examId) => 'exam-service/api/question/$examId/create';
+//   static String updateQuestion(String examId, String questionId) => 'exam-service/api/question/$examId/$questionId';
+//   static String deleteQuestion(String examId, String questionId) => 'exam-service/api/question/$examId/$questionId';
+//   static String reportCheating(String examId) => 'cheating-service/api/cheating/detect-cheating/$examId';
+//   static String getcheatingStatistics(String examId) => 'cheating-service/api/cheating/list-cheating-statistics/$examId';
+//   static String joinExam(String examId) => 'exam-service/api/exam/join/$examId';
+//   static String getCheatingHistories(String examId, String studentId) => 'cheating-service/api/cheating/list-cheating-histories-by-student/$examId/$studentId';
+//   static String submitExam(String examId) => 'exam-service/api/exam/submit/$examId';
+//   static String getGrade(String examId) => 'exam-service/api/grade/view-grade/$examId';
+//   static String getExamGrades(String examId) => 'exam-service/api/grade/list-by-exam/$examId';
+//   static String getStudentAnswer(String examId, String studentId) => 'exam-service/api/answer/$examId/list-by-student/$studentId';
+//   static String forgotPassword = 'user-service/api/auth/forgot-password';
+//   static String resetPassword = 'user-service/api/auth/reset-password';
+//   static const String viewCompletedGrades = 'user-service/api/grade/view-completed';
+//   static const String getNotifications = 'user-service/api/notification/list';
+// }

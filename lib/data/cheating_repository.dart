@@ -71,17 +71,16 @@ class CheatingRepository {
   }
 
   InfractionType _mapBehaviorToInfractionType(CheatingBehavior behavior) {
-    switch (behavior) {
-      case CheatingBehavior.lookingLeft:
-      case CheatingBehavior.lookingRight:
-      case CheatingBehavior.noFaceDetected:
-      case CheatingBehavior.multipleFaces:
-      case CheatingBehavior.spoofing:
-        return InfractionType.face;
-      case CheatingBehavior.pipMode:
-        return InfractionType.switchTab;
-      default:
-        return InfractionType.face;
-    }
+    const behaviorToInfractionMap = {
+      CheatingBehavior.lookingLeft: InfractionType.face,
+      CheatingBehavior.lookingRight: InfractionType.face,
+      CheatingBehavior.noFaceDetected: InfractionType.face,
+      CheatingBehavior.multipleFaces: InfractionType.face,
+      CheatingBehavior.pipMode: InfractionType.switchTab,
+      CheatingBehavior.switchTab: InfractionType.switchTab,
+      CheatingBehavior.appMinimized: InfractionType.switchTab,
+    };
+
+    return behaviorToInfractionMap[behavior] ?? InfractionType.face;
   }
 }

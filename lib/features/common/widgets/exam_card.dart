@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-
-import '../../../utils/transitions/slide_up_route.dart';
 import '../models/exam.dart';
 import '../../../configs/app_colors.dart';
 import '../../teacher/exams/cubit/exam_cubit.dart';
 import '../../teacher/exams/view/create_update_exam_view.dart';
-import '../../teacher/exams/view/exam_detail_view.dart';
 import 'delete_confirm_dialog.dart';
+import '../../teacher/exams/view/teacher_exam_monitoring_view.dart';
 
 class ExamCard extends StatelessWidget {
   final bool isShowMoreIcon;
@@ -288,19 +286,43 @@ class ExamCard extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    // Edit Action
-                    _buildActionCard(
-                      onTap: () => _handleEdit(context),
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.primaryColor.withOpacity(0.8),
-                          AppColors.primaryColor,
-                        ],
+                    // Edit or View Cheating History based on status
+                    if (exam.status.toLowerCase() == 'scheduled')
+                      _buildActionCard(
+                        onTap: () => _handleEdit(context),
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primaryColor.withOpacity(0.8),
+                            AppColors.primaryColor,
+                          ],
+                        ),
+                        icon: Icons.edit_rounded,
+                        title: 'Edit Exam',
+                        subtitle: 'Modify exam details and settings',
+                      )
+                    else if (exam.status.toLowerCase() == 'completed')
+                      _buildActionCard(
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TeacherExamMonitoringView(
+                                exam: exam,
+                              ),
+                            ),
+                          );
+                        },
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primaryColor.withOpacity(0.8),
+                            AppColors.primaryColor,
+                          ],
+                        ),
+                        icon: Icons.history_rounded,
+                        title: 'View Cheating History',
+                        subtitle: 'Check student monitoring records',
                       ),
-                      icon: Icons.edit_rounded,
-                      title: 'Edit Exam',
-                      subtitle: 'Modify exam details and settings',
-                    ),
                     const SizedBox(height: 12),
 
                     // View Grades Action

@@ -21,6 +21,6 @@ Map<String, dynamic> _$DetectCheatingToJson(DetectCheating instance) =>
 
 const _$InfractionTypeEnumMap = {
   InfractionType.face: 'Face',
-  InfractionType.switchTab: 'Switch_Tab',
+  InfractionType.switchTab: 'Switch Tab',
   InfractionType.screenCapture: 'Screen Capture',
 };

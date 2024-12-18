@@ -60,6 +60,7 @@ dependencies:
   shimmer: ^3.0.0
   simple_pip_mode: ^1.0.0
   pin_code_fields: ^8.0.1
+  timeago: ^3.7.0
 
 dev_dependencies:
   flutter_test:
