@@ -278,12 +278,6 @@ class _CompletedGradeViewState extends State<CompletedGradeView> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            _buildInfoItem(
-                              Icons.person_outline,
-                              'Teacher',
-                              grade.exam?.teacher ?? 'Unknown Teacher',
-                            ),
                           ],
                         ),
                       ),

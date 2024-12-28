@@ -257,7 +257,7 @@ class _FaceMonitoringViewState extends State<FaceMonitoringView> {
             child: Text(
               state.cheatingLogs.isNotEmpty
                   ? state.cheatingLogs.last.message
-                  : 'Đang giám sát...',
+                  : 'Monitoring...',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: _isMinimized ? 10 : 12,

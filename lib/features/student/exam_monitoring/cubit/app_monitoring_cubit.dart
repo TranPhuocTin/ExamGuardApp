@@ -19,9 +19,10 @@ class AppMonitoringCubit extends Cubit<AppMonitoringState> {
   StreamSubscription? _appStateSubscription;
   Timer? _monitoringTimer;
   Timer? _cheatingTimer;
+  Timer? _reportingTimer;
   static const Duration _cheatingDelay = Duration(seconds: 5);
+  static const Duration _reportingInterval = Duration(seconds: 5);
   CheatingDetectionState? _pendingCheatingState;
-  bool _hasReportedCurrentViolation = false;
 
   AppMonitoringCubit({
     required this.examId,
@@ -78,12 +79,12 @@ class AppMonitoringCubit extends Cubit<AppMonitoringState> {
     if (currentState == AppState.background) {
       _handleCheatingDetection(
         CheatingBehavior.switchTab,
-        'Application switched to another tab/window',
+        'Student leaves the exam page while the exam in progress',
       );
     } else if (currentState == AppState.minimized) {
       _handleCheatingDetection(
         CheatingBehavior.switchTab,
-        'Application was minimized',
+        'Student leaves the exam page while the exam in progress',
       );
     } else if (currentState == AppState.normal) {
       _handleCheatingDetection(
@@ -130,10 +131,10 @@ class AppMonitoringCubit extends Cubit<AppMonitoringState> {
     print('📝 Message: $message');
 
     if (behavior == CheatingBehavior.normal) {
-      print('✅ Trở về trạng thái bình thường - Hủy timer');
+      print('✅ Trở về trạng thái bình thường - Hủy các timer');
       _cheatingTimer?.cancel();
+      _reportingTimer?.cancel();
       _pendingCheatingState = null;
-      _hasReportedCurrentViolation = false;
       emit(state.copyWith(
         currentBehavior: behavior,
         cheatingLogs: updatedLogs,
@@ -142,42 +143,69 @@ class AppMonitoringCubit extends Cubit<AppMonitoringState> {
       return;
     }
 
-    if (!_hasReportedCurrentViolation) {
-      print('⚠️ Phát hiện hành vi bất thường - Bắt đầu đếm thời gian 5s');
-      _cheatingTimer?.cancel();
-      _pendingCheatingState = detectionState;
+    print('⚠️ Phát hiện hành vi bất thường - Bắt đầu đếm thời gian 5s');
+    _cheatingTimer?.cancel();
+    _reportingTimer?.cancel();
+    _pendingCheatingState = detectionState;
 
-      _cheatingTimer = Timer(_cheatingDelay, () async {
-        print('⏰ Hết thời gian delay 5s');
+    _cheatingTimer = Timer(_cheatingDelay, () async {
+      print('⏰ Hết thời gian delay 5s');
 
-        if (_pendingCheatingState == detectionState && !_hasReportedCurrentViolation) {
-          print('✅ Hành vi vẫn tiếp tục sau 5s - Chuẩn bị gửi báo cáo');
-          try {
-            final clientId = await _tokenStorage.getClientId();
-            final token = await _tokenStorage.getAccessToken();
-
-            if (clientId != null && token != null) {
-              print('🚀 Gửi báo cáo lên server');
-              await _submitReport(clientId, token, detectionState);
-              _hasReportedCurrentViolation = true;
-            }
-          } catch (e) {
-            print('❌ Lỗi khi gửi báo cáo: $e');
-            emit(state.copyWith(error: 'Lỗi khi gửi báo cáo: ${e.toString()}'));
+      if (_pendingCheatingState == detectionState) {
+        print('✅ Hành vi vẫn tiếp tục sau 5s - Bắt đầu gửi báo cáo định kỳ');
+        
+        // Gửi báo cáo đầu tiên
+        await _submitInitialReport(detectionState);
+        
+        // Thiết lập timer để gửi báo cáo định kỳ
+        _reportingTimer = Timer.periodic(_reportingInterval, (timer) async {
+          if (_pendingCheatingState == detectionState) {
+            print('📤 Gửi báo cáo định kỳ');
+            await _submitPeriodicReport(detectionState);
+          } else {
+            print('🛑 Hành vi đã thay đổi - Dừng gửi báo cáo định kỳ');
+            timer.cancel();
           }
-        } else {
-          print('🚫 Hành vi đã thay đổi trong 5s hoặc đã được báo cáo - Không gửi báo cáo');
-        }
-      });
-    } else {
-      print('⏭️ Vi phạm này đã được báo cáo - Bỏ qua');
-    }
+        });
+      }
+    });
 
     emit(state.copyWith(
       currentBehavior: behavior,
       cheatingLogs: updatedLogs,
       error: null,
     ));
+  }
+
+  Future<void> _submitInitialReport(CheatingDetectionState detectionState) async {
+    try {
+      final clientId = await _tokenStorage.getClientId();
+      final token = await _tokenStorage.getAccessToken();
+
+      if (clientId != null && token != null) {
+        print('🚀 Gửi báo cáo đầu tiên lên server');
+        await _submitReport(clientId, token, detectionState);
+      }
+    } catch (e) {
+      print('❌ Lỗi khi gửi báo cáo đầu tiên: $e');
+      emit(state.copyWith(error: 'Lỗi khi gửi báo cáo: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _submitPeriodicReport(CheatingDetectionState detectionState) async {
+    try {
+      final clientId = await _tokenStorage.getClientId();
+      final token = await _tokenStorage.getAccessToken();
+
+      if (clientId != null && token != null) {
+        print('🔄 Gửi báo cáo định kỳ lên server');
+        await _submitReport(clientId, token, detectionState);
+      }
+    } catch (e) {
+      print('❌ Lỗi khi gửi báo cáo định kỳ: $e');
+      _reportingTimer?.cancel();
+      emit(state.copyWith(error: 'Lỗi khi gửi báo cáo: ${e.toString()}'));
+    }
   }
 
   Future<void> _submitReport(String clientId, String token, CheatingDetectionState detectionState) async {
@@ -227,6 +255,7 @@ class AppMonitoringCubit extends Cubit<AppMonitoringState> {
   void stopMonitoring() {
     _monitoringTimer?.cancel();
     _cheatingTimer?.cancel();
+    _reportingTimer?.cancel();
     _appStateSubscription?.cancel();
     _appLifecycleService.dispose();
     emit(state.copyWith(isMonitoring: false));

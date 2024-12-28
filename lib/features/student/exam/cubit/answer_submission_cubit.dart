@@ -20,28 +20,28 @@ class AnswerSubmissionCubit extends Cubit<AnswerSubmissionState> {
 
   Future<void> submitAnswer(String questionId, String answer) async {
     try {
-      print('🎯 AnswerSubmissionCubit - Bắt đầu submit answer:');
+      print('🎯 AnswerSubmissionCubit - Submit answer details:');
       print('- Question ID: $questionId');
       print('- Answer: $answer');
+      print('- Timestamp: ${DateTime.now()}');
 
       emit(AnswerSubmissionLoading(questionId: questionId));
 
       final clientId = await _tokenStorage.getClientId();
       final token = await _tokenStorage.getAccessToken();
 
-      print('🔑 Token info:');
-      print('- Client ID: $clientId');
-      print('- Token available: ${token != null}');
-
       if (clientId != null && token != null) {
-        print('📤 Đang gửi request đến server...');
+        print('📤 Sending answer to server...');
         await _examRepository.submitAnswer(
           questionId,
           answer,
           clientId,
           token,
         );
-        print('✅ Submit answer thành công!');
+        print('✅ Answer submitted successfully!');
+        print('- Question ID: $questionId');
+        print('- Answer: $answer');
+        print('- Time: ${DateTime.now()}');
 
         emit(AnswerSubmissionSuccess(
           questionId: questionId,
@@ -51,7 +51,9 @@ class AnswerSubmissionCubit extends Cubit<AnswerSubmissionState> {
         throw Exception('Missing authentication credentials');
       }
     } catch (e) {
-      print('❌ Lỗi khi submit answer:');
+      print('❌ Error submitting answer:');
+      print('- Question ID: $questionId'); 
+      print('- Attempted answer: $answer');
       print('- Error: $e');
       _tokenCubit.handleTokenError(e);
       emit(AnswerSubmissionFailure(

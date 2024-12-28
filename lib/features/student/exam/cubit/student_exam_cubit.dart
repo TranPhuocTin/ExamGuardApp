@@ -35,9 +35,12 @@ class StudentExamCubit extends Cubit<StudentExamState> with PaginationMixin<Ques
       emit(StudentExamLoading());
       resetPagination();
       _timer?.cancel();
+    } else {
+      if (state is StudentExamLoaded) {
+        final currentState = state as StudentExamLoaded;
+        emit(currentState.copyWith(isLoading: true));
+      }
     }
-
-    setLoading(true);
 
     try {
       final clientId = await _tokenStorage.getClientId();
@@ -63,7 +66,7 @@ class StudentExamCubit extends Cubit<StudentExamState> with PaginationMixin<Ques
           ? [...items, ...questions]
           : questions;
 
-      final hasReached = currentPage * questions.length >= total!;
+      final hasReached = newQuestions.length >= total!;
 
       updatePaginationState(
         newItems: newQuestions,

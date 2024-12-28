@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 class AvatarWidget extends StatelessWidget {
   final String? avatarUrl;
   final double radius;
-  final String defaultAvatarAsset;
   final String defaultAvatarUrl;
   final BoxBorder? border;
 
@@ -11,7 +10,6 @@ class AvatarWidget extends StatelessWidget {
     Key? key,
     this.avatarUrl,
     this.radius = 20,
-    this.defaultAvatarAsset = 'assets/images/teacher_avatar.png',
     this.defaultAvatarUrl = 'https://i0.wp.com/sbcf.fr/wp-content/uploads/2018/03/sbcf-default-avatar.png?ssl=1',
     this.border,
   }) : super(key: key);
@@ -36,7 +34,7 @@ class AvatarWidget extends StatelessWidget {
       // Nếu không có URL, dùng asset mặc định
       return CircleAvatar(
         radius: radius,
-        backgroundImage: AssetImage(defaultAvatarAsset),
+        backgroundImage: NetworkImage(defaultAvatarUrl),
       );
     }
 

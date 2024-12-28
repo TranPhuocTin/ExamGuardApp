@@ -291,7 +291,7 @@ class _ExamListPageState extends State<ExamListPage> {
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: ExamCard(
                       exam: exam,
-                      // isShowMoreIcon: exam.status != 'In Progress',
+                      // isShowMoreIcon: true,
                       isShowMoreIcon: exam.status != 'In Progress',
                       isShowJoinButton: false,
                       onExamTapped: () {

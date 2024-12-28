@@ -18,6 +18,7 @@ import '../cubit/answer_submission_cubit.dart';
 import '../cubit/answer_submission_state.dart';
 import '../cubit/exam_submission_cubit.dart';
 import '../../../../services/app_lifecycle_service.dart';
+import '../../../../features/common/cubit/base_homepage_cubit.dart';
 
 class StudentExamDetailView extends StatefulWidget {
   final Exam exam;
@@ -56,6 +57,84 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView>
         !state.hasReachedMax &&
         !state.isLoading) {
       _examCubit.loadMoreQuestions();
+    }
+  }
+
+  Future<void> _showExitConfirmationDialog() async {
+    final shouldExit = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            'Leave Exam',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Are you sure you want to leave the exam?'),
+              SizedBox(height: 12),
+              Text(
+                'Warning:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text('• Your answers will be automatically submitted'),
+              Text('• This action cannot be undone'),
+              Text('• You cannot retake this exam'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  await context.read<ExamSubmissionCubit>().submitExam(widget.exam.id!);
+                  if (!mounted) return;
+                  Navigator.of(context).pop(true);
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to submit exam: $e')),
+                  );
+                  Navigator.of(context).pop(false);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Leave & Submit',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldExit == true && mounted) {
+      Navigator.of(context).pop();
     }
   }
 
@@ -98,6 +177,9 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView>
             tokenStorage: context.read<TokenStorage>(),
             tokenCubit: context.read<TokenCubit>(),
           ),
+        ),
+        BlocProvider<BaseHomepageCubit>.value(
+          value: context.read<BaseHomepageCubit>(),
         ),
       ],
       child: BlocListener<AppMonitoringCubit, AppMonitoringState>(
@@ -147,7 +229,7 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView>
                     ),
                     leading: IconButton(
                       icon: Icon(Icons.arrow_back, color: Colors.black87),
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: _showExitConfirmationDialog,
                     ),
                     actions: [
                       BlocBuilder<StudentExamCubit, StudentExamState>(
@@ -183,33 +265,42 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView>
                                 if (index < questions.length) {
                                   return _buildQuestionCard(
                                       questions[index], index);
-                                } else if (!state.hasReachedMax) {
-                                  return Center(
-                                      child: CircularProgressIndicator());
                                 } else if (index == questions.length) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(
-                                        top: 20, bottom: 40),
-                                    child: ElevatedButton(
-                                      onPressed: _submitExam,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.primaryColor,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 16),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                  if (state.isLoading) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 20),
+                                      child: Center(child: CircularProgressIndicator()),
+                                    );
+                                  }
+                                  
+                                  if (state.hasReachedMax) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                          top: 20, bottom: 40),
+                                      child: ElevatedButton(
+                                        onPressed: _submitExam,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primaryColor,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 16),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Submit',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white
+                                          ),
                                         ),
                                       ),
-                                      child: const Text(
-                                        'Submit',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  );
+                                    );
+                                  }
+                                  
+                                  return const SizedBox.shrink();
                                 }
                                 return null;
                               },
@@ -407,15 +498,69 @@ class _StudentExamDetailViewState extends State<StudentExamDetailView>
 
   void _submitExam() async {
     try {
-      await context.read<ExamSubmissionCubit>().submitExam(widget.exam.id!);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nộp bài thành công')),
+      print('📝 Current selected answers:');
+      selectedAnswers.forEach((questionId, answer) {
+        print('- Question $questionId: $answer');
+      });
+      print('Total answered questions: ${selectedAnswers.length}');
+      
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        },
       );
+
+      // Submit exam
+      await context.read<ExamSubmissionCubit>().submitExam(widget.exam.id!);
+      
+      if (!mounted) return;
+
+      // Refresh homepage data trước khi navigate
+      final homepageCubit = context.read<BaseHomepageCubit>();
+      await homepageCubit.loadInProgressExams(forceReload: true);
+
+      // Close loading indicator
       Navigator.of(context).pop();
-    } catch (e) {
+
+      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Có lỗi xảy ra khi nộp bài')),
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 8),
+              Text('Exam submitted successfully'),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      // Navigate back to homepage
+      Navigator.of(context).popUntil((route) => route.isFirst);
+
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.white),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text('Failed to submit exam: ${e.toString()}'),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
       );
     }
   }

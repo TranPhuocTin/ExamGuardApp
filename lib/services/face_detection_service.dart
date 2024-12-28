@@ -51,7 +51,7 @@ class FaceDetectionService {
       _logService.logFaceNotFound();
       return CheatingDetectionState(
         behavior: CheatingBehavior.noFaceDetected,
-        message: 'No face detected in frame',
+        message: 'Face not detected',
         timestamp: DateTime.now(),
       );
     }
@@ -60,7 +60,7 @@ class FaceDetectionService {
       _logService.logMultipleFaces();
       return CheatingDetectionState(
         behavior: CheatingBehavior.multipleFaces,
-        message: 'Multiple faces detected in frame',
+        message: 'Detect multiple faces in front of camera',
         timestamp: DateTime.now(),
       );
     }
@@ -73,14 +73,14 @@ class FaceDetectionService {
         _logService.logFacePosition('Looking left');
         return CheatingDetectionState(
           behavior: CheatingBehavior.lookingRight,
-          message: 'Head turned to the right',
+          message: 'Student looks away from test screen',
           timestamp: DateTime.now(),
         );
       } else if (headEulerAngleY > cheatingAngleThreshold) {
         _logService.logFacePosition('Looking right');
         return CheatingDetectionState(
           behavior: CheatingBehavior.lookingLeft,
-          message: 'Head turned to the left',
+          message: 'Student looks away from test screen',
           timestamp: DateTime.now(),
         );
       }

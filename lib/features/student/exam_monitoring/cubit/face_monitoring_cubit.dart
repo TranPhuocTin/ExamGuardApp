@@ -14,9 +14,10 @@ class FaceMonitoringCubit extends Cubit<FaceMonitoringState> {
   final TokenCubit _tokenCubit;
   final String examId;
   DateTime? _lastSubmissionTime;
-  static const Duration _minimumSubmissionInterval = Duration(seconds: 5);
   Timer? _cheatingTimer;
+  Timer? _reportingTimer;
   static const Duration _cheatingDelay = Duration(seconds: 5);
+  static const Duration _reportingInterval = Duration(seconds: 5);
   CheatingDetectionState? _pendingCheatingState;
 
   FaceMonitoringCubit({
@@ -49,43 +50,34 @@ class FaceMonitoringCubit extends Cubit<FaceMonitoringState> {
       if (detectionState.behavior != CheatingBehavior.normal) {
         print('⚠️ Phát hiện hành vi bất thường - Bắt đầu đếm thời gian 5s');
         _cheatingTimer?.cancel();
+        _reportingTimer?.cancel();
         _pendingCheatingState = detectionState;
 
         _cheatingTimer = Timer(_cheatingDelay, () async {
           print('⏰ Hết thời gian delay 5s');
 
           if (_pendingCheatingState == detectionState) {
-            print('✅ Hành vi vẫn tiếp tục sau 5s - Chuẩn bị gửi báo cáo');
-
-            final shouldSubmit = _lastSubmissionTime == null ||
-                now.difference(_lastSubmissionTime!) >
-                    _minimumSubmissionInterval;
-
-            if (shouldSubmit) {
-              print('📤 Đủ điều kiện gửi báo cáo');
-              _lastSubmissionTime = now;
-              try {
-                final clientId = await _tokenStorage.getClientId();
-                final token = await _tokenStorage.getAccessToken();
-
-                if (clientId != null && token != null) {
-                  print('🚀 Gửi báo cáo lên server');
-                  await _submitCheatingReport(clientId, token, detectionState);
-                }
-              } catch (e) {
-                print('❌ Lỗi khi gửi báo cáo: $e');
-                handleError('Lỗi khi gửi báo cáo: ${e.toString()}');
+            print('✅ Hành vi vẫn tiếp tục sau 5s - Bắt đầu gửi báo cáo định kỳ');
+            
+            // Gửi báo cáo đầu tiên
+            await _submitInitialReport(detectionState);
+            
+            // Thiết lập timer để gửi báo cáo định kỳ
+            _reportingTimer = Timer.periodic(_reportingInterval, (timer) async {
+              if (_pendingCheatingState == detectionState) {
+                print('📤 Gửi báo cáo định kỳ');
+                await _submitPeriodicReport(detectionState);
+              } else {
+                print('🛑 Hành vi đã thay đổi - Dừng gửi báo cáo định kỳ');
+                timer.cancel();
               }
-            } else {
-              print('⏳ Chưa đủ thời gian giữa 2 lần gửi báo cáo');
-            }
-          } else {
-            print('🚫 Hành vi đã thay đổi trong 5s - Không gửi báo cáo');
+            });
           }
         });
       } else {
-        print('✅ Trở về trạng thái bình thường - Hủy timer');
+        print('✅ Trở về trạng thái bình thường - Hủy các timer');
         _cheatingTimer?.cancel();
+        _reportingTimer?.cancel();
         _pendingCheatingState = null;
       }
 
@@ -94,6 +86,37 @@ class FaceMonitoringCubit extends Cubit<FaceMonitoringState> {
         cheatingLogs: updatedLogs,
         error: null,
       ));
+    }
+  }
+
+  Future<void> _submitInitialReport(CheatingDetectionState detectionState) async {
+    try {
+      final clientId = await _tokenStorage.getClientId();
+      final token = await _tokenStorage.getAccessToken();
+
+      if (clientId != null && token != null) {
+        print('🚀 Gửi báo cáo đầu tiên lên server');
+        await _submitCheatingReport(clientId, token, detectionState);
+      }
+    } catch (e) {
+      print('❌ Lỗi khi gửi báo cáo đầu tiên: $e');
+      handleError('Lỗi khi gửi báo cáo: ${e.toString()}');
+    }
+  }
+
+  Future<void> _submitPeriodicReport(CheatingDetectionState detectionState) async {
+    try {
+      final clientId = await _tokenStorage.getClientId();
+      final token = await _tokenStorage.getAccessToken();
+
+      if (clientId != null && token != null) {
+        print('🔄 Gửi báo cáo định kỳ lên server');
+        await _submitCheatingReport(clientId, token, detectionState);
+      }
+    } catch (e) {
+      print('❌ Lỗi khi gửi báo cáo định kỳ: $e');
+      _reportingTimer?.cancel();
+      handleError('Lỗi khi gửi báo cáo: ${e.toString()}');
     }
   }
 
@@ -132,6 +155,7 @@ class FaceMonitoringCubit extends Cubit<FaceMonitoringState> {
   @override
   Future<void> close() {
     _cheatingTimer?.cancel();
+    _reportingTimer?.cancel();
     return super.close();
   }
 }

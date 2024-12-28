@@ -40,16 +40,13 @@ class AppLifecycleService with WidgetsBindingObserver {
   void _handleStateChange(AppState state) {
     switch (state) {
       case AppState.background:
-        print('🔌 App went to background');
-        // Thực hiện các hành động khi app vào background
+        print('Student leaves the exam page while the exam in progress');
         break;
       case AppState.minimized:
-        print('⬇️ App was minimized');
-        // Thực hiện các hành động khi app bị minimize
+        print('Student leaves the exam page while the exam in progress');
         break;
       case AppState.normal:
         print('✅ App returned to normal state');
-        // Thực hiện các hành động khi app trở lại bình thường
         break;
     }
   }

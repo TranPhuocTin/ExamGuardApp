@@ -15,13 +15,12 @@ class AppColors {
   // Text Colors
   static const Color textColor = Color(0xFFFFFFFF);       // Xanh đen, dễ đọc hơn
   static const Color textPrimary = Color(0xFF1E293B);    // Xanh đen, dễ đọc hơn
-  static const Color textSecondary = Color(0xFF64748B);  // Xám trung tính
-  static const Color titleColor = primaryColor;           // Giữ nguyên reference
+  static const Color textSecondary = Color(0xFF64748B);
   
   // Status Colors
-  static const Color errorColor = Color(0xFFEF4444);      // Đỏ nổi bật hơn
-  static const Color success = Color(0xFF22C55E);        // Xanh lá tươi hơn
-  static const Color warning = Color(0xFFF59E0B);        // Cam cảnh báo
+  static const Color errorColor = Color(0xFFEF4444);
+  static const Color success = Color(0xFF22C55E);
+  static const Color warning = Color(0xFFF59E0B);
   
   // UI Elements
   static const Color cardBackground = Color(0xFFFFFFFF);

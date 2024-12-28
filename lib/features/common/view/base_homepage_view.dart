@@ -134,45 +134,104 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                             ),
                           );
                         } else if (state.user?.role == 'STUDENT') {
-                          final studentExamCubit = StudentExamCubit(
-                            examRepository: context.read<ExamRepository>(),
-                            tokenStorage: context.read<TokenStorage>(),
-                            tokenCubit: context.read<TokenCubit>(),
-                            examId: exams[index].id!,
-                          );
-
-                          await studentExamCubit.loadExam();
-
-                          if (!mounted) return;
-
-                          final currentContext = _navigatorKey.currentContext;
-                          if (currentContext == null) return;
-
-                          Navigator.of(context, rootNavigator: true).push(
-                            MaterialPageRoute(
-                                builder: (context) => MultiBlocProvider(
-                                      providers: [
-                                        BlocProvider<StudentExamCubit>.value(
-                                          value: studentExamCubit,
-                                        ),
-                                        BlocProvider<FaceMonitoringCubit>(
-                                          create: (context) =>
-                                              FaceMonitoringCubit(
-                                            examId: exams[index].id!,
-                                            cheatingRepository: context
-                                                .read<CheatingRepository>(),
-                                            tokenStorage:
-                                                context.read<TokenStorage>(),
-                                            tokenCubit:
-                                                context.read<TokenCubit>(),
-                                          ),
-                                        ),
-                                      ],
-                                      child: StudentExamDetailView(
-                                          exam: exams[index]),
+                          final bool? confirmed = await showDialog<bool>(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                title: Text(
+                                  'Confirm Start Exam',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Are you sure you want to start this exam?'),
+                                    SizedBox(height: 12),
+                                    Text(
+                                      'Important Notes:',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
-                                fullscreenDialog: true),
+                                    SizedBox(height: 8),
+                                    Text('• Duration: ${exams[index].duration} minutes'),
+                                    Text('• Camera will be monitored'),
+                                    Text('• Do not leave the application'),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(false),
+                                    child: Text(
+                                      'Cancel',
+                                      style: TextStyle(color: AppColors.textSecondary),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.of(context).pop(true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Start Now',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           );
+
+                          if (confirmed == true) {
+                            final studentExamCubit = StudentExamCubit(
+                              examRepository: context.read<ExamRepository>(),
+                              tokenStorage: context.read<TokenStorage>(),
+                              tokenCubit: context.read<TokenCubit>(),
+                              examId: exams[index].id!,
+                            );
+
+                            await studentExamCubit.loadExam();
+
+                            if (!mounted) return;
+
+                            final currentContext = _navigatorKey.currentContext;
+                            if (currentContext == null) return;
+
+                            Navigator.of(context, rootNavigator: true).push(
+                              MaterialPageRoute(
+                                  builder: (context) => MultiBlocProvider(
+                                        providers: [
+                                          BlocProvider<StudentExamCubit>.value(
+                                            value: studentExamCubit,
+                                          ),
+                                          BlocProvider<FaceMonitoringCubit>(
+                                            create: (context) =>
+                                                FaceMonitoringCubit(
+                                              examId: exams[index].id!,
+                                              cheatingRepository: context
+                                                  .read<CheatingRepository>(),
+                                              tokenStorage:
+                                                  context.read<TokenStorage>(),
+                                              tokenCubit:
+                                                  context.read<TokenCubit>(),
+                                            ),
+                                          ),
+                                        ],
+                                        child: StudentExamDetailView(
+                                            exam: exams[index]),
+                                      ),
+                                  fullscreenDialog: true),
+                            );
+                          }
                         }
                       } catch (e) {
                         final currentContext = _navigatorKey.currentContext;
@@ -182,7 +241,7 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                             barrierDismissible: false,
                             builder: (BuildContext context) {
                               return AlertDialog(
-                                title: const Text('Thông báo'),
+                                title: const Text('Notification'),
                                 content: Text(e.toString()),
                                 actions: [
                                   TextButton(
@@ -197,12 +256,12 @@ class _BaseHomePageContentState extends State<BaseHomePageContent> {
                                             const GradeDialog(),
                                       );
                                     },
-                                    child: const Text('Xem điểm'),
+                                    child: const Text('View grade'),
                                   ),
                                   TextButton(
                                     onPressed: () =>
                                         Navigator.of(context).pop(),
-                                    child: const Text('Đóng'),
+                                    child: const Text('Close'),
                                   ),
                                 ],
                               );
